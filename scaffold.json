@@ -1,1 +1,43 @@
-{}
+{
+  "extensionName": "screen-capture-extension",
+  "extensionDescription": "An extension that will allow user to capture an image of an area of a web page or specific page level elements by snapping to selectors (like when user may be in chrome dev tools and inspecting elements). Once the capture is made, will provide the image capture a beautiful configurable background that can be configured from the extension window. The extension will provide fast and easy way to quickly capture images from the webpage with one-click capture. The user will be able to annotate the image with text, arrows, and shapes that can be moved/dragged around to help the user convey their diagrams better. The extension will allow the user to save the image to clipboard after capturing via the one-click tap of a button. They will also be able to copy to clipboard after annotating and additional be able to save as a file. I would like for the features to be influenced by ScreenShotX and be super useful for the user.",
+  "uiType": "sidewindow",
+  "tailwind": true,
+  "i18n": false,
+  "optionsPage": true,
+  "accessibility": false,
+  "authMethods": [
+    "none"
+  ],
+  "aiProviders": [
+    "none"
+  ],
+  "database": "none",
+  "pricingModel": "none",
+  "hostingProviders": [
+    "none"
+  ],
+  "storageType": "sync",
+  "analytics": {
+    "enabled": false,
+    "googleAnalyticsId": "",
+    "trackPageViews": true,
+    "trackButtonClicks": true,
+    "trackUserActions": true,
+    "trackExtensionUsage": true
+  },
+  "includePricing": false,
+  "includeTestimonials": false,
+  "includeAuth": false,
+  "includeCookieBanner": false,
+  "includeNewsletter": false,
+  "includeBlog": false,
+  "includeSearch": false,
+  "includePWA": false,
+  "includeStatusPage": false,
+  "includeAPIDocs": false,
+  "includeUserDashboard": false,
+  "websiteFramework": "nextjs",
+  "lastUpdated": "2025-06-26T23:00:56.531Z",
+  "version": "1.0.0"
+}

@@ -1,136 +1,196 @@
-# Chrome Extension Boilerplate Generator
+# Screen Capture Extension
 
-[![Build](https://github.com/briang123/chrome-extension-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/briang123/chrome-extension-boilerplate/actions)
-[![License](https://img.shields.io/github/license/briang123/chrome-extension-boilerplate)](LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/briang123/chrome-extension-boilerplate.svg)](https://github.com/briang123/chrome-extension-boilerplate/commits/master)
-[![GitHub stars](https://img.shields.io/github/stars/briang123/chrome-extension-boilerplate.svg)](https://github.com/briang123/chrome-extension-boilerplate/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/briang123/chrome-extension-boilerplate.svg)](https://github.com/briang123/chrome-extension-boilerplate/network)
-[![Use this template](https://img.shields.io/badge/template-use%20this%20template-blue)](https://github.com/briang123/chrome-extension-boilerplate/generate)
+A powerful Chrome extension for capturing and annotating web pages with beautiful backgrounds and editing tools.
 
-A modern, AI-powered generator for Chrome Extension projects with React, TypeScript, and more.
+## 🎯 Features
 
-## Features
+### 📸 Screen Capture
 
-- Interactive CLI and web UI
-- Dynamic scaffolding (no hardcoded boilerplate)
-- Supports React + Vite and React + Next.js
-- Optional website, authentication, AI integrations, analytics, and more
-- Smart validation and incremental feature addition
-- Comprehensive documentation and Chrome Web Store guidance
+- **One-click capture** of entire web pages or specific elements
+- **Element snapping** like Chrome DevTools for precise selection
+- **High-quality output** in PNG, JPEG, and WebP formats
+- **Configurable quality** settings for optimal file size
 
-## Quick Start
+### 🎨 Image Editor
 
-### CLI
+- **Detached window** for distraction-free editing
+- **Fabric.js powered canvas** for smooth interactions
+- **Multiple annotation tools**: text, arrows, shapes, highlights
+- **Color picker** with unlimited color options
+- **Drag and drop** functionality for annotations
 
-```bash
-npm install
-npm run init
-```
+### 🖼️ Background Configuration
 
-### Web App
+- **Gradient backgrounds** with custom colors
+- **Solid color backgrounds**
+- **Image backgrounds**
+- **Transparent backgrounds** for overlays
 
-```bash
-npm run web:dev
-# Then open http://localhost:5173
-```
+### 📋 Export Options
 
-## Scripts
+- **Copy to clipboard** with one click
+- **File export** in multiple formats
+- **Quality settings** for optimal file size
+- **Automatic filename** generation
 
-Below are the available npm scripts and their purposes:
+### ⚙️ Advanced Settings
 
-| Script       | Command                                      | Description                                                                |
-| ------------ | -------------------------------------------- | -------------------------------------------------------------------------- |
-| `init`       | `ts-node --esm scripts/init.ts`              | Launches the interactive CLI to scaffold or update your extension project. |
-| `web`        | `vite`                                       | Starts the Vite dev server for the web app (default mode).                 |
-| `web:dev`    | `vite --mode development`                    | Starts the Vite dev server in development mode for the web app.            |
-| `web:build`  | `vite build`                                 | Builds the production-ready web app.                                       |
-| `dev`        | `vite`                                       | Alias for `web` (starts the dev server).                                   |
-| `build`      | `vite build`                                 | Alias for `web:build` (builds the web app).                                |
-| `zip`        | `zip -r dist.zip dist/`                      | Zips the `dist/` directory for Chrome Web Store submission.                |
-| `validate`   | `node scripts/validate-generated-project.ts` | Runs type-checking and linting to validate the generated project.          |
-| `test`       | `vitest`                                     | Runs all tests using Vitest.                                               |
-| `test:ui`    | `vitest --ui`                                | Launches the Vitest UI for interactive test running.                       |
-| `test:run`   | `vitest run`                                 | Runs tests in non-interactive (CI) mode.                                   |
-| `lint`       | `eslint . --ext .ts,.tsx --fix`              | Lints and auto-fixes code using ESLint.                                    |
-| `type-check` | `tsc --noEmit`                               | Runs TypeScript type-checking only.                                        |
-| `format`     | `prettier --write .`                         | Formats all code using Prettier.                                           |
+- **Comprehensive options page**
+- **Theme customization** (light/dark/auto)
+- **Auto-save functionality**
+- **Keyboard shortcuts**
 
-## Recommended Workflow
+## 🚀 Quick Start
 
-Follow this workflow for a smooth development and release process:
+### Installation
 
-1. **Install dependencies**
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/yourusername/screen-capture-extension.git
+   cd screen-capture-extension
+   ```
+
+2. **Install dependencies**
+
    ```bash
    npm install
    ```
-2. **Initialize or update your project**
-   - Run the interactive CLI to scaffold or add features:
-     ```bash
-     npm run init
-     ```
-3. **Develop your extension and/or web app**
-   - For the web app UI:
-     ```bash
-     npm run web:dev
-     # or
-     npm run dev
-     # Then open http://localhost:5173
-     ```
-4. **Test and validate your code**
-   - Run tests:
-     ```bash
-     npm test
-     # or for UI:
-     npm run test:ui
-     ```
-   - Lint and type-check:
-     ```bash
-     npm run lint
-     npm run type-check
-     ```
-   - Validate the generated project:
-     ```bash
-     npm run validate
-     ```
-5. **Format your code**
+
+3. **Start development server**
+
    ```bash
-   npm run format
-   ```
-6. **Build for production**
-   ```bash
-   npm run build
-   # or
-   npm run web:build
-   ```
-7. **Package for Chrome Web Store**
-   ```bash
-   npm run zip
-   # This creates dist.zip for upload
+   npm run dev
    ```
 
-> **Tip:** You can re-run `npm run init` at any time to add new features or update your configuration. The CLI is idempotent and will not overwrite your custom code.
+4. **Load in Chrome**
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `dist` folder
 
-## Documentation
+### Usage
 
-- [Project Structure](docs/example-project-structure.md)
-- [Prompt Reference](docs/ai-project-prompt.md)
-- [Feature Summary](docs/feature-summary.md)
+1. **Capture Screen**
+   - Click the extension icon in the toolbar
+   - Click "Capture Screen" to capture the current tab
+   - Or click "Open Editor" to start with a blank canvas
 
-## Contributing
+2. **Edit and Annotate**
+   - Use the tools panel to add text, arrows, shapes, or highlights
+   - Choose colors with the color picker
+   - Drag elements to reposition them
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+3. **Export**
+   - Click "Copy to Clipboard" to copy the image
+   - Click "Save Image" to download the file
 
-## Code Formatting
+## 🛠️ Development
 
-This project uses [Prettier](https://prettier.io/) for code formatting.
+### Project Structure
 
-- To format all files manually, run:
-  ```bash
-  npm run format
-  ```
-- If you use VS Code, workspace settings in `.vscode/settings.json` enable format on save and set Prettier as the default formatter for JS/TS/JSON files.
-- You can also install the Prettier extension in your editor for best results.
+```
+src/
+├── popup/           # Extension popup interface
+├── window/          # Detached editor window
+├── options/         # Options page
+├── background/      # Background service worker
+├── content/         # Content script for element selection
+└── utils/           # Utility functions
+```
 
-## License
+### Available Scripts
 
-[MIT](LICENSE)
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run zip` - Create ZIP file for Chrome Web Store
+- `npm run test` - Run tests
+- `npm run lint` - Lint code
+- `npm run type-check` - Check TypeScript types
+
+### Technology Stack
+
+- **React 18+** - Modern React with hooks
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Vite** - Fast build tool
+- **Fabric.js** - Canvas manipulation
+- **Chrome Extension APIs** - Manifest V3
+
+## 📚 Documentation
+
+- **[Product Requirements](docs/prd.md)** - Complete feature specification
+- **[Design System](docs/design-system.md)** - Visual design guidelines
+- **[Recipes](docs/recipes.md)** - Common development patterns
+- **[Chrome Store Guide](docs/chrome-store-listing.md)** - Publishing instructions
+- **[Troubleshooting](docs/ai-troubleshooting.md)** - Common issues and solutions
+
+## 🎯 Perfect For
+
+- **Developers**: Capture UI elements for documentation
+- **Designers**: Create annotated mockups and feedback
+- **QA Testers**: Highlight bugs and issues
+- **Content Creators**: Create tutorial screenshots
+- **Project Managers**: Visual communication and feedback
+
+## 🔒 Privacy & Security
+
+- **No data collection** - All processing happens locally
+- **Minimal permissions** - Only what's necessary for functionality
+- **Secure storage** - Uses Chrome's secure storage APIs
+- **Open source** - Transparent and auditable code
+
+## 🚀 Why Choose Screen Capture Extension?
+
+✅ **Fast & Efficient**: One-click capture and editing  
+✅ **Professional Quality**: High-resolution captures with beautiful backgrounds  
+✅ **User-Friendly**: Intuitive interface designed for all skill levels  
+✅ **Feature-Rich**: Comprehensive annotation tools and settings  
+✅ **Reliable**: Built with modern web technologies and Chrome APIs  
+✅ **Secure**: Minimal permissions, no data collection
+
+## 📱 System Requirements
+
+- **Chrome**: 88 or higher
+- **Operating System**: Windows, macOS, or Linux
+- **Display**: Minimum 1024x768 resolution
+- **Storage**: 50MB available space
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `npm test`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: Check the [docs](docs/) folder
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/screen-capture-extension/issues)
+- **Discussions**: Join the conversation on [GitHub Discussions](https://github.com/yourusername/screen-capture-extension/discussions)
+
+## 🙏 Acknowledgments
+
+- **Chrome Extension Team** - For the excellent documentation and APIs
+- **Fabric.js** - For the powerful canvas library
+- **Tailwind CSS** - For the beautiful utility-first CSS framework
+- **React Team** - For the amazing UI library
+- **Vite Team** - For the fast build tool
+
+---
+
+**Made with ❤️ for the developer community**
+
+**Version**: 1.0.0  
+**Last Updated**: 2024-01-15
