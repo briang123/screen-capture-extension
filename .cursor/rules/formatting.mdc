@@ -1,0 +1,22 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+All files must be automatically formatted and lint errors fixed on save.
+
+Rules:
+- Enable "Format on Save" in your editor settings for this project.
+- Automatically run the project's linter with the `--fix` option on file save.
+- Formatting and linting should use the configuration defined in the project (e.g., `.prettierrc`, `.eslintrc`).
+- Do not commit code with unresolved lint errors or formatting issues.
+- If your editor supports it, enable auto-fix for lint errors on save.
+
+Recommended settings:
+- VS Code: Set `"editor.formatOnSave": true` and `"editor.codeActionsOnSave": { "source.fixAll": true }` in your workspace settings.
+- Use the provided npm scripts (e.g., `npm run lint -- --fix` and `npm run format`) before committing if your editor does not support auto-fix.
+
+References:
+- https://eslint.org/docs/latest/user-guide/command-line-interface#fixing-problems
+
+- https://prettier.io/docs/en/options.html

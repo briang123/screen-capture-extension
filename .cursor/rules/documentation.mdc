@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Documentation Rule
+
+When making changes to the project, follow these documentation guidelines:
+
+1. **Code Generation Impact**
+   - If your changes impact the target projects that use this boilerplate (i.e., projects generated from this template), ensure that the `ai-project-prompt` code generator includes clear and concise verbiage reflecting the updates.
+   - The instructions and prompts in the code generator should be easy to understand and help users leverage the new or changed functionality.
+
+2. **Updating prompt.md**
+   - Whenever updates are made to the project, update [prompt.md](mdc:prompt.md) with information that would help instruct an AI agent to create this project and its functionality from scratch.
+   - Add or revise content in `prompt.md` to help users better understand how to create effective prompts for dynamically generating projects based on this boilerplate.
+
+3. **General Documentation**
+   - Ensure all documentation is clear, concise, and up to date with the latest project changes.
+   - Document new features, configuration options, and usage instructions as needed.
+
+This process ensures that both the code generator and the instructional prompts remain accurate and helpful for users building new projects from this boilerplate.
+

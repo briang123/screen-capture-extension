@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Do not commit secrets, API keys, or other sensitive information to the repository.
+
+Rules:
+- Never include secrets, passwords, API keys, tokens, or private credentials in any source code, configuration files, or documentation.
+- Use environment variables or secret management tools to handle sensitive information.
+- Add common secret patterns and files (e.g., `.env`, `secrets.json`) to `.gitignore` to prevent accidental commits.
+- Review all code and configuration changes for accidental inclusion of secrets before committing.
+- Use automated tools (such as `git-secrets`, `truffleHog`, or GitHub secret scanning) to detect and block secrets in commits and pull requests.
+- If a secret is accidentally committed, revoke and rotate it immediately, and remove it from the repository history.
+
+Examples of sensitive information to avoid committing:
+- API keys (e.g., `AIza...`, `sk_live_...`)
+- Database connection strings
+- Private keys or certificates
+- Passwords or passphrases
+
+References:
+- https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning
+
+- https://12factor.net/config

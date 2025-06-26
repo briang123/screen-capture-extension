@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Branches must follow the Gitflow naming convention:
+
+- Feature branches: feature/<short-description>
+- Bugfix branches: bugfix/<short-description>
+- Release branches: release/<version>
+- Hotfix branches: hotfix/<short-description>
+- Develop branch: develop
+- Main branch: master
+
+Rules:
+- Use only lowercase letters, numbers, and hyphens in <short-description> or <version>.
+- No spaces or special characters.
+- Branch names must be descriptive and concise.
+- Example feature branch: feature/add-login-form
+- Example bugfix branch: bugfix/fix-login-error
+- Example release branch: release/1.2.0
+- Example hotfix branch: hotfix/critical-security-patch
+
+Before creating a branch, ensure you are branching from the correct base:
+- Features and bugfixes branch from develop.
+- Releases branch from develop.
+- Hotfixes branch from master.
+
+References:
+
+- https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow

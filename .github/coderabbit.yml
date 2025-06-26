@@ -1,0 +1,3 @@
+# .github/coderabbit.yml
+pr_summary: true
+pr_review: false
