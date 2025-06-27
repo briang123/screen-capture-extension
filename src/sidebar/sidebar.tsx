@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
       touchAction: 'none',
       width: collapsed ? collapsedWidth : 400,
       boxShadow: 'var(--shadow-lg)',
-      background: 'rgba(0, 255, 0, 0.1)',
+      background: collapsed ? 'rgba(0, 255, 0, 0.1)' : '#fff',
       borderRadius: 'var(--radius-lg)',
       border: '2px solid #f00',
       zIndex: 99999,
@@ -203,29 +203,6 @@ const Sidebar: React.FC = () => {
                     </Button>
                   </div>
                 )}
-                <Card>
-                  <div className="flex flex-col gap-2">
-                    <span className="font-medium text-gray-700 dark:text-gray-200">Quick Tips</span>
-                    <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400">
-                      <li>Click the arrow to collapse/expand.</li>
-                      <li>Use the ⇄ button to switch sides.</li>
-                      <li>Pin to keep sidebar open.</li>
-                      <li>Toggle dark mode for comfort.</li>
-                    </ul>
-                  </div>
-                </Card>
-                <div className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
-                  <span>Screen Capture Extension &copy; 2024</span>
-                  <span className="mx-2">|</span>
-                  <a
-                    href="https://github.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    Help &amp; About
-                  </a>
-                </div>
               </div>
             </>
           )}
