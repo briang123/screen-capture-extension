@@ -179,6 +179,18 @@ A Chrome extension that allows users to capture images of web page areas or spec
   - Custom utility classes
 - **Notes**: Configured with custom color palette
 
+### 2.4 Sidebar Storage Strategy
+
+- **window.localStorage** (site storage)
+  - Used for:
+    - **Sidebar position** (`sc_sidebar_position`): Remembers the sidebar's x/y position per site and per screen size.
+    - **Pin state** (`sc_sidebar_pinned`): Remembers if the sidebar is pinned, but only for the current site.
+
+- **chrome.storage.local** (extension storage)
+  - **Not currently used** in the sidebar code.
+  - Intended for:
+    - Global settings (e.g., theme, pin state, user preferences) that should persist across all sites and sessions in the future.
+
 ### 2.4 Technical Requirements
 
 #### ✅ 2.4.1 Manifest V3

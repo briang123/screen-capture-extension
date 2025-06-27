@@ -27,6 +27,7 @@ const Editor: React.FC<EditorProps> = () => {
   const [color, setColor] = useState('#3b82f6');
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   useEffect(() => {
     // Initialize fabric.js canvas
@@ -105,74 +106,6 @@ const Editor: React.FC<EditorProps> = () => {
     }
   };
 
-  const addText = () => {
-    if (!fabricCanvasRef.current) return;
-
-    const text = new fabric.IText('Double click to edit', {
-      left: 100,
-      top: 100,
-      fontFamily: 'Inter',
-      fontSize: 16,
-      fill: color,
-    });
-
-    fabricCanvasRef.current.add(text);
-    fabricCanvasRef.current.setActiveObject(text);
-    fabricCanvasRef.current.renderAll();
-  };
-
-  const addArrow = () => {
-    if (!fabricCanvasRef.current) return;
-
-    const arrow = new fabric.Path('M 0 0 L 50 0 L 45 -5 M 50 0 L 45 5', {
-      left: 100,
-      top: 100,
-      stroke: color,
-      strokeWidth: 2,
-      fill: 'transparent',
-    });
-
-    fabricCanvasRef.current.add(arrow);
-    fabricCanvasRef.current.setActiveObject(arrow);
-    fabricCanvasRef.current.renderAll();
-  };
-
-  const addShape = () => {
-    if (!fabricCanvasRef.current) return;
-
-    const rect = new fabric.Rect({
-      left: 100,
-      top: 100,
-      width: 100,
-      height: 60,
-      fill: 'transparent',
-      stroke: color,
-      strokeWidth: 2,
-    });
-
-    fabricCanvasRef.current.add(rect);
-    fabricCanvasRef.current.setActiveObject(rect);
-    fabricCanvasRef.current.renderAll();
-  };
-
-  const addHighlight = () => {
-    if (!fabricCanvasRef.current) return;
-
-    const rect = new fabric.Rect({
-      left: 100,
-      top: 100,
-      width: 100,
-      height: 60,
-      fill: color + '40', // 40% opacity
-      stroke: color,
-      strokeWidth: 1,
-    });
-
-    fabricCanvasRef.current.add(rect);
-    fabricCanvasRef.current.setActiveObject(rect);
-    fabricCanvasRef.current.renderAll();
-  };
-
   const copyToClipboard = async () => {
     if (!fabricCanvasRef.current) return;
 
@@ -226,6 +159,34 @@ const Editor: React.FC<EditorProps> = () => {
     }
   };
 
+  // Capture Area
+  const handleCaptureArea = async () => {
+    setIsCapturing(true);
+    // Send message to content script to start area selection
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(tab.id!, { action: 'startAreaSelection' }, async (response) => {
+      if (response?.success && response.imageData) {
+        setImageData(response.imageData);
+        loadImageToCanvas(response.imageData);
+      }
+      setIsCapturing(false);
+    });
+  };
+
+  // Capture Element
+  const handleCaptureElement = async () => {
+    setIsCapturing(true);
+    // Send message to content script to start element selection
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(tab.id!, { action: 'startElementSelection' }, async (response) => {
+      if (response?.success && response.imageData) {
+        setImageData(response.imageData);
+        loadImageToCanvas(response.imageData);
+      }
+      setIsCapturing(false);
+    });
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Toolbar */}
@@ -237,6 +198,12 @@ const Editor: React.FC<EditorProps> = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          <button onClick={handleCaptureArea} disabled={isCapturing} className="btn-primary">
+            Capture Area
+          </button>
+          <button onClick={handleCaptureElement} disabled={isCapturing} className="btn-primary">
+            Capture Element
+          </button>
           <button onClick={copyToClipboard} className="btn-primary">
             Copy to Clipboard
           </button>
@@ -324,18 +291,6 @@ const Editor: React.FC<EditorProps> = () => {
           <div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Actions</h3>
             <div className="space-y-2">
-              <button onClick={addText} className="w-full btn-secondary text-sm">
-                Add Text
-              </button>
-              <button onClick={addArrow} className="w-full btn-secondary text-sm">
-                Add Arrow
-              </button>
-              <button onClick={addShape} className="w-full btn-secondary text-sm">
-                Add Shape
-              </button>
-              <button onClick={addHighlight} className="w-full btn-secondary text-sm">
-                Add Highlight
-              </button>
               <button onClick={clearCanvas} className="w-full btn-danger text-sm">
                 Clear All
               </button>

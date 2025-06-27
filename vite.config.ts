@@ -11,6 +11,7 @@ export default defineConfig({
         popup: resolve(__dirname, 'src/popup/popup.tsx'),
         window: resolve(__dirname, 'src/window/window.tsx'),
         sidebar: resolve(__dirname, 'src/sidebar/sidebar.tsx'),
+        'sidebar-demo': resolve(__dirname, 'src/sidebar/demo.tsx'),
       },
       output: {
         entryFileNames: '[name].js',

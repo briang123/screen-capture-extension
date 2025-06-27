@@ -90,7 +90,9 @@ async function handleOpenWindow(
   try {
     // Check if window already exists
     const existingWindows = await chrome.windows.getAll({ windowTypes: ['popup'] });
-    const existingWindow = existingWindows.find((window) => window.url?.includes('window.html'));
+    const existingWindow = existingWindows.find((window) =>
+      window.tabs?.some((tab) => tab.url?.includes('window.html'))
+    );
 
     if (existingWindow) {
       // Focus existing window
@@ -185,24 +187,22 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
   }
 });
 
-// Listen for extension button click to open sidebar directly
+// Listen for extension button click to open the sidebar panel
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return;
-  try {
-    await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
-  } catch (err) {
-    // Fallback: force-inject content script, then try again
-    if (chrome.scripting) {
+
+  // Try to send the message first
+  chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' }, async (response) => {
+    if (chrome.runtime.lastError) {
+      // If the content script is not injected, inject it
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content.js'],
       });
-      await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
-    } else {
-      // Optionally notify user
-      console.error('Unable to inject sidebar: scripting API not available.');
+      // Try sending the message again
+      chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
     }
-  }
+  });
 });
 
 // Export functions for use in other modules

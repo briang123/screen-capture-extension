@@ -1,16 +1,14 @@
 .sc-sidebar {
   position: fixed;
   top: 0;
-  right: 0;
-  width: 400px;
   height: 100vh;
-  background: #fff;
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 999999;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
+  background: #fff;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid #f00; /* debug border */
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 1px solid #e5e7eb;
 }
 
 .sc-sidebar-header {

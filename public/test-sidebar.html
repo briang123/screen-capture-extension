@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidebar Test Page</title>
+    <link rel="stylesheet" href="/sidebar.css" />
+    <style>
+      body {
+        font-family: Inter, Arial, sans-serif;
+        background: #f3f4f6;
+        margin: 0;
+        min-height: 100vh;
+      }
+      .test-instructions {
+        padding: 2rem;
+        max-width: 600px;
+        margin: 2rem auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-instructions">
+      <h1>Sidebar Test Page</h1>
+      <p>
+        This page is for development/demo of the sidebar panel.<br />
+        <strong>Features to test:</strong>
+      </p>
+      <ul>
+        <li>Draggable, snap-to-edge sidebar</li>
+        <li>Theme toggle (light/dark)</li>
+        <li>Pin/unpin and close actions</li>
+        <li>Design system components</li>
+      </ul>
+      <button onclick="window.mountSidebar()">Show Sidebar</button>
+    </div>
+    <script type="module" src="/src/sidebar/demo.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Proactive Verification Rule
+
+After making any change—especially those involving new features, permissions, messaging, or user flows—you must proactively verify that all related settings, configurations, and code paths are correct and compatible. Do not wait for errors to occur; check and update as needed.
+
+**Checklist for every relevant change:**
+- Review and update the manifest for required permissions and host access
+- Ensure all messaging paths (background, content, popup/window) are correctly wired
+- Confirm content scripts are injected and running on the target page(s)
+- Check that the UI provides clear feedback for success, error, or next steps
+- Test the full user flow, not just the new feature in isolation
+- Alert the user if a reload, rebuild, or Chrome extension reload is required
+
+This rule applies to all code, configuration, and documentation changes that affect extension behavior or user experience.
+
+# Proactive Build Rule
+
+After each code change, run `npm run build` so the user can test the Chrome extension. This ensures the extension is always in a buildable state for manual testing and quick feedback.
+
+# User Experience Anticipation Rule
+
+When fixing code, always consider the user experience and anticipate how a user will interact with the screen. Use this to guide decisions and ensure solutions are robust and user-friendly.
+
+
+
+

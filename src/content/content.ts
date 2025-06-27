@@ -23,7 +23,8 @@ interface ContentScriptMessage {
     | 'captureElement'
     | 'getElementInfo'
     | 'openSidebar'
-    | 'closeSidebar';
+    | 'closeSidebar'
+    | 'startAreaSelection';
   [key: string]: unknown;
 }
 
@@ -31,6 +32,9 @@ interface ContentScriptMessage {
 let isSelecting = false;
 let selectedElement: ElementSelection | null = null;
 let highlightElement: HTMLElement | null = null;
+let isAreaSelecting = false;
+let areaStart: { x: number; y: number } | null = null;
+let areaOverlay: HTMLDivElement | null = null;
 
 // Sidebar injection logic
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
@@ -56,8 +60,7 @@ chrome.runtime.onMessage.addListener(
 
     switch (message.action) {
       case 'startElementSelection': {
-        startElementSelection();
-        sendResponse({ success: true });
+        startElementSelection(sendResponse);
         break;
       }
 
@@ -90,6 +93,11 @@ chrome.runtime.onMessage.addListener(
         break;
       }
 
+      case 'startAreaSelection': {
+        startAreaSelection(sendResponse);
+        return true;
+      }
+
       default:
         console.warn('Unknown message action:', message.action);
         sendResponse({ success: false, error: 'Unknown action' });
@@ -103,18 +111,63 @@ if (localStorage.getItem(SIDEBAR_PIN_KEY) === 'true') {
 }
 
 // Start element selection mode
-function startElementSelection(): void {
+function startElementSelection(sendResponse: (response?: unknown) => void) {
   if (isSelecting) return;
-
   isSelecting = true;
   document.body.style.cursor = 'crosshair';
 
-  // Add event listeners
-  document.addEventListener('mouseover', handleMouseOver);
-  document.addEventListener('click', handleElementClick);
-  document.addEventListener('keydown', handleKeyDown);
+  function onMouseOver(event: MouseEvent): void {
+    if (!isSelecting) return;
+    const target = event.target as HTMLElement;
+    if (!target || target === document.body) return;
+    if (highlightElement) highlightElement.remove();
+    highlightElement = document.createElement('div');
+    highlightElement.style.position = 'fixed';
+    highlightElement.style.border = '2px solid #3b82f6';
+    highlightElement.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+    highlightElement.style.pointerEvents = 'none';
+    highlightElement.style.zIndex = '999999';
+    highlightElement.style.transition = 'all 0.2s ease';
+    const rect = target.getBoundingClientRect();
+    highlightElement.style.left = `${rect.left}px`;
+    highlightElement.style.top = `${rect.top}px`;
+    highlightElement.style.width = `${rect.width}px`;
+    highlightElement.style.height = `${rect.height}px`;
+    document.body.appendChild(highlightElement);
+  }
 
-  console.log('Element selection mode activated');
+  async function onClick(event: MouseEvent): Promise<void> {
+    if (!isSelecting) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const target = event.target as HTMLElement;
+    if (!target || target === document.body) return;
+    const rect = target.getBoundingClientRect();
+    if (highlightElement) highlightElement.remove();
+    isSelecting = false;
+    document.body.style.cursor = '';
+    document.removeEventListener('mouseover', onMouseOver);
+    document.removeEventListener('click', onClick, true);
+    // Capture screenshot of the visible tab
+    chrome.runtime.sendMessage({ action: 'captureScreen' }, async (response) => {
+      if (response?.success && response.imageData) {
+        // Crop the image to the element's bounding box
+        const cropped = await cropImage(
+          response.imageData,
+          rect.left,
+          rect.top,
+          rect.width,
+          rect.height
+        );
+        sendResponse({ success: true, imageData: cropped });
+      } else {
+        sendResponse({ success: false });
+      }
+    });
+  }
+
+  document.addEventListener('mouseover', onMouseOver);
+  document.addEventListener('click', onClick, true);
 }
 
 // Stop element selection mode
@@ -307,6 +360,88 @@ function getElementInfo(): {
     tagName: selectedElement.element.tagName,
     className: selectedElement.element.className,
   };
+}
+
+function startAreaSelection(sendResponse: (response?: unknown) => void) {
+  if (isAreaSelecting) return;
+  isAreaSelecting = true;
+  areaStart = null;
+
+  areaOverlay = document.createElement('div');
+  areaOverlay.style.position = 'fixed';
+  areaOverlay.style.zIndex = '999999';
+  areaOverlay.style.pointerEvents = 'none';
+  areaOverlay.style.border = '2px dashed #3b82f6';
+  areaOverlay.style.background = 'rgba(59,130,246,0.1)';
+  document.body.appendChild(areaOverlay);
+
+  function onMouseDown(e: MouseEvent) {
+    areaStart = { x: e.clientX, y: e.clientY };
+    areaOverlay!.style.left = `${e.clientX}px`;
+    areaOverlay!.style.top = `${e.clientY}px`;
+    areaOverlay!.style.width = '0px';
+    areaOverlay!.style.height = '0px';
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  function onMouseMove(e: MouseEvent) {
+    if (!areaStart) return;
+    const x = Math.min(areaStart.x, e.clientX);
+    const y = Math.min(areaStart.y, e.clientY);
+    const w = Math.abs(areaStart.x - e.clientX);
+    const h = Math.abs(areaStart.y - e.clientY);
+    areaOverlay!.style.left = `${x}px`;
+    areaOverlay!.style.top = `${y}px`;
+    areaOverlay!.style.width = `${w}px`;
+    areaOverlay!.style.height = `${h}px`;
+  }
+
+  async function onMouseUp(e: MouseEvent) {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    if (!areaStart) return;
+    const x = Math.min(areaStart.x, e.clientX);
+    const y = Math.min(areaStart.y, e.clientY);
+    const w = Math.abs(areaStart.x - e.clientX);
+    const h = Math.abs(areaStart.y - e.clientY);
+    areaOverlay?.remove();
+    areaOverlay = null;
+    isAreaSelecting = false;
+    // Capture screenshot of the visible tab
+    chrome.runtime.sendMessage({ action: 'captureScreen' }, async (response) => {
+      if (response?.success && response.imageData) {
+        // Crop the image to the selected area
+        const cropped = await cropImage(response.imageData, x, y, w, h);
+        sendResponse({ success: true, imageData: cropped });
+      } else {
+        sendResponse({ success: false });
+      }
+    });
+  }
+
+  document.addEventListener('mousedown', onMouseDown, { once: true });
+}
+
+async function cropImage(
+  dataUrl: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = dataUrl;
+  });
 }
 
 // Export functions for testing
