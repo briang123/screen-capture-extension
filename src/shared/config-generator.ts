@@ -163,15 +163,17 @@ icons/
     - \`icon32.png\`
     - \`icon48.png\`
     - \`icon128.png\`
+  - **All CSS files referenced in the manifest or scripts (e.g., \`content.css\`) must be present in the \`dist\` folder root.**
 - If using Vite, configure the build to copy these files using a plugin or post-build script.
 - **Note:** Vite plugins for copying static assets (like \`vite-plugin-static-copy\` or \`vite-plugin-copy\`) may not always work as expected due to plugin or Vite version issues. **Always add a fallback post-build script in your \`package.json\`:**
   \`\`\`json
   "scripts": {
     "build": "vite build && npm run copy-static",
-    "copy-static": "cp manifest.json dist/ && cp -r icons dist/"
+    "copy-static": "cp manifest.json dist/ && cp -r icons dist/ && cp src/content/content.css dist/"
   }
   \`\`\`
-- **After building, always verify** that \`dist/manifest.json\` and \`dist/icons/\` exist. Chrome will not load the extension if either is missing.
+  (Add additional \`cp\` commands for any other CSS files referenced in your manifest or scripts.)
+- **After building, always verify** that \`dist/manifest.json\`, \`dist/icons/\`, and all referenced CSS files exist. Chrome will not load the extension if any are missing.
 - If the plugin or script fails, copy the files manually as a last resort.
 
 ### Source Code Structure
@@ -430,8 +432,8 @@ ${nextSteps.troubleshooting.map((step) => `- ${step}`).join('\n')}
 7. Implement accessibility features and UX best practices
 8. Add bonus features where appropriate
 9. **CRITICAL: Create placeholder PNG icon files** for all required icon sizes (16x16, 32x32, 48x48, 128x128)
-10. **Ensure the build process copies icons and manifest.json to \`dist/\` using a post-build script in \`package.json\` as a fallback.**
-11. **After building, verify that \`dist/manifest.json\` and \`dist/icons/\` exist. Chrome will not load the extension if either is missing.**
+10. **Ensure the build process copies icons, manifest.json, and all referenced CSS files to \`dist/\` using a post-build script in \`package.json\` as a fallback.**
+11. **After building, verify that \`dist/manifest.json\`, \`dist/icons/\`, and all referenced CSS files exist. Chrome will not load the extension if any are missing.**
 12. **If the automated copy fails, instruct the user to copy the files manually.**
 13. Implement comprehensive authentication system with all security measures
 14. Create secure API endpoints and database schema
