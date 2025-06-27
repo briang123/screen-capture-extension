@@ -6,11 +6,9 @@ import Button from './components/Button';
 import Card from './components/Card';
 import ThemeToggle from './components/ThemeToggle';
 
-const SIDEBAR_PIN_KEY = 'sc_sidebar_pinned';
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
 const Sidebar: React.FC = () => {
-  const [pinned, setPinned] = useState(false);
   const [visible, setVisible] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(
@@ -37,12 +35,6 @@ const Sidebar: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
-    // Load pin state from storage
-    const stored = localStorage.getItem(SIDEBAR_PIN_KEY);
-    setPinned(stored === 'true');
-  }, []);
-
-  useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
@@ -60,16 +52,8 @@ const Sidebar: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [side]);
 
-  const handlePin = () => {
-    localStorage.setItem(SIDEBAR_PIN_KEY, (!pinned).toString());
-    setPinned(!pinned);
-  };
-
   const handleClose = () => {
     setVisible(false);
-    if (!pinned) {
-      localStorage.removeItem(SIDEBAR_PIN_KEY);
-    }
     // Optionally, send a message to background/content to update state
   };
 
@@ -124,10 +108,7 @@ const Sidebar: React.FC = () => {
     };
     if (isResizing) {
       return (
-        <div
-          className={`sc-sidebar${pinned ? ' pinned' : ''} ${side}${collapsed ? ' collapsed' : ''}`}
-          style={sidebarStyle}
-        >
+        <div className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`} style={sidebarStyle}>
           {collapsed ? (
             <div className="flex flex-col items-center justify-center h-full p-2">
               <button
@@ -146,15 +127,6 @@ const Sidebar: React.FC = () => {
                 </span>
                 <div className="sc-sidebar-actions flex items-center gap-2">
                   <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
-                  <Button
-                    variant={pinned ? 'secondary' : 'primary'}
-                    size="sm"
-                    onClick={handlePin}
-                    title={pinned ? 'Unpin Sidebar' : 'Pin Sidebar'}
-                    aria-pressed={pinned}
-                  >
-                    {pinned ? '📌' : '📍'}
-                  </Button>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -237,7 +209,7 @@ const Sidebar: React.FC = () => {
     // Not resizing: use motion.div for animation
     return (
       <motion.div
-        className={`sc-sidebar${pinned ? ' pinned' : ''} ${side}${collapsed ? ' collapsed' : ''}`}
+        className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
         initial={false}
         animate={{
           opacity: 1,
@@ -264,15 +236,6 @@ const Sidebar: React.FC = () => {
               </span>
               <div className="sc-sidebar-actions flex items-center gap-2">
                 <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
-                <Button
-                  variant={pinned ? 'secondary' : 'primary'}
-                  size="sm"
-                  onClick={handlePin}
-                  title={pinned ? 'Unpin Sidebar' : 'Pin Sidebar'}
-                  aria-pressed={pinned}
-                >
-                  {pinned ? '📌' : '📍'}
-                </Button>
                 <Button
                   variant="secondary"
                   size="sm"
