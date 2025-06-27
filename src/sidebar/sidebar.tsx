@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import SidebarPanelHeader from './components/SidebarPanelHeader';
 import SidebarPanelBody from './components/SidebarPanelBody';
 import { useTheme } from './hooks/useTheme';
+import { useSidebarSide } from './hooks/useSidebarSide';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -26,10 +27,10 @@ const Sidebar: React.FC = () => {
     x: getRightEdge(),
     y: getInitialY(),
   }));
-  const [side, setSide] = useState<'left' | 'right'>('right');
   const [isCapturing, setIsCapturing] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isSwitchingSide, setIsSwitchingSide] = useState(false);
+
+  const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -52,13 +53,6 @@ const Sidebar: React.FC = () => {
   const handleClose = () => {
     setVisible(false);
     // Optionally, send a message to background/content to update state
-  };
-
-  const handleMoveSide = () => {
-    setIsSwitchingSide(true);
-    const newSide = side === 'left' ? 'right' : 'left';
-    setSide(newSide);
-    setTimeout(() => setIsSwitchingSide(false), 500); // match sidebar transition duration
   };
 
   const handleToggleCollapse = () => {
