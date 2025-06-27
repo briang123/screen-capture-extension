@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
 import { motion } from 'framer-motion';
-import { CaptureButton } from './components/Button';
 import SidebarPanelHeader from './components/SidebarPanelHeader';
+import SidebarPanelBody from './components/SidebarPanelBody';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -129,21 +129,11 @@ const Sidebar: React.FC = () => {
                 onClose={handleClose}
                 getCollapseArrow={getCollapseArrow}
               />
-              <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
-                {!isSwitchingSide ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
-                  </motion.div>
-                ) : (
-                  <div>
-                    <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
-                  </div>
-                )}
-              </div>
+              <SidebarPanelBody
+                isSwitchingSide={isSwitchingSide}
+                isCapturing={isCapturing}
+                onCapture={handleCapture}
+              />
             </>
           )}
         </div>
@@ -181,21 +171,11 @@ const Sidebar: React.FC = () => {
               onClose={handleClose}
               getCollapseArrow={getCollapseArrow}
             />
-            <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
-              {!isSwitchingSide ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
-                </motion.div>
-              ) : (
-                <div>
-                  <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
-                </div>
-              )}
-            </div>
+            <SidebarPanelBody
+              isSwitchingSide={isSwitchingSide}
+              isCapturing={isCapturing}
+              onCapture={handleCapture}
+            />
           </>
         )}
       </motion.div>
