@@ -123,6 +123,54 @@ ${features.join('\n')}${authRequirements}${websiteRequirements}${analyticsRequir
 - \`.env.example\` (environment variables template)
 - \`.gitignore\` (appropriate exclusions)
 
+### Icon Requirements
+**CRITICAL:** You must create placeholder PNG icon files for the Chrome extension to load properly.
+
+**Required Icon Files:**
+- \`icons/icon16.png\` (16x16 pixels)
+- \`icons/icon32.png\` (32x32 pixels)
+- \`icons/icon48.png\` (48x48 pixels)
+- \`icons/icon128.png\` (128x128 pixels)
+
+**Icon Creation Instructions for AI Agent:**
+- **Create placeholder PNG files** for all required icon sizes if they don't exist
+- Use simple, solid-color designs with basic shapes or letters (e.g., "SC" for Screen Capture)
+- Ensure the icons are visually consistent across all sizes
+- The icons should be lightweight and load quickly
+- If the AI cannot generate actual PNG files, provide clear instructions for the user to create them manually
+
+**Icon File Structure:**
+\`\`\`
+icons/
+├── icon16.png
+├── icon32.png
+├── icon48.png
+└── icon128.png
+\`\`\`
+
+**Important Notes:**
+- Chrome **will not load the extension** if any of these icon files are missing
+- The manifest.json references these exact filenames
+- Icons must be copied to the \`dist/icons/\` directory during build
+- Placeholder icons are acceptable for initial development and testing
+
+### Build Output Requirements
+- After building, the \`dist\` folder **must contain**:
+  - All compiled JS/CSS/HTML assets
+  - \`manifest.json\` (copied from project root)
+  - \`icons/\` directory with all required PNG files:
+    - \`icon16.png\`
+    - \`icon32.png\`
+    - \`icon48.png\`
+    - \`icon128.png\`
+- If using Vite, configure the build to copy these files using a plugin or post-build script
+- If the plugin fails, add a fallback shell command:
+  \`\`\`bash
+  cp manifest.json dist/
+  cp -r icons dist/
+  \`\`\`
+- **The extension will not load in Chrome** if \`manifest.json\` or any required icon files are missing from \`dist\`
+
 ### Source Code Structure
 - \`src/popup/Popup.tsx\` (React popup component)
 - \`src/popup/popup.html\` (popup HTML entry)
@@ -377,25 +425,28 @@ ${nextSteps.troubleshooting.map((step) => `- ${step}`).join('\n')}
 5. Create a working Chrome Extension that can be loaded in developer mode
 6. Include all documentation files with proper structure and content
 7. Implement accessibility features and UX best practices
-8. Add bonus features where appropriate${
+8. Add bonus features where appropriate
+9. **CRITICAL: Create placeholder PNG icon files** for all required icon sizes (16x16, 32x32, 48x48, 128x128)
+10. **Ensure the build process copies icons to \`dist/icons/\`** directory
+11. **Verify manifest.json references correct icon paths** and that Chrome can load the extension without icon errors${
     config.authMethods && config.authMethods.length && !config.authMethods.includes('none')
       ? `
-9. Implement comprehensive authentication system with all security measures
-10. Create secure API endpoints and database schema
-11. Implement proper token management and session handling
-12. Add comprehensive testing for all authentication flows`
+12. Implement comprehensive authentication system with all security measures
+13. Create secure API endpoints and database schema
+14. Implement proper token management and session handling
+15. Add comprehensive testing for all authentication flows`
       : ''
   }${
     config.includeWebsite
       ? `
-13. Create standalone website with all required pages
-14. Implement responsive design and SEO optimization
-15. Include contact forms and support functionality
-16. Optimize for performance and user experience
-17. **Create unified design system for extension and website**
-18. **Implement theme switching with light/dark mode support**
-19. **Use mobile-first responsive design approach**
-20. **Create reusable component library for consistency**`
+16. Create standalone website with all required pages
+17. Implement responsive design and SEO optimization
+18. Include contact forms and support functionality
+19. Optimize for performance and user experience
+20. **Create unified design system for extension and website**
+21. **Implement theme switching with light/dark mode support**
+22. **Use mobile-first responsive design approach**
+23. **Create reusable component library for consistency**`
       : ''
   }
 

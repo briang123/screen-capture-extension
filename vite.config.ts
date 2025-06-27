@@ -1,9 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { copy } from 'vite-plugin-copy';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    copy({
+      patterns: [
+        { from: 'manifest.json', to: 'dist' },
+        { from: 'icons', to: 'dist/icons' },
+      ],
+    }),
+  ],
   build: {
     rollupOptions: {
       input: {
@@ -40,10 +49,5 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test-setup.ts'],
   },
 });
