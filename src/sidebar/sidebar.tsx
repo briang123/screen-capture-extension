@@ -6,6 +6,7 @@ import SidebarPanelHeader from './components/SidebarPanelHeader';
 import SidebarPanelBody from './components/SidebarPanelBody';
 import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
+import { useSidebarResize } from './hooks/useSidebarResize';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -28,27 +29,12 @@ const Sidebar: React.FC = () => {
     y: getInitialY(),
   }));
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-
   const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
+  const isResizing = useSidebarResize(side, getRightEdge, setPosition);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
-
-  useEffect(() => {
-    function handleResize() {
-      setIsResizing(true);
-      if (side === 'right') {
-        setPosition((pos) => ({ ...pos, x: getRightEdge() }));
-      } else {
-        setPosition((pos) => ({ ...pos, x: 0 }));
-      }
-      setTimeout(() => setIsResizing(false), 50); // short timeout to allow instant update
-    }
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [side]);
 
   const handleClose = () => {
     setVisible(false);
