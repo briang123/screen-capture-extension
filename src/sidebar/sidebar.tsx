@@ -9,6 +9,7 @@ import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
 import ExpandCollapseButton from './components/ExpandCollapseButton';
+import { useDebug } from './hooks/useDebug';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -50,16 +51,7 @@ const Sidebar: React.FC = () => {
   };
 
   if (visible) {
-    console.log(
-      '[Sidebar Render] x:',
-      position.x,
-      'y:',
-      position.y,
-      'side:',
-      side,
-      'collapsed:',
-      collapsed
-    );
+    useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed });
     const sidebarStyle = {
       touchAction: 'none',
       width: collapsed ? collapsedWidth : 400,
