@@ -8,6 +8,7 @@ import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
+import ExpandCollapseButton from './components/ExpandCollapseButton';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -41,10 +42,6 @@ const Sidebar: React.FC = () => {
     setVisible(false);
     // Optionally, send a message to background/content to update state
   };
-
-  // Helper for arrow direction
-  const getCollapseArrow = () => (side === 'left' ? '←' : '→');
-  const getExpandArrow = () => (side === 'left' ? '→' : '←');
 
   const handleCapture = async () => {
     setIsCapturing(true);
@@ -81,13 +78,11 @@ const Sidebar: React.FC = () => {
         <div className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`} style={sidebarStyle}>
           {collapsed ? (
             <div className="flex flex-col items-center justify-center h-full p-2">
-              <button
+              <ExpandCollapseButton
+                side={side}
+                collapsed={collapsed}
                 onClick={handleToggleCollapse}
-                className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                title="Expand Sidebar"
-              >
-                {getExpandArrow()}
-              </button>
+              />
             </div>
           ) : (
             <>
@@ -97,7 +92,8 @@ const Sidebar: React.FC = () => {
                 onMoveSide={handleMoveSide}
                 onToggleCollapse={handleToggleCollapse}
                 onClose={handleClose}
-                getCollapseArrow={getCollapseArrow}
+                side={side}
+                collapsed={collapsed}
               />
               <SidebarPanelBody
                 isSwitchingSide={isSwitchingSide}
@@ -123,13 +119,11 @@ const Sidebar: React.FC = () => {
       >
         {collapsed ? (
           <div className="flex flex-col items-center justify-center h-full p-2">
-            <button
+            <ExpandCollapseButton
+              side={side}
+              collapsed={collapsed}
               onClick={handleToggleCollapse}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              title="Expand Sidebar"
-            >
-              {getExpandArrow()}
-            </button>
+            />
           </div>
         ) : (
           <>
@@ -139,7 +133,8 @@ const Sidebar: React.FC = () => {
               onMoveSide={handleMoveSide}
               onToggleCollapse={handleToggleCollapse}
               onClose={handleClose}
-              getCollapseArrow={getCollapseArrow}
+              side={side}
+              collapsed={collapsed}
             />
             <SidebarPanelBody
               isSwitchingSide={isSwitchingSide}

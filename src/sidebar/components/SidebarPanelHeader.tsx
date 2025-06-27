@@ -1,6 +1,7 @@
 import React from 'react';
 import ThemeToggle from './ThemeToggle';
 import Button from './Button';
+import ExpandCollapseButton from './ExpandCollapseButton';
 
 interface SidebarPanelHeaderProps {
   theme: 'light' | 'dark';
@@ -8,7 +9,8 @@ interface SidebarPanelHeaderProps {
   onMoveSide: () => void;
   onToggleCollapse: () => void;
   onClose: () => void;
-  getCollapseArrow: () => string;
+  side: 'left' | 'right';
+  collapsed: boolean;
 }
 
 const SidebarPanelHeader: React.FC<SidebarPanelHeaderProps> = ({
@@ -17,7 +19,8 @@ const SidebarPanelHeader: React.FC<SidebarPanelHeaderProps> = ({
   onMoveSide,
   onToggleCollapse,
   onClose,
-  getCollapseArrow,
+  side,
+  collapsed,
 }) => (
   <div className="sc-sidebar-header flex items-center justify-between px-6 py-4 border-b border-gray-200">
     <span className="sc-sidebar-title text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -28,9 +31,7 @@ const SidebarPanelHeader: React.FC<SidebarPanelHeaderProps> = ({
       <Button variant="secondary" size="sm" onClick={onMoveSide} title="Move Sidebar to Other Side">
         ⇄
       </Button>
-      <Button variant="secondary" size="sm" onClick={onToggleCollapse} title="Collapse Sidebar">
-        {getCollapseArrow()}
-      </Button>
+      <ExpandCollapseButton side={side} collapsed={collapsed} onClick={onToggleCollapse} />
       <Button variant="danger" size="sm" onClick={onClose} title="Close Sidebar">
         ✖️
       </Button>
