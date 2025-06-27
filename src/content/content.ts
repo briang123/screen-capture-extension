@@ -3,6 +3,8 @@
 // TODO: Implement element snapping functionality
 // TODO: Add keyboard shortcuts for capture
 
+import './content.css';
+
 console.log('Screen Capture Extension content script loaded');
 
 // Interface for element selection
@@ -12,40 +14,56 @@ interface ElementSelection {
   selector: string;
 }
 
+// Message interface
+interface ContentScriptMessage {
+  action: 'startElementSelection' | 'stopElementSelection' | 'captureElement' | 'getElementInfo';
+  [key: string]: unknown;
+}
+
 // State management
 let isSelecting = false;
 let selectedElement: ElementSelection | null = null;
 let highlightElement: HTMLElement | null = null;
 
 // Listen for messages from popup and background
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Content script received message:', message);
+chrome.runtime.onMessage.addListener(
+  (
+    message: ContentScriptMessage,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: unknown) => void
+  ) => {
+    console.log('Content script received message:', message);
 
-  switch (message.action) {
-    case 'startElementSelection':
-      startElementSelection();
-      sendResponse({ success: true });
-      break;
+    switch (message.action) {
+      case 'startElementSelection': {
+        startElementSelection();
+        sendResponse({ success: true });
+        break;
+      }
 
-    case 'stopElementSelection':
-      stopElementSelection();
-      sendResponse({ success: true });
-      break;
+      case 'stopElementSelection': {
+        stopElementSelection();
+        sendResponse({ success: true });
+        break;
+      }
 
-    case 'captureElement':
-      captureSelectedElement().then(sendResponse);
-      return true; // Keep message channel open for async response
+      case 'captureElement': {
+        captureSelectedElement().then(sendResponse);
+        return true; // Keep message channel open for async response
+      }
 
-    case 'getElementInfo':
-      const info = getElementInfo();
-      sendResponse({ success: true, data: info });
-      break;
+      case 'getElementInfo': {
+        const info = getElementInfo();
+        sendResponse({ success: true, data: info });
+        break;
+      }
 
-    default:
-      console.warn('Unknown message action:', message.action);
-      sendResponse({ success: false, error: 'Unknown action' });
+      default:
+        console.warn('Unknown message action:', message.action);
+        sendResponse({ success: false, error: 'Unknown action' });
+    }
   }
-});
+);
 
 // Start element selection mode
 function startElementSelection(): void {

@@ -157,24 +157,17 @@ icons/
 ### Build Output Requirements
 - After building, the \`dist\` folder **must contain**:
   - All compiled JS/CSS/HTML assets
-  - \`manifest.json\` (copied from project root)
+  - \`manifest.json\` (copied from \`public/\`)
   - \`icons/\` directory with all required PNG files:
     - \`icon16.png\`
     - \`icon32.png\`
     - \`icon48.png\`
     - \`icon128.png\`
+  - \`popup.html\`, \`options.html\`, \`window.html\` (copied from \`public/\`)
   - **All CSS files referenced in the manifest or scripts (e.g., \`content.css\`) must be present in the \`dist\` folder root.**
-- If using Vite, configure the build to copy these files using a plugin or post-build script.
-- **Note:** Vite plugins for copying static assets (like \`vite-plugin-static-copy\` or \`vite-plugin-copy\`) may not always work as expected due to plugin or Vite version issues. **Always add a fallback post-build script in your \`package.json\`:**
-  \`\`\`json
-  "scripts": {
-    "build": "vite build && npm run copy-static",
-    "copy-static": "cp manifest.json dist/ && cp -r icons dist/ && cp src/content/content.css dist/"
-  }
-  \`\`\`
-  (Add additional \`cp\` commands for any other CSS files referenced in your manifest or scripts.)
+- **Use the \`public/\` directory approach** for static assets (see Chrome Extension Build Configuration section below)
 - **After building, always verify** that \`dist/manifest.json\`, \`dist/icons/\`, and all referenced CSS files exist. Chrome will not load the extension if any are missing.
-- If the plugin or script fails, copy the files manually as a last resort.
+- **Content scripts must import their CSS files** to ensure they are built correctly (see Content Script CSS Import section below)
 
 ### Source Code Structure
 - \`src/popup/Popup.tsx\` (React popup component)
@@ -226,7 +219,141 @@ ${config.i18n ? '- react-i18next setup with sample translations' : '- No i18n re
 - Vite-powered HMR
 - Scripts: \`clean\`, \`dev\`, \`build\`, \`zip\`
 - Module path aliases like \`@components\`, \`@utils\`, \`@popup\`
-- Auto-copy static assets to \`dist/\`
+
+### Chrome Extension Build Configuration
+
+**CRITICAL:** The following Vite configuration is essential for Chrome Extension builds to work correctly:
+
+#### 1. Project Structure for Static Assets
+- Create a \`public/\` directory in the project root
+- Place \`manifest.json\` and \`icons/\` folder in \`public/\`
+- Place HTML files (\`popup.html\`, \`options.html\`, \`window.html\`) in \`public/\`
+- Vite will automatically copy everything from \`public/\` to \`dist/\` during build
+
+#### 2. Required Vite Configuration
+\`\`\`typescript
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: {
+        background: resolve(__dirname, 'src/background/background.ts'),
+        content: resolve(__dirname, 'src/content/content.ts'),
+      },
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].js',
+        assetFileNames: (assetInfo) => {
+          // Ensure content.css gets the correct name
+          if (assetInfo.name === 'content.css') {
+            return 'content.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      '@components': resolve(__dirname, 'src/components'),
+      '@utils': resolve(__dirname, 'src/utils'),
+      '@popup': resolve(__dirname, 'src/popup'),
+      '@window': resolve(__dirname, 'src/window'),
+      '@options': resolve(__dirname, 'src/options'),
+      '@background': resolve(__dirname, 'src/background'),
+      '@content': resolve(__dirname, 'src/content'),
+    },
+  },
+});
+\`\`\`
+
+#### 3. Content Script CSS Import
+**IMPORTANT:** Content scripts must import their CSS files to ensure they are built:
+
+\`\`\`typescript
+// src/content/content.ts
+import './content.css'; // This ensures content.css is built and available in dist/
+
+console.log('Content script loaded');
+// ... rest of content script code
+\`\`\`
+
+#### 4. Required Dependencies
+\`\`\`json
+{
+  "devDependencies": {
+    "@types/chrome": "^0.0.260",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0",
+    "typescript": "^5.4.0"
+  }
+}
+\`\`\`
+
+#### 5. Build Output Verification
+After running \`npm run build\`, the \`dist/\` folder must contain:
+- ✅ \`manifest.json\` (copied from public/)
+- ✅ \`icons/\` directory with all PNG files
+- ✅ \`popup.html\`, \`options.html\`, \`window.html\` (copied from public/)
+- ✅ \`content.css\` (built from content script import)
+- ✅ \`background.js\`, \`content.js\` (built from TypeScript)
+- ✅ All other CSS and JS assets
+
+#### 6. Common Build Issues and Solutions
+
+**Issue:** "Could not load css 'content.css' for script"
+- **Solution:** Ensure content script imports CSS: \`import './content.css';\`
+
+**Issue:** "Manifest file is missing or unreadable"
+- **Solution:** Place \`manifest.json\` in \`public/\` directory
+
+**Issue:** "Could not load options page 'options.html'"
+- **Solution:** Place HTML files in \`public/\` directory, not in rollupOptions.input
+
+**Issue:** Missing Chrome types in TypeScript
+- **Solution:** Install \`@types/chrome\` and add proper type annotations
+
+#### 7. Package.json Scripts
+\`\`\`json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "zip": "zip -r dist.zip dist/",
+    "clean": "rm -rf dist",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit"
+  }
+}
+\`\`\`
+
+#### 8. File Structure After Build
+\`\`\`
+dist/
+├── manifest.json          # Copied from public/
+├── icons/                 # Copied from public/
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
+├── popup.html             # Copied from public/
+├── options.html           # Copied from public/
+├── window.html            # Copied from public/
+├── content.css            # Built from content script import
+├── background.js          # Built from TypeScript
+├── content.js             # Built from TypeScript
+└── [other assets...]
+\`\`\`
+
+**Note:** Do NOT use \`vite-plugin-copy\` or similar plugins for static assets. Use the \`public/\` directory approach instead, as it's more reliable and works consistently across Vite versions.
 
 ## Permissions & Security
 
