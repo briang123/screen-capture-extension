@@ -4,17 +4,14 @@ import './sidebar.css';
 import { motion } from 'framer-motion';
 import SidebarPanelHeader from './components/SidebarPanelHeader';
 import SidebarPanelBody from './components/SidebarPanelBody';
+import { useTheme } from './hooks/useTheme';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
 const Sidebar: React.FC = () => {
   const [visible, setVisible] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light'
-  );
+  const [theme, handleThemeToggle] = useTheme();
   const getInitialY = () => {
     // const sidebarHeight = 100; // min height
     // const maxY = Math.max(0, window.innerHeight - sidebarHeight);
@@ -55,10 +52,6 @@ const Sidebar: React.FC = () => {
   const handleClose = () => {
     setVisible(false);
     // Optionally, send a message to background/content to update state
-  };
-
-  const handleThemeToggle = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   const handleMoveSide = () => {
