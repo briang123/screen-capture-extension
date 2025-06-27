@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
 import { motion } from 'framer-motion';
-import Button from './components/Button';
-import Card from './components/Card';
+import Button, { CaptureButton } from './components/Button';
 import ThemeToggle from './components/ThemeToggle';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
@@ -156,51 +155,11 @@ const Sidebar: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={handleCapture}
-                      disabled={isCapturing}
-                      className="w-full flex items-center justify-center"
-                      aria-busy={isCapturing}
-                    >
-                      {isCapturing ? (
-                        <motion.span
-                          className="loading-spinner mr-2"
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                        >
-                          ⏳
-                        </motion.span>
-                      ) : (
-                        <span className="mr-2">📸</span>
-                      )}
-                      {isCapturing ? 'Capturing...' : 'Capture Image'}
-                    </Button>
+                    <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
                   </motion.div>
                 ) : (
                   <div>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={handleCapture}
-                      disabled={isCapturing}
-                      className="w-full flex items-center justify-center"
-                      aria-busy={isCapturing}
-                    >
-                      {isCapturing ? (
-                        <motion.span
-                          className="loading-spinner mr-2"
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                        >
-                          ⏳
-                        </motion.span>
-                      ) : (
-                        <span className="mr-2">📸</span>
-                      )}
-                      {isCapturing ? 'Capturing...' : 'Capture Image'}
-                    </Button>
+                    <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
                   </div>
                 )}
               </div>
@@ -267,76 +226,13 @@ const Sidebar: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleCapture}
-                    disabled={isCapturing}
-                    className="w-full flex items-center justify-center"
-                    aria-busy={isCapturing}
-                  >
-                    {isCapturing ? (
-                      <motion.span
-                        className="loading-spinner mr-2"
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                      >
-                        ⏳
-                      </motion.span>
-                    ) : (
-                      <span className="mr-2">📸</span>
-                    )}
-                    {isCapturing ? 'Capturing...' : 'Capture Image'}
-                  </Button>
+                  <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
                 </motion.div>
               ) : (
                 <div>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleCapture}
-                    disabled={isCapturing}
-                    className="w-full flex items-center justify-center"
-                    aria-busy={isCapturing}
-                  >
-                    {isCapturing ? (
-                      <motion.span
-                        className="loading-spinner mr-2"
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                      >
-                        ⏳
-                      </motion.span>
-                    ) : (
-                      <span className="mr-2">📸</span>
-                    )}
-                    {isCapturing ? 'Capturing...' : 'Capture Image'}
-                  </Button>
+                  <CaptureButton isCapturing={isCapturing} onCapture={handleCapture} />
                 </div>
               )}
-              <Card>
-                <div className="flex flex-col gap-2">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">Quick Tips</span>
-                  <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400">
-                    <li>Click the arrow to collapse/expand.</li>
-                    <li>Use the ⇄ button to switch sides.</li>
-                    <li>Pin to keep sidebar open.</li>
-                    <li>Toggle dark mode for comfort.</li>
-                  </ul>
-                </div>
-              </Card>
-              <div className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
-                <span>Screen Capture Extension &copy; 2024</span>
-                <span className="mx-2">|</span>
-                <a
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  Help &amp; About
-                </a>
-              </div>
             </div>
           </>
         )}

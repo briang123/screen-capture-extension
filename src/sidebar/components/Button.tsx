@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -47,4 +48,40 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-export default Button; 
+export default Button;
+
+// CaptureButton component
+interface CaptureButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isCapturing: boolean;
+  onCapture: () => void;
+}
+
+export const CaptureButton: React.FC<CaptureButtonProps> = ({
+  isCapturing,
+  onCapture,
+  className = '',
+  ...props
+}) => (
+  <Button
+    variant="primary"
+    size="lg"
+    onClick={onCapture}
+    disabled={isCapturing}
+    className={['w-full flex items-center justify-center', className].join(' ')}
+    aria-busy={isCapturing}
+    {...props}
+  >
+    {isCapturing ? (
+      <motion.span
+        className="loading-spinner mr-2"
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+      >
+        ⏳
+      </motion.span>
+    ) : (
+      <span className="mr-2">📸</span>
+    )}
+    {isCapturing ? 'Capturing...' : 'Capture Image'}
+  </Button>
+);
