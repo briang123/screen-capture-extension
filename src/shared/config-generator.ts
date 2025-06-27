@@ -163,13 +163,16 @@ icons/
     - \`icon32.png\`
     - \`icon48.png\`
     - \`icon128.png\`
-- If using Vite, configure the build to copy these files using a plugin or post-build script
-- If the plugin fails, add a fallback shell command:
-  \`\`\`bash
-  cp manifest.json dist/
-  cp -r icons dist/
+- If using Vite, configure the build to copy these files using a plugin or post-build script.
+- **Note:** Vite plugins for copying static assets (like \`vite-plugin-static-copy\` or \`vite-plugin-copy\`) may not always work as expected due to plugin or Vite version issues. **Always add a fallback post-build script in your \`package.json\`:**
+  \`\`\`json
+  "scripts": {
+    "build": "vite build && npm run copy-static",
+    "copy-static": "cp manifest.json dist/ && cp -r icons dist/"
+  }
   \`\`\`
-- **The extension will not load in Chrome** if \`manifest.json\` or any required icon files are missing from \`dist\`
+- **After building, always verify** that \`dist/manifest.json\` and \`dist/icons/\` exist. Chrome will not load the extension if either is missing.
+- If the plugin or script fails, copy the files manually as a last resort.
 
 ### Source Code Structure
 - \`src/popup/Popup.tsx\` (React popup component)
@@ -427,28 +430,21 @@ ${nextSteps.troubleshooting.map((step) => `- ${step}`).join('\n')}
 7. Implement accessibility features and UX best practices
 8. Add bonus features where appropriate
 9. **CRITICAL: Create placeholder PNG icon files** for all required icon sizes (16x16, 32x32, 48x48, 128x128)
-10. **Ensure the build process copies icons to \`dist/icons/\`** directory
-11. **Verify manifest.json references correct icon paths** and that Chrome can load the extension without icon errors${
-    config.authMethods && config.authMethods.length && !config.authMethods.includes('none')
-      ? `
-12. Implement comprehensive authentication system with all security measures
-13. Create secure API endpoints and database schema
-14. Implement proper token management and session handling
-15. Add comprehensive testing for all authentication flows`
-      : ''
-  }${
-    config.includeWebsite
-      ? `
-16. Create standalone website with all required pages
-17. Implement responsive design and SEO optimization
-18. Include contact forms and support functionality
-19. Optimize for performance and user experience
-20. **Create unified design system for extension and website**
-21. **Implement theme switching with light/dark mode support**
-22. **Use mobile-first responsive design approach**
-23. **Create reusable component library for consistency**`
-      : ''
-  }
+10. **Ensure the build process copies icons and manifest.json to \`dist/\` using a post-build script in \`package.json\` as a fallback.**
+11. **After building, verify that \`dist/manifest.json\` and \`dist/icons/\` exist. Chrome will not load the extension if either is missing.**
+12. **If the automated copy fails, instruct the user to copy the files manually.**
+13. Implement comprehensive authentication system with all security measures
+14. Create secure API endpoints and database schema
+15. Implement proper token management and session handling
+16. Add comprehensive testing for all authentication flows
+17. Create standalone website with all required pages
+18. Implement responsive design and SEO optimization
+19. Include contact forms and support functionality
+20. Optimize for performance and user experience
+21. **Create unified design system for extension and website**
+22. **Implement theme switching with light/dark mode support**
+23. **Use mobile-first responsive design approach**
+24. **Create reusable component library for consistency**
 
 Please generate all the necessary files for this Chrome Extension project.
 
