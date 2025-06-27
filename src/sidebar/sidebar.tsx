@@ -8,6 +8,7 @@ import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
+import { useCapture } from './hooks/useCapture';
 import ExpandCollapseButton from './components/ExpandCollapseButton';
 import { useDebug } from './hooks/useDebug';
 
@@ -17,6 +18,7 @@ const Sidebar: React.FC = () => {
   const [visible, setVisible] = useState(true);
   const [collapsed, handleToggleCollapse] = useSidebarCollapse();
   const [theme, handleThemeToggle] = useTheme();
+  const { isCapturing, handleCapture, error, resetError } = useCapture();
   const getInitialY = () => {
     // const sidebarHeight = 100; // min height
     // const maxY = Math.max(0, window.innerHeight - sidebarHeight);
@@ -31,7 +33,6 @@ const Sidebar: React.FC = () => {
     x: getRightEdge(),
     y: getInitialY(),
   }));
-  const [isCapturing, setIsCapturing] = useState(false);
   const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
   const isResizing = useSidebarResize(side, getRightEdge, setPosition);
 
@@ -45,12 +46,6 @@ const Sidebar: React.FC = () => {
   const handleClose = () => {
     setVisible(false);
     // Optionally, send a message to background/content to update state
-  };
-
-  const handleCapture = async () => {
-    setIsCapturing(true);
-    // TODO: Implement capture logic (send message to background/content)
-    setTimeout(() => setIsCapturing(false), 1200); // Simulate capture
   };
 
   if (visible) {
@@ -93,6 +88,8 @@ const Sidebar: React.FC = () => {
                 isSwitchingSide={isSwitchingSide}
                 isCapturing={isCapturing}
                 onCapture={handleCapture}
+                error={error}
+                onResetError={resetError}
               />
             </>
           )}
@@ -134,6 +131,8 @@ const Sidebar: React.FC = () => {
               isSwitchingSide={isSwitchingSide}
               isCapturing={isCapturing}
               onCapture={handleCapture}
+              error={error}
+              onResetError={resetError}
             />
           </>
         )}

@@ -11,7 +11,7 @@ This document lists ideas for custom React hooks to further modularize and clari
 | Browser resize      | `useSidebarResize`     | Handle window resize and sidebar position update       | **Implemented** |
 | Collapse/expand     | `useSidebarCollapse`   | Manage collapsed state and toggle logic                | **Implemented** |
 | Debug logging       | `useDebug`             | Log state changes for debugging                        | **Implemented** |
-| Capture state       | `useCapture`           | Manage isCapturing, handleCapture, async logic, errors | Idea            |
+| Capture state       | `useCapture`           | Manage isCapturing, handleCapture, async logic, errors | **Implemented** |
 | Position management | `useSidebarPosition`   | Manage position, snapping, restore from storage        | **Implemented** |
 | Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | Idea            |
 | Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | Idea            |
