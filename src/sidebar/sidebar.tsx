@@ -7,12 +7,13 @@ import SidebarPanelBody from './components/SidebarPanelBody';
 import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
+import { useSidebarCollapse } from './hooks/useSidebarCollapse';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
 const Sidebar: React.FC = () => {
   const [visible, setVisible] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, handleToggleCollapse] = useSidebarCollapse();
   const [theme, handleThemeToggle] = useTheme();
   const getInitialY = () => {
     // const sidebarHeight = 100; // min height
@@ -39,10 +40,6 @@ const Sidebar: React.FC = () => {
   const handleClose = () => {
     setVisible(false);
     // Optionally, send a message to background/content to update state
-  };
-
-  const handleToggleCollapse = () => {
-    setCollapsed(!collapsed);
   };
 
   // Helper for arrow direction
