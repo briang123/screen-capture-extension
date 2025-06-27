@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": [
-      "DOM",
-      "ES2020"
-    ],
+    "lib": ["DOM", "ES2020"],
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
@@ -15,12 +12,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": [
-    "src",
-    "scripts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src", "scripts"],
+  "exclude": ["node_modules", "dist"]
 }

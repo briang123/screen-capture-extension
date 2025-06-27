@@ -6,7 +6,9 @@
   "scripts": {
     "init": "ts-node --esm scripts/init.ts",
     "dev": "vite",
-    "build": "vite build",
+    "build:main": "vite build",
+    "build:content": "vite build --config vite.content.config.ts",
+    "build": "npm run build:main && npm run build:content && npm run postbuild",
     "zip": "zip -r dist.zip dist/",
     "clean": "rm -rf dist",
     "validate": "node scripts/validate-generated-project.ts",
@@ -15,12 +17,14 @@
     "test:run": "vitest run",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "postbuild": "cp -r public/. dist/ && cp src/content/content.css dist/content.css"
   },
   "dependencies": {
     "@types/yargs": "^17.0.33",
     "enquirer": "^2.4.1",
     "fabric": "^5.3.0",
+    "framer-motion": "^12.19.1",
     "html2canvas": "^1.4.1",
     "react": "^18.2.0",
     "react-colorful": "^5.6.1",

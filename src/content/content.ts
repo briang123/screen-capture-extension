@@ -4,6 +4,7 @@
 // TODO: Add keyboard shortcuts for capture
 
 import './content.css';
+import { mountSidebar } from '../sidebar/sidebar';
 
 console.log('Screen Capture Extension content script loaded');
 
@@ -16,7 +17,13 @@ interface ElementSelection {
 
 // Message interface
 interface ContentScriptMessage {
-  action: 'startElementSelection' | 'stopElementSelection' | 'captureElement' | 'getElementInfo';
+  action:
+    | 'startElementSelection'
+    | 'stopElementSelection'
+    | 'captureElement'
+    | 'getElementInfo'
+    | 'openSidebar'
+    | 'closeSidebar';
   [key: string]: unknown;
 }
 
@@ -24,6 +31,19 @@ interface ContentScriptMessage {
 let isSelecting = false;
 let selectedElement: ElementSelection | null = null;
 let highlightElement: HTMLElement | null = null;
+
+// Sidebar injection logic
+const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
+const SIDEBAR_PIN_KEY = 'sc_sidebar_pinned';
+
+function injectSidebar() {
+  mountSidebar();
+}
+
+function removeSidebar() {
+  const root = document.getElementById(SIDEBAR_ROOT_ID);
+  if (root) root.remove();
+}
 
 // Listen for messages from popup and background
 chrome.runtime.onMessage.addListener(
@@ -58,12 +78,29 @@ chrome.runtime.onMessage.addListener(
         break;
       }
 
+      case 'openSidebar': {
+        injectSidebar();
+        sendResponse({ success: true });
+        break;
+      }
+
+      case 'closeSidebar': {
+        removeSidebar();
+        sendResponse({ success: true });
+        break;
+      }
+
       default:
         console.warn('Unknown message action:', message.action);
         sendResponse({ success: false, error: 'Unknown action' });
     }
   }
 );
+
+// Auto-inject if pinned
+if (localStorage.getItem(SIDEBAR_PIN_KEY) === 'true') {
+  injectSidebar();
+}
 
 // Start element selection mode
 function startElementSelection(): void {

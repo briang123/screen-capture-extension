@@ -48,13 +48,13 @@ export function validateConfig(config: Partial<ExtensionConfig>): ValidationResu
 
     if (config.includePricing && config.pricingModel === 'none') {
       warnings.push(
-        'Website includes pricing information but no pricing model is selected. Consider adding a pricing model.',
+        'Website includes pricing information but no pricing model is selected. Consider adding a pricing model.'
       );
     }
 
     if (config.includeAuth && (!config.authMethods || config.authMethods.includes('none'))) {
       warnings.push(
-        'Website includes authentication features but no authentication methods are selected. Consider adding authentication methods.',
+        'Website includes authentication features but no authentication methods are selected. Consider adding authentication methods.'
       );
     }
   }
@@ -62,7 +62,7 @@ export function validateConfig(config: Partial<ExtensionConfig>): ValidationResu
   // Cookie banner validation
   if (config.includeCookieBanner && !config.includeWebsite) {
     warnings.push(
-      'Cookie banner is selected but website is not included. Cookie banners are typically used on websites.',
+      'Cookie banner is selected but website is not included. Cookie banners are typically used on websites.'
     );
   }
 
@@ -70,7 +70,7 @@ export function validateConfig(config: Partial<ExtensionConfig>): ValidationResu
   if (config.aiProviders && config.aiProviders.some((provider) => provider !== 'none')) {
     if (config.database === 'none') {
       warnings.push(
-        'AI features are selected but no database is configured. Consider adding a database for conversation history and user preferences.',
+        'AI features are selected but no database is configured. Consider adding a database for conversation history and user preferences.'
       );
     }
   }
@@ -78,13 +78,13 @@ export function validateConfig(config: Partial<ExtensionConfig>): ValidationResu
   // Smart defaults warnings
   if (config.authMethods && config.authMethods.includes('none') && config.authMethods.length > 1) {
     warnings.push(
-      'You selected both "none" and other authentication methods. Consider removing "none" if you want authentication.',
+      'You selected both "none" and other authentication methods. Consider removing "none" if you want authentication.'
     );
   }
 
   if (config.aiProviders && config.aiProviders.includes('none') && config.aiProviders.length > 1) {
     warnings.push(
-      'You selected both "none" and other AI providers. Consider removing "none" if you want AI integration.',
+      'You selected both "none" and other AI providers. Consider removing "none" if you want AI integration.'
     );
   }
 
@@ -94,7 +94,7 @@ export function validateConfig(config: Partial<ExtensionConfig>): ValidationResu
     config.hostingProviders.length > 1
   ) {
     warnings.push(
-      'You selected both "none" and other hosting providers. Consider removing "none" if you want hosting.',
+      'You selected both "none" and other hosting providers. Consider removing "none" if you want hosting.'
     );
   }
 

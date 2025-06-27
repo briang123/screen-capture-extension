@@ -6,17 +6,11 @@
   "i18n": false,
   "optionsPage": true,
   "accessibility": false,
-  "authMethods": [
-    "none"
-  ],
-  "aiProviders": [
-    "none"
-  ],
+  "authMethods": ["none"],
+  "aiProviders": ["none"],
   "database": "none",
   "pricingModel": "none",
-  "hostingProviders": [
-    "none"
-  ],
+  "hostingProviders": ["none"],
   "storageType": "sync",
   "analytics": {
     "enabled": false,

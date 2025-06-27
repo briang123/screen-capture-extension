@@ -1,3 +1,4 @@
+import './popup.css';
 import React, { useState, useEffect } from 'react';
 import { captureScreen, openWindow } from '@background/background';
 import { getStorageData, setStorageData } from '@utils/storage';
@@ -61,6 +62,27 @@ const Popup: React.FC<PopupProps> = () => {
     await setStorageData({ settings: newSettings });
   };
 
+  const handleOpenSidebar = async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab.id) {
+      try {
+        await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
+      } catch (err) {
+        // Fallback: force-inject content script, then try again
+        if (chrome.scripting) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js'],
+          });
+          // Try again after injection
+          await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
+        } else {
+          alert('Unable to inject sidebar: scripting API not available.');
+        }
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 p-6">
       <div className="space-y-6">
@@ -108,6 +130,13 @@ const Popup: React.FC<PopupProps> = () => {
             className="w-full bg-blue-500 text-white font-semibold py-3 px-4 rounded-xl shadow-soft hover:bg-blue-600 transition-all duration-200"
           >
             Open Editor
+          </button>
+
+          <button
+            onClick={handleOpenSidebar}
+            className="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-xl shadow-soft hover:bg-green-600 transition-all duration-200 mt-2"
+          >
+            Open Sidebar
           </button>
         </div>
 

@@ -185,6 +185,26 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
   }
 });
 
+// Listen for extension button click to open sidebar directly
+chrome.action.onClicked.addListener(async (tab) => {
+  if (!tab.id) return;
+  try {
+    await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
+  } catch (err) {
+    // Fallback: force-inject content script, then try again
+    if (chrome.scripting) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js'],
+      });
+      await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
+    } else {
+      // Optionally notify user
+      console.error('Unable to inject sidebar: scripting API not available.');
+    }
+  }
+});
+
 // Export functions for use in other modules
 export const captureScreen = handleScreenCapture;
 export const openWindow = handleOpenWindow;

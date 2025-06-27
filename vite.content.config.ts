@@ -7,24 +7,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        background: resolve(__dirname, 'src/background/background.ts'),
-        popup: resolve(__dirname, 'src/popup/popup.tsx'),
-        window: resolve(__dirname, 'src/window/window.tsx'),
-        sidebar: resolve(__dirname, 'src/sidebar/sidebar.tsx'),
+        content: resolve(__dirname, 'src/content/content.ts'),
       },
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name].js',
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'content.css') {
-            return 'content.css';
-          }
-          return '[name].[ext]';
-        },
+        format: 'iife',
+        entryFileNames: 'content.js',
+        assetFileNames: '[name].[ext]',
       },
     },
     outDir: 'dist',
-    emptyOutDir: true,
+    emptyOutDir: false, // Don't delete other files in dist
   },
   resolve: {
     alias: {
@@ -37,12 +29,5 @@ export default defineConfig({
       '@background': resolve(__dirname, 'src/background'),
       '@content': resolve(__dirname, 'src/content'),
     },
-  },
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-  },
-  server: {
-    port: 3000,
-    open: true,
   },
 });

@@ -3,10 +3,9 @@
   "name": "Screen Capture Extension",
   "version": "1.0.0",
   "description": "Capture and annotate web page screenshots with beautiful backgrounds and editing tools",
-  "permissions": ["activeTab", "storage", "clipboardWrite", "downloads"],
+  "permissions": ["activeTab", "storage", "clipboardWrite", "downloads", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "popup.html",
     "default_title": "Screen Capture Extension",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -35,7 +34,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["window.html", "window.js", "window.css"],
+      "resources": ["window.html", "window.js", "window.css", "sidebar.js", "sidebar.css"],
       "matches": ["<all_urls>"]
     }
   ],
