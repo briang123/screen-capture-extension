@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
 import { motion } from 'framer-motion';
-import Button, { CaptureButton } from './components/Button';
-import ThemeToggle from './components/ThemeToggle';
+import { CaptureButton } from './components/Button';
+import SidebarPanelHeader from './components/SidebarPanelHeader';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -121,33 +121,14 @@ const Sidebar: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="sc-sidebar-header flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <span className="sc-sidebar-title text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Screen Capture
-                </span>
-                <div className="sc-sidebar-actions flex items-center gap-2">
-                  <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleMoveSide}
-                    title="Move Sidebar to Other Side"
-                  >
-                    ⇄
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleToggleCollapse}
-                    title="Collapse Sidebar"
-                  >
-                    {getCollapseArrow()}
-                  </Button>
-                  <Button variant="danger" size="sm" onClick={handleClose} title="Close Sidebar">
-                    ✖️
-                  </Button>
-                </div>
-              </div>
+              <SidebarPanelHeader
+                theme={theme}
+                onThemeToggle={handleThemeToggle}
+                onMoveSide={handleMoveSide}
+                onToggleCollapse={handleToggleCollapse}
+                onClose={handleClose}
+                getCollapseArrow={getCollapseArrow}
+              />
               <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
                 {!isSwitchingSide ? (
                   <motion.div
@@ -192,33 +173,14 @@ const Sidebar: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="sc-sidebar-header flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <span className="sc-sidebar-title text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Screen Capture
-              </span>
-              <div className="sc-sidebar-actions flex items-center gap-2">
-                <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleMoveSide}
-                  title="Move Sidebar to Other Side"
-                >
-                  ⇄
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleToggleCollapse}
-                  title="Collapse Sidebar"
-                >
-                  {getCollapseArrow()}
-                </Button>
-                <Button variant="danger" size="sm" onClick={handleClose} title="Close Sidebar">
-                  ✖️
-                </Button>
-              </div>
-            </div>
+            <SidebarPanelHeader
+              theme={theme}
+              onThemeToggle={handleThemeToggle}
+              onMoveSide={handleMoveSide}
+              onToggleCollapse={handleToggleCollapse}
+              onClose={handleClose}
+              getCollapseArrow={getCollapseArrow}
+            />
             <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
               {!isSwitchingSide ? (
                 <motion.div
