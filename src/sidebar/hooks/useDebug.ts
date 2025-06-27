@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export function useDebug(label: string, values: Record<string, any>) {
+export function useDebug(label: string, values: Record<string, unknown>) {
   useEffect(() => {
     // Grouped log for clarity
     console.group(`[${label}]`);
@@ -9,6 +9,5 @@ export function useDebug(label: string, values: Record<string, any>) {
     });
     console.groupEnd();
     // Only log when values change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, Object.values(values));
 }

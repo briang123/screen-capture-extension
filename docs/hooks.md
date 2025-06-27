@@ -12,7 +12,7 @@ This document lists ideas for custom React hooks to further modularize and clari
 | Collapse/expand     | `useSidebarCollapse`   | Manage collapsed state and toggle logic                | **Implemented** |
 | Debug logging       | `useDebug`             | Log state changes for debugging                        | **Implemented** |
 | Capture state       | `useCapture`           | Manage isCapturing, handleCapture, async logic, errors | Idea            |
-| Position management | `useSidebarPosition`   | Manage position, snapping, restore from storage        | Idea            |
+| Position management | `useSidebarPosition`   | Manage position, snapping, restore from storage        | **Implemented** |
 | Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | Idea            |
 | Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | Idea            |
 | Animation state     | `useSidebarAnimation`  | Manage animation state, timing, coordination           | Idea            |
@@ -79,6 +79,14 @@ This document lists ideas for custom React hooks to further modularize and clari
 - Example:
   ```js
   useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed });
+  ```
+
+### 6. `useSidebarPosition` (**Implemented**)
+
+- Manages sidebar position state, initial calculation, and provides helpers for snapping to edges or restoring from storage.
+- Example:
+  ```js
+  const [position, setPosition, snapToEdge] = useSidebarPosition(side, sidebarWidth, getInitialY);
   ```
 
 ### Editor Hook Ideas

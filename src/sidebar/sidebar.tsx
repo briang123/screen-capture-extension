@@ -35,6 +35,9 @@ const Sidebar: React.FC = () => {
   const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
   const isResizing = useSidebarResize(side, getRightEdge, setPosition);
 
+  // Move useDebug outside conditional block to follow Rules of Hooks
+  useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed, visible });
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
@@ -51,7 +54,6 @@ const Sidebar: React.FC = () => {
   };
 
   if (visible) {
-    useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed });
     const sidebarStyle = {
       touchAction: 'none',
       width: collapsed ? collapsedWidth : 400,
