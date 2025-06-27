@@ -14,7 +14,7 @@ This document lists ideas for custom React hooks to further modularize and clari
 | Capture state       | `useCapture`           | Manage isCapturing, handleCapture, async logic, errors | **Implemented** |
 | Position management | `useSidebarPosition`   | Manage position, snapping, restore from storage        | **Implemented** |
 | Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | **Implemented** |
-| Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | Idea            |
+| Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | **Implemented** |
 | Animation state     | `useSidebarAnimation`  | Manage animation state, timing, coordination           | Idea            |
 | Visibility/close    | `useSidebarVisibility` | Manage open/close, escape key, outside click           | Idea            |
 
@@ -148,6 +148,95 @@ const [data, setData, clearData] = usePersistentState({
 - **Type safety** with full TypeScript support
 - **Fallback mechanisms** when storage is unavailable
 - **Performance optimized** with debounced updates and change detection
+
+### 8. `useFocusTrap` (**Implemented**)
+
+A comprehensive accessibility hook for managing focus trapping, keyboard navigation, and ARIA attributes in React components.
+
+**Why Use This Hook:**
+
+- Ensures keyboard users can navigate your UI without getting trapped or lost
+- Implements WCAG 2.1 guidelines for focus management
+- Provides automatic ARIA attribute management
+- Handles focus restoration when components unmount
+- Supports custom focus selectors and escape key handling
+- Prevents focus from escaping the component boundaries
+
+**Common Use Cases:**
+
+- Modal dialogs and popups
+- Sidebar panels and navigation menus
+- Form overlays and wizards
+- Tooltip and dropdown menus
+- Any component that should contain focus
+
+**Key Features:**
+
+- **Tab key navigation** (forward/backward)
+- **Arrow key navigation** (up/down/left/right)
+- **Home/End key navigation** (first/last element)
+- **Escape key handling** with callback
+- **Automatic focus restoration**
+- **ARIA role and modal attributes**
+- **Custom focusable element selectors**
+- **Focus enter/leave callbacks**
+
+**Basic Usage:**
+
+```tsx
+const { containerRef, isActive } = useFocusTrap({
+  enabled: isModalOpen,
+  returnFocus: true,
+  focusFirstElement: true,
+  allowEscape: true,
+  onEscape: () => setIsModalOpen(false),
+});
+
+return (
+  <div ref={containerRef} className="modal">
+    <h2>Modal Title</h2>
+    <button>Action 1</button>
+    <button>Action 2</button>
+  </div>
+);
+```
+
+**Advanced Usage:**
+
+```tsx
+const {
+  containerRef,
+  focusFirst,
+  focusLast,
+  focusNext,
+  focusPrev,
+  activate,
+  deactivate,
+  isActive,
+} = useFocusTrap({
+  enabled: isExpanded,
+  returnFocus: true,
+  focusFirstElement: false,
+  allowEscape: false,
+  focusableSelector: 'button, [role="button"], input, select, textarea',
+  onFocusEnter: () => console.log('Focus entered'),
+  onFocusLeave: () => console.log('Focus left'),
+});
+```
+
+**Convenience Hooks:**
+
+- `useSimpleFocusTrap(enabled)` - Simple focus trap with default settings
+- `useFocusRestoration(enabled)` - Save and restore focus state
+- `useAriaAttributes(role, attributes)` - Manage ARIA attributes
+
+**Accessibility Benefits:**
+
+- Screen reader compatibility
+- Keyboard-only navigation support
+- Proper focus management for assistive technologies
+- WCAG 2.1 AA compliance for focus trapping
+- Reduced cognitive load for users with disabilities
 
 ### Editor Hook Ideas
 
