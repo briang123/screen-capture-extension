@@ -13,7 +13,7 @@ This document lists ideas for custom React hooks to further modularize and clari
 | Debug logging       | `useDebug`             | Log state changes for debugging                        | **Implemented** |
 | Capture state       | `useCapture`           | Manage isCapturing, handleCapture, async logic, errors | **Implemented** |
 | Position management | `useSidebarPosition`   | Manage position, snapping, restore from storage        | **Implemented** |
-| Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | Idea            |
+| Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | **Implemented** |
 | Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | Idea            |
 | Animation state     | `useSidebarAnimation`  | Manage animation state, timing, coordination           | Idea            |
 | Visibility/close    | `useSidebarVisibility` | Manage open/close, escape key, outside click           | Idea            |
@@ -88,6 +88,66 @@ This document lists ideas for custom React hooks to further modularize and clari
   ```js
   const [position, setPosition, snapToEdge] = useSidebarPosition(side, sidebarWidth, getInitialY);
   ```
+
+### 7. `usePersistentState` (**Implemented**)
+
+A comprehensive hook for managing persistent state across different storage backends with a unified interface.
+
+**Features:**
+
+- Multiple storage backends: localStorage, sessionStorage, Chrome local/sync storage
+- Cross-tab synchronization support
+- Custom serialization/deserialization
+- Error handling and fallbacks
+- TypeScript support with full type safety
+
+**Storage Backends:**
+
+- `localStorage` - Browser's localStorage API
+- `sessionStorage` - Browser's sessionStorage API
+- `chrome.local` - Chrome extension local storage
+- `chrome.sync` - Chrome extension sync storage (cross-device)
+
+**Basic Usage:**
+
+```tsx
+// Simple localStorage usage
+const [count, setCount, clearCount] = useLocalStorage('counter', 0);
+
+// Complex object with Chrome sync storage
+const [settings, setSettings] = useChromeSyncStorage('user-settings', {
+  theme: 'light',
+  fontSize: 14,
+  notifications: true,
+});
+
+// Advanced usage with custom options
+const [data, setData, clearData] = usePersistentState({
+  key: 'advanced-data',
+  backend: 'chrome.local',
+  defaultValue: { items: [] },
+  onError: (error) => console.error('Storage error:', error),
+  sync: true, // Enable cross-tab synchronization
+  serialize: (value) => JSON.stringify(value),
+  deserialize: (str) => JSON.parse(str),
+});
+```
+
+**Convenience Hooks:**
+
+- `useLocalStorage<T>(key, defaultValue, options?)` - localStorage wrapper
+- `useSessionStorage<T>(key, defaultValue, options?)` - sessionStorage wrapper
+- `useChromeLocalStorage<T>(key, defaultValue, options?)` - Chrome local storage wrapper
+- `useChromeSyncStorage<T>(key, defaultValue, options?)` - Chrome sync storage wrapper
+
+**Key Features:**
+
+- **Automatic synchronization** across browser tabs/windows
+- **Error handling** with optional error callbacks
+- **Custom serialization** for special data types (Dates, custom objects)
+- **Type safety** with full TypeScript support
+- **Fallback mechanisms** when storage is unavailable
+- **Performance optimized** with debounced updates and change detection
 
 ### Editor Hook Ideas
 
