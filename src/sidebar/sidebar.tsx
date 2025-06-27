@@ -33,6 +33,7 @@ const Sidebar: React.FC = () => {
   const [side, setSide] = useState<'left' | 'right'>('right');
   const [isCapturing, setIsCapturing] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isSwitchingSide, setIsSwitchingSide] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -62,10 +63,10 @@ const Sidebar: React.FC = () => {
   };
 
   const handleMoveSide = () => {
+    setIsSwitchingSide(true);
     const newSide = side === 'left' ? 'right' : 'left';
-    const snapX = newSide === 'right' ? getRightEdge() : 0;
-    setPosition((pos) => ({ ...pos, x: snapX }));
     setSide(newSide);
+    setTimeout(() => setIsSwitchingSide(false), 500); // match sidebar transition duration
   };
 
   const handleToggleCollapse = () => {
@@ -149,34 +150,59 @@ const Sidebar: React.FC = () => {
                 </div>
               </div>
               <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleCapture}
-                    disabled={isCapturing}
-                    className="w-full flex items-center justify-center"
-                    aria-busy={isCapturing}
+                {!isSwitchingSide ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {isCapturing ? (
-                      <motion.span
-                        className="loading-spinner mr-2"
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                      >
-                        ⏳
-                      </motion.span>
-                    ) : (
-                      <span className="mr-2">📸</span>
-                    )}
-                    {isCapturing ? 'Capturing...' : 'Capture Image'}
-                  </Button>
-                </motion.div>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={handleCapture}
+                      disabled={isCapturing}
+                      className="w-full flex items-center justify-center"
+                      aria-busy={isCapturing}
+                    >
+                      {isCapturing ? (
+                        <motion.span
+                          className="loading-spinner mr-2"
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                        >
+                          ⏳
+                        </motion.span>
+                      ) : (
+                        <span className="mr-2">📸</span>
+                      )}
+                      {isCapturing ? 'Capturing...' : 'Capture Image'}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <div>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={handleCapture}
+                      disabled={isCapturing}
+                      className="w-full flex items-center justify-center"
+                      aria-busy={isCapturing}
+                    >
+                      {isCapturing ? (
+                        <motion.span
+                          className="loading-spinner mr-2"
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                        >
+                          ⏳
+                        </motion.span>
+                      ) : (
+                        <span className="mr-2">📸</span>
+                      )}
+                      {isCapturing ? 'Capturing...' : 'Capture Image'}
+                    </Button>
+                  </div>
+                )}
                 <Card>
                   <div className="flex flex-col gap-2">
                     <span className="font-medium text-gray-700 dark:text-gray-200">Quick Tips</span>
@@ -258,34 +284,59 @@ const Sidebar: React.FC = () => {
               </div>
             </div>
             <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={handleCapture}
-                  disabled={isCapturing}
-                  className="w-full flex items-center justify-center"
-                  aria-busy={isCapturing}
+              {!isSwitchingSide ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {isCapturing ? (
-                    <motion.span
-                      className="loading-spinner mr-2"
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                    >
-                      ⏳
-                    </motion.span>
-                  ) : (
-                    <span className="mr-2">📸</span>
-                  )}
-                  {isCapturing ? 'Capturing...' : 'Capture Image'}
-                </Button>
-              </motion.div>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={handleCapture}
+                    disabled={isCapturing}
+                    className="w-full flex items-center justify-center"
+                    aria-busy={isCapturing}
+                  >
+                    {isCapturing ? (
+                      <motion.span
+                        className="loading-spinner mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                      >
+                        ⏳
+                      </motion.span>
+                    ) : (
+                      <span className="mr-2">📸</span>
+                    )}
+                    {isCapturing ? 'Capturing...' : 'Capture Image'}
+                  </Button>
+                </motion.div>
+              ) : (
+                <div>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={handleCapture}
+                    disabled={isCapturing}
+                    className="w-full flex items-center justify-center"
+                    aria-busy={isCapturing}
+                  >
+                    {isCapturing ? (
+                      <motion.span
+                        className="loading-spinner mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                      >
+                        ⏳
+                      </motion.span>
+                    ) : (
+                      <span className="mr-2">📸</span>
+                    )}
+                    {isCapturing ? 'Capturing...' : 'Capture Image'}
+                  </Button>
+                </div>
+              )}
               <Card>
                 <div className="flex flex-col gap-2">
                   <span className="font-medium text-gray-700 dark:text-gray-200">Quick Tips</span>
