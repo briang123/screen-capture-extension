@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
 import SidebarContainer from './components/SidebarContainer';
@@ -8,6 +8,7 @@ import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
 import { useSidebarVisibility } from './hooks/useSidebarVisibility';
 import { useSidebarAnimation } from './hooks/useSidebarAnimation';
+import { useSidebarPosition } from './hooks/useSidebarPosition';
 import { useCapture } from './hooks/useCapture';
 import { useDebug } from './hooks/useDebug';
 
@@ -28,21 +29,24 @@ const Sidebar: React.FC = () => {
   const [collapsed, handleToggleCollapse] = useSidebarCollapse();
   const [theme, handleThemeToggle] = useTheme();
   const { isCapturing, handleCapture, error, resetError } = useCapture();
+
+  const sidebarWidth = 400;
   const getInitialY = () => {
     // const sidebarHeight = 100; // min height
     // const maxY = Math.max(0, window.innerHeight - sidebarHeight);
     return 0; // Always start at top
   };
 
-  const sidebarWidth = 400;
-  const getRightEdge = () => Math.max(0, document.documentElement.clientWidth - sidebarWidth);
-
-  const [position, setPosition] = useState<{ x: number; y: number }>(() => ({
-    x: getRightEdge(),
-    y: getInitialY(),
-  }));
   const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
-  const isResizing = useSidebarResize(side, getRightEdge, setPosition);
+
+  // Use the sidebar position hook for better position management
+  const [position, setPosition] = useSidebarPosition(side, sidebarWidth, getInitialY);
+
+  const isResizing = useSidebarResize(
+    side,
+    () => Math.max(0, document.documentElement.clientWidth - sidebarWidth),
+    setPosition
+  );
 
   // Use the sidebar animation hook
   const sidebarAnimation = useSidebarAnimation({
