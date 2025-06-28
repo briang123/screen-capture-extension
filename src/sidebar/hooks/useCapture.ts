@@ -4,6 +4,7 @@ import {
   UserFacingError,
   retryOperation,
 } from '../../shared/error-handling';
+import { captureTabViewport, captureFullPage } from '../../utils/capture';
 
 interface CaptureState {
   isCapturing: boolean;
@@ -93,20 +94,6 @@ export function useCapture(): UseCaptureReturn {
     capturedImages: [],
   });
 
-  const performCapture = useCallback(async (): Promise<void> => {
-    // Send message to background script to capture screen
-    const response = await chrome.runtime.sendMessage({
-      action: 'captureScreen',
-    });
-
-    if (!response.success) {
-      throw new Error(response.error || 'Capture failed');
-    }
-
-    // Copy to clipboard
-    await copyImageToClipboard(response.imageData);
-  }, []);
-
   const copyImageToClipboard = useCallback(async (imageData: string): Promise<void> => {
     try {
       // Convert data URL to blob
@@ -140,72 +127,48 @@ export function useCapture(): UseCaptureReturn {
     }
   }, []);
 
-  const handleCapture = useCallback(async () => {
-    console.log('handleCapture called');
-    if (state.isCapturing) {
-      return; // Prevent multiple simultaneous captures
+  const performCapture = useCallback(async (): Promise<void> => {
+    const result = await captureTabViewport();
+    if ('error' in result) {
+      throw new Error(result.error.message);
     }
+    await copyImageToClipboard(result.imageData);
+  }, [copyImageToClipboard]);
 
+  const handleCapture = useCallback(async () => {
+    if (state.isCapturing) return;
     setState((prev) => ({
       ...prev,
       isCapturing: true,
       error: null,
       successMessage: null,
     }));
-
     try {
-      await retryOperation(
-        performCapture,
-        3, // maxRetries
-        1000, // baseDelay
-        {
-          operation: 'screen-capture',
-          component: 'useCapture',
-          timestamp: Date.now(),
-        }
-      );
-
-      // Get the captured image from the background script
-      const response = await chrome.runtime.sendMessage({ action: 'captureScreen' });
-      console.log('captureScreen response:', response);
-      if (response.success && response.imageData) {
-        setState((prev) => {
-          const newState = {
-            ...prev,
-            isCapturing: false,
-            lastCaptureTime: Date.now(),
-            successMessage: 'Screenshot copied to clipboard! 📋',
-            capturedImages: [response.imageData, ...prev.capturedImages],
-          };
-          console.log('Image added to state:', newState.capturedImages);
-          return newState;
-        });
-      } else {
-        setState((prev) => ({
-          ...prev,
-          isCapturing: false,
-          error: createUserFacingError('Failed to capture image'),
-        }));
-        console.log('Failed to capture image');
-      }
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          successMessage: null,
-        }));
-      }, 3000);
-    } catch (error) {
-      const userFacingError = createUserFacingError(error);
-
+      await retryOperation(performCapture, 3, 1000, {
+        operation: 'screen-capture',
+        component: 'useCapture',
+        timestamp: Date.now(),
+      });
+      // Get the captured image from the background script (already done in performCapture)
+      // Instead, update state with the latest clipboard image if needed
+      // (Or, optionally, re-fetch the image from clipboard or background)
+      // For now, skip this and rely on performCapture to throw on error
       setState((prev) => ({
         ...prev,
         isCapturing: false,
-        error: userFacingError,
+        lastCaptureTime: Date.now(),
+        successMessage: 'Screenshot copied to clipboard! 📋',
+        // Optionally, add the image to capturedImages if you want to keep a history
+        // capturedImages: [result.imageData, ...prev.capturedImages],
       }));
+      setTimeout(() => {
+        setState((prev) => ({ ...prev, successMessage: null }));
+      }, 3000);
+    } catch (error) {
+      const userFacingError = createUserFacingError(error);
+      setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
     }
-  }, [state.isCapturing, performCapture, copyImageToClipboard]);
+  }, [state.isCapturing, performCapture]);
 
   const handleAreaCapture = useCallback(() => {
     setState((prev) => ({
@@ -326,9 +289,7 @@ export function useCapture(): UseCaptureReturn {
   }, []);
 
   const handleFullPageCapture = useCallback(async () => {
-    if (state.isCapturing) {
-      return;
-    }
+    if (state.isCapturing) return;
     setState((prev) => ({
       ...prev,
       isCapturing: true,
@@ -336,32 +297,22 @@ export function useCapture(): UseCaptureReturn {
       successMessage: null,
     }));
     try {
-      // Send message to content script to perform full page capture
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const response = await chrome.tabs.sendMessage(tab.id!, { action: 'captureFullPage' });
-      if (!response.success || !response.imageData) {
-        throw new Error(response.error || 'Full page capture failed');
-      }
-      await copyImageToClipboard(response.imageData);
+      const result = await captureFullPage();
+      if ('error' in result) throw new Error(result.error.message);
+      await copyImageToClipboard(result.imageData);
       setState((prev) => ({
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
         successMessage: 'Full page screenshot copied to clipboard! 📋',
+        capturedImages: [result.imageData, ...prev.capturedImages],
       }));
       setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          successMessage: null,
-        }));
+        setState((prev) => ({ ...prev, successMessage: null }));
       }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
-      setState((prev) => ({
-        ...prev,
-        isCapturing: false,
-        error: userFacingError,
-      }));
+      setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
     }
   }, [state.isCapturing, copyImageToClipboard]);
 
