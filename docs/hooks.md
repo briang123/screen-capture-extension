@@ -16,7 +16,7 @@ This document lists ideas for custom React hooks to further modularize and clari
 | Persistent state    | `usePersistentState`   | Sync any state with localStorage/sessionStorage        | **Implemented** |
 | Accessibility/focus | `useFocusTrap`         | Manage focus, keyboard nav, ARIA for accessibility     | **Implemented** |
 | Animation state     | `useSidebarAnimation`  | Manage animation state, timing, coordination           | Idea            |
-| Visibility/close    | `useSidebarVisibility` | Manage open/close, escape key, outside click           | Idea            |
+| Visibility/close    | `useSidebarVisibility` | Manage open/close, escape key, outside click           | **Implemented** |
 
 ---
 
@@ -237,6 +237,87 @@ const {
 - Proper focus management for assistive technologies
 - WCAG 2.1 AA compliance for focus trapping
 - Reduced cognitive load for users with disabilities
+
+### 9. `useSidebarVisibility` (**Implemented**)
+
+A comprehensive hook for managing sidebar visibility state, including open/close behavior, escape key handling, outside click detection, and focus management integration.
+
+**Why Use This Hook:**
+
+- Centralizes sidebar visibility logic in one place
+- Handles common UX patterns (escape to close, outside click to close)
+- Integrates with focus management for accessibility
+- Provides consistent behavior across different sidebar implementations
+- Supports both controlled and uncontrolled visibility states
+
+**Common Use Cases:**
+
+- Sidebar panels and navigation menus
+- Slide-out panels and drawers
+- Floating toolbars and palettes
+- Any collapsible UI component
+
+**Key Features:**
+
+- **Escape key to close** sidebar with callback support
+- **Outside click detection** to close (configurable)
+- **Focus restoration** when closing
+- **Integration with useFocusTrap** for accessibility
+- **Controlled and uncontrolled modes**
+- **Transition state management**
+- **Callback support** for visibility changes
+
+**Basic Usage:**
+
+```tsx
+const { visible, close, containerRef } = useSidebarVisibility({
+  initialVisible: true,
+  closeOnEscape: true,
+  closeOnOutsideClick: false,
+  enableFocusTrap: true,
+  onClose: () => console.log('Sidebar closed'),
+});
+
+return (
+  <div ref={containerRef} className="sidebar">
+    <button onClick={close}>Close</button>
+    {/* Sidebar content */}
+  </div>
+);
+```
+
+**Advanced Usage:**
+
+```tsx
+const { visible, open, close, toggle, containerRef, triggerRef, isTransitioning, setVisible } =
+  useSidebarVisibility({
+    initialVisible: false,
+    controlled: false,
+    closeOnEscape: true,
+    closeOnOutsideClick: true,
+    restoreFocus: true,
+    enableFocusTrap: true,
+    outsideClickSelector: 'body',
+    onVisibilityChange: (visible) => console.log('Visibility changed:', visible),
+    onOpen: () => console.log('Sidebar opened'),
+    onClose: () => console.log('Sidebar closed'),
+    onEscape: () => console.log('Escape pressed'),
+    onOutsideClick: () => console.log('Outside click detected'),
+  });
+```
+
+**Convenience Hooks:**
+
+- `useSimpleSidebarVisibility(initialVisible, closeOnEscape, closeOnOutsideClick)` - Simple sidebar with basic options
+- `useControlledSidebarVisibility(visible, onVisibilityChange, options)` - Controlled sidebar visibility
+
+**Accessibility Features:**
+
+- Proper focus management with useFocusTrap integration
+- Keyboard navigation support
+- Screen reader announcements
+- ARIA attribute management
+- Focus restoration when closing
 
 ### Editor Hook Ideas
 

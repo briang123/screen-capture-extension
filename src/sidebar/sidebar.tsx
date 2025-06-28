@@ -11,11 +11,22 @@ import { useSidebarCollapse } from './hooks/useSidebarCollapse';
 import { useCapture } from './hooks/useCapture';
 import ExpandCollapseButton from './components/ExpandCollapseButton';
 import { useDebug } from './hooks/useDebug';
+import { useSidebarVisibility } from './hooks/useSidebarVisibility';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
 const Sidebar: React.FC = () => {
-  const [visible, setVisible] = useState(true);
+  const { visible, close, containerRef } = useSidebarVisibility({
+    initialVisible: true,
+    closeOnEscape: true,
+    closeOnOutsideClick: false, // Don't close on outside click for sidebar
+    enableFocusTrap: true,
+    onClose: () => {
+      // Optionally, send a message to background/content to update state
+      console.log('Sidebar closed');
+    },
+  });
+
   const [collapsed, handleToggleCollapse] = useSidebarCollapse();
   const [theme, handleThemeToggle] = useTheme();
   const { isCapturing, handleCapture, error, resetError } = useCapture();
@@ -43,11 +54,6 @@ const Sidebar: React.FC = () => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  const handleClose = () => {
-    setVisible(false);
-    // Optionally, send a message to background/content to update state
-  };
-
   if (visible) {
     const sidebarStyle = {
       touchAction: 'none',
@@ -64,7 +70,11 @@ const Sidebar: React.FC = () => {
     };
     if (isResizing) {
       return (
-        <div className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`} style={sidebarStyle}>
+        <div
+          ref={containerRef as React.RefObject<HTMLDivElement>}
+          className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
+          style={sidebarStyle}
+        >
           {collapsed ? (
             <div className="flex flex-col items-center justify-center h-full p-2">
               <ExpandCollapseButton
@@ -80,7 +90,7 @@ const Sidebar: React.FC = () => {
                 onThemeToggle={handleThemeToggle}
                 onMoveSide={handleMoveSide}
                 onToggleCollapse={handleToggleCollapse}
-                onClose={handleClose}
+                onClose={close}
                 side={side}
                 collapsed={collapsed}
               />
@@ -99,6 +109,7 @@ const Sidebar: React.FC = () => {
     // Not resizing: use motion.div for animation
     return (
       <motion.div
+        ref={containerRef as React.RefObject<HTMLDivElement>}
         className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
         initial={false}
         animate={{
@@ -123,7 +134,7 @@ const Sidebar: React.FC = () => {
               onThemeToggle={handleThemeToggle}
               onMoveSide={handleMoveSide}
               onToggleCollapse={handleToggleCollapse}
-              onClose={handleClose}
+              onClose={close}
               side={side}
               collapsed={collapsed}
             />
