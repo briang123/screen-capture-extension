@@ -164,8 +164,8 @@ class ChromeStorageAdapter implements StorageAdapter {
         console.warn('Chrome storage API not available');
         return;
       }
-      // Always store as a string for consistency
-      await chrome.storage[this.storageArea].set({ [key]: JSON.stringify(value) });
+      // Store the value as-is; serialization is handled by usePersistentState
+      await chrome.storage[this.storageArea].set({ [key]: value });
     } catch (error) {
       console.warn(`Failed to set to chrome.storage.${this.storageArea}: ${error}`);
     }
