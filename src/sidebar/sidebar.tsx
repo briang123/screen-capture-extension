@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, Root } from 'react-dom/client';
 import './sidebar.css';
 import SidebarContainer from './components/SidebarContainer';
 import { useTheme } from './hooks/useTheme';
@@ -13,6 +13,7 @@ import { useCapture } from './hooks/useCapture';
 import { useDebug } from './hooks/useDebug';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
+let reactSidebarRoot: Root | null = null;
 
 const Sidebar: React.FC = () => {
   const { visible, close, containerRef } = useSidebarVisibility({
@@ -121,10 +122,21 @@ export function mountSidebar() {
     container.id = SIDEBAR_ROOT_ID;
     document.body.appendChild(container);
   }
-  const root = createRoot(container);
-  root.render(
+  reactSidebarRoot = createRoot(container);
+  reactSidebarRoot.render(
     <React.StrictMode>
       <Sidebar />
     </React.StrictMode>
   );
+}
+
+export function unmountSidebar() {
+  const container = document.getElementById(SIDEBAR_ROOT_ID);
+  if (reactSidebarRoot) {
+    reactSidebarRoot.unmount();
+    reactSidebarRoot = null;
+  }
+  if (container && container.parentNode) {
+    container.parentNode.removeChild(container);
+  }
 }

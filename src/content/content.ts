@@ -4,7 +4,7 @@
 // TODO: Add keyboard shortcuts for capture
 
 import './content.css';
-import { mountSidebar } from '../sidebar/sidebar';
+import { mountSidebar, unmountSidebar } from '../sidebar/sidebar';
 
 console.log('Screen Capture Extension content script loaded');
 
@@ -37,7 +37,6 @@ let areaStart: { x: number; y: number } | null = null;
 let areaOverlay: HTMLDivElement | null = null;
 
 // Sidebar injection logic
-const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 const SIDEBAR_PIN_KEY = 'sc_sidebar_pinned';
 
 function injectSidebar() {
@@ -45,8 +44,7 @@ function injectSidebar() {
 }
 
 function removeSidebar() {
-  const root = document.getElementById(SIDEBAR_ROOT_ID);
-  if (root) root.remove();
+  unmountSidebar();
 }
 
 // Listen for messages from popup and background
