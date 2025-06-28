@@ -1,12 +1,9 @@
 import { useState, useCallback } from 'react';
-import {
-  createUserFacingError,
-  UserFacingError,
-  retryOperation,
-} from '../../shared/error-handling';
+import { UserFacingError, retryOperation } from '../../shared/error-handling';
 import { captureTabViewport, captureFullPage } from '../../utils/capture';
 import { copyImageToClipboard } from '../../utils/clipboard';
 import { useSuccessMessage } from './useSuccessMessage';
+import { handleCaptureError } from '../../utils/error';
 
 interface CaptureState {
   isCapturing: boolean;
@@ -17,7 +14,7 @@ interface CaptureState {
 }
 
 interface UseCaptureReturn extends CaptureState {
-  successMessage: string;
+  successMessage: string | null;
   handleCapture: () => Promise<void>;
   handleAreaCapture: () => void;
   resetError: () => void;
@@ -128,8 +125,7 @@ export function useCapture(): UseCaptureReturn {
         lastCaptureTime: Date.now(),
       }));
     } catch (error) {
-      const userFacingError = createUserFacingError(error);
-      setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
+      handleCaptureError(error, setState);
     }
   }, [state.isCapturing, performCapture]);
 
@@ -159,13 +155,7 @@ export function useCapture(): UseCaptureReturn {
           capturedImages: [imageData, ...prev.capturedImages],
         }));
       } catch (error) {
-        const userFacingError = createUserFacingError(error);
-
-        setState((prev) => ({
-          ...prev,
-          isCapturing: false,
-          error: userFacingError,
-        }));
+        handleCaptureError(error, setState);
       }
     },
     [copyImageToClipboard]
@@ -207,13 +197,7 @@ export function useCapture(): UseCaptureReturn {
         lastCaptureTime: Date.now(),
       }));
     } catch (error) {
-      const userFacingError = createUserFacingError(error);
-
-      setState((prev) => ({
-        ...prev,
-        isCapturing: false,
-        error: userFacingError,
-      }));
+      handleCaptureError(error, setState);
     }
   }, [state.isCapturing, performCapture]);
 
@@ -246,8 +230,7 @@ export function useCapture(): UseCaptureReturn {
         capturedImages: [result.imageData, ...prev.capturedImages],
       }));
     } catch (error) {
-      const userFacingError = createUserFacingError(error);
-      setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
+      handleCaptureError(error, setState);
     }
   }, [state.isCapturing, copyImageToClipboard]);
 
