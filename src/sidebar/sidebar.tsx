@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
-import { motion } from 'framer-motion';
-import CollapsedSidebarContent from './components/CollapsedSidebarContent';
-import ExpandedSidebarContent from './components/ExpandedSidebarContent';
+import SidebarContainer from './components/SidebarContainer';
 import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
@@ -87,63 +85,26 @@ const Sidebar: React.FC = () => {
       ...(side === 'left' ? { left: '0' } : { right: '0' }),
     };
 
-    if (isResizing) {
-      return (
-        <div
-          ref={containerRef as React.RefObject<HTMLDivElement>}
-          className={`sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`}
-          style={sidebarStyle}
-        >
-          {collapsed === 'collapsed' ? (
-            <CollapsedSidebarContent side={side} onToggleCollapse={handleToggleCollapse} />
-          ) : (
-            <ExpandedSidebarContent
-              theme={theme}
-              onThemeToggle={handleThemeToggle}
-              onMoveSide={handleMoveSide}
-              onToggleCollapse={handleToggleCollapse}
-              onClose={close}
-              side={side}
-              isSwitchingSide={isSwitchingSide}
-              isCapturing={isCapturing}
-              onCapture={handleCapture}
-              error={error}
-              onResetError={resetError}
-            />
-          )}
-        </div>
-      );
-    }
-
-    // Use motion.div with sidebar animation variants
     return (
-      <motion.div
-        ref={containerRef as React.RefObject<HTMLDivElement>}
-        className={`sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`}
-        variants={sidebarAnimation.variants}
-        initial="visible"
-        animate={collapsed}
-        transition={sidebarAnimation.transition}
-        style={sidebarStyle}
-      >
-        {collapsed === 'collapsed' ? (
-          <CollapsedSidebarContent side={side} onToggleCollapse={handleToggleCollapse} />
-        ) : (
-          <ExpandedSidebarContent
-            theme={theme}
-            onThemeToggle={handleThemeToggle}
-            onMoveSide={handleMoveSide}
-            onToggleCollapse={handleToggleCollapse}
-            onClose={close}
-            side={side}
-            isSwitchingSide={isSwitchingSide}
-            isCapturing={isCapturing}
-            onCapture={handleCapture}
-            error={error}
-            onResetError={resetError}
-          />
-        )}
-      </motion.div>
+      <SidebarContainer
+        side={side}
+        collapsed={collapsed}
+        isResizing={isResizing}
+        containerRef={containerRef as React.RefObject<HTMLDivElement>}
+        sidebarStyle={sidebarStyle}
+        animationVariants={sidebarAnimation.variants}
+        animationTransition={sidebarAnimation.transition}
+        theme={theme}
+        onThemeToggle={handleThemeToggle}
+        onMoveSide={handleMoveSide}
+        onToggleCollapse={handleToggleCollapse}
+        onClose={close}
+        isSwitchingSide={isSwitchingSide}
+        isCapturing={isCapturing}
+        onCapture={handleCapture}
+        error={error}
+        onResetError={resetError}
+      />
     );
   }
   return null;
