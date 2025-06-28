@@ -12,7 +12,7 @@ import { useSidebarAnimation } from './hooks/useSidebarAnimation';
 import { useSidebarPosition } from './hooks/useSidebarPosition';
 import { useDebug } from './hooks/useDebug';
 import { CaptureProvider } from './contexts/CaptureContext';
-import { ANIMATION_DURATIONS } from '@/shared/constants';
+import { ANIMATION_DURATIONS, FALLBACK_CONFIG, TIMEOUTS } from '@/shared/constants';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 let reactSidebarRoot: Root | null = null;
@@ -115,12 +115,18 @@ const Sidebar: React.FC = () => {
           console.error('Sidebar root error:', error, errorInfo);
         }}
         resetOnPropsChange={true}
+        enableGracefulDegradation={FALLBACK_CONFIG.DEGRADED_MODE_ENABLED}
+        maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
+        autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
       >
         <CaptureProvider>
           <ErrorBoundary
             onError={(error, errorInfo) => {
               console.error('CaptureProvider error:', error, errorInfo);
             }}
+            enableGracefulDegradation={FALLBACK_CONFIG.DEGRADED_MODE_ENABLED}
+            maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
+            autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
           >
             <SidebarContainer
               side={side}
@@ -158,12 +164,15 @@ export function mountSidebar() {
       <ErrorBoundary
         onError={(error, errorInfo) => {
           console.error('Sidebar mount error:', error, errorInfo);
-          // Attempt to recover by remounting
+          // Attempt to recover by remounting with exponential backoff
           setTimeout(() => {
             unmountSidebar();
-            setTimeout(() => mountSidebar(), 1000);
-          }, 2000);
+            setTimeout(() => mountSidebar(), TIMEOUTS.FALLBACK_RECOVERY);
+          }, TIMEOUTS.GRACEFUL_DEGRADATION);
         }}
+        enableGracefulDegradation={FALLBACK_CONFIG.DEGRADED_MODE_ENABLED}
+        maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
+        autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
       >
         <Sidebar />
       </ErrorBoundary>

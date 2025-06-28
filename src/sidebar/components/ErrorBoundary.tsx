@@ -10,6 +10,8 @@
  * - Logs errors for debugging and monitoring
  * - Allows graceful degradation when errors occur
  * - Supports different error types and recovery strategies
+ * - Implements graceful fallbacks for failed operations
+ * - Provides degraded functionality when features are unavailable
  *
  * COMMON USE CASES:
  * - Component rendering errors
@@ -17,11 +19,13 @@
  * - Context provider errors
  * - Third-party library errors
  * - Memory leaks and performance issues
+ * - Network failures and offline scenarios
+ * - API unavailability and degraded functionality
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { createUserFacingError, UserFacingError } from '@/shared/error-handling';
-import { ERROR_IDS, TIMEOUTS } from '@/shared/constants';
+import { ERROR_IDS, TIMEOUTS, FALLBACK_CONFIG, Z_INDEX } from '@/shared/constants';
 import ErrorNotification from '@/shared/components/ErrorNotification';
 
 interface ErrorBoundaryState {
@@ -29,6 +33,9 @@ interface ErrorBoundaryState {
   error: Error | null;
   errorInfo: ErrorInfo | null;
   userFacingError: UserFacingError | null;
+  fallbackAttempts: number;
+  isInDegradedMode: boolean;
+  lastErrorTime: number | null;
 }
 
 interface ErrorBoundaryProps {
@@ -37,9 +44,15 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   resetOnPropsChange?: boolean;
   className?: string;
+  enableGracefulDegradation?: boolean;
+  maxFallbackAttempts?: number;
+  autoRecoveryEnabled?: boolean;
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private recoveryTimeout: ReturnType<typeof setTimeout> | null = null;
+  private degradedModeTimeout: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -47,6 +60,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       error: null,
       errorInfo: null,
       userFacingError: null,
+      fallbackAttempts: 0,
+      isInDegradedMode: false,
+      lastErrorTime: null,
     };
   }
 
@@ -56,6 +72,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       hasError: true,
       error,
       userFacingError: createUserFacingError(error),
+      lastErrorTime: Date.now(),
     };
   }
 
@@ -64,15 +81,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     console.error('Sidebar ErrorBoundary caught an error:', error, errorInfo);
 
     // Update state with error info
-    this.setState({
+    this.setState((prevState) => ({
       errorInfo,
-    });
+      fallbackAttempts: prevState.fallbackAttempts + 1,
+    }));
 
     // Call the onError callback if provided
     this.props.onError?.(error, errorInfo);
 
     // Log additional context for debugging
     this.logErrorContext(error, errorInfo);
+
+    // Attempt automatic recovery if enabled
+    this.attemptAutoRecovery();
+
+    // Check if we should enter degraded mode
+    this.checkDegradedMode();
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {
@@ -86,6 +110,16 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     }
   }
 
+  componentWillUnmount(): void {
+    // Clean up timeouts
+    if (this.recoveryTimeout) {
+      clearTimeout(this.recoveryTimeout);
+    }
+    if (this.degradedModeTimeout) {
+      clearTimeout(this.degradedModeTimeout);
+    }
+  }
+
   private logErrorContext(error: Error, errorInfo: ErrorInfo): void {
     const errorContext = {
       componentStack: errorInfo.componentStack,
@@ -96,7 +130,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       userAgent:
         typeof window !== 'undefined' && window.navigator ? window.navigator.userAgent : 'Unknown',
       url: typeof window !== 'undefined' ? window.location.href : 'Unknown',
-      errorId: ERROR_IDS.STORAGE_ERROR, // Default error ID for component errors
+      errorId: this.getErrorId(error),
+      fallbackAttempts: this.state.fallbackAttempts,
+      isInDegradedMode: this.state.isInDegradedMode,
     };
 
     console.error('Error context:', errorContext);
@@ -105,7 +141,79 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Example: Sentry.captureException(error, { extra: errorContext });
   }
 
+  private getErrorId(error: Error): string {
+    // Map error types to specific error IDs
+    if (error.name.includes('Network') || error.message.includes('fetch')) {
+      return ERROR_IDS.NETWORK_ERROR;
+    }
+    if (error.name.includes('Permission') || error.message.includes('permission')) {
+      return ERROR_IDS.PERMISSION_ERROR;
+    }
+    if (error.name.includes('Storage') || error.message.includes('storage')) {
+      return ERROR_IDS.STORAGE_ERROR;
+    }
+    if (error.name.includes('Capture') || error.message.includes('capture')) {
+      return ERROR_IDS.CAPTURE_ERROR;
+    }
+    return ERROR_IDS.COMPONENT_ERROR;
+  }
+
+  private attemptAutoRecovery(): void {
+    const { autoRecoveryEnabled = FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED } = this.props;
+    const { fallbackAttempts } = this.state;
+    const maxAttempts = this.props.maxFallbackAttempts || FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS;
+
+    if (!autoRecoveryEnabled || fallbackAttempts >= maxAttempts) {
+      return;
+    }
+
+    // Clear any existing recovery timeout
+    if (this.recoveryTimeout) {
+      clearTimeout(this.recoveryTimeout);
+    }
+
+    // Attempt recovery with exponential backoff
+    const recoveryDelay = Math.min(
+      TIMEOUTS.FALLBACK_RECOVERY * Math.pow(2, fallbackAttempts),
+      TIMEOUTS.GRACEFUL_DEGRADATION
+    );
+
+    this.recoveryTimeout = setTimeout(() => {
+      console.log(`Attempting auto-recovery (attempt ${fallbackAttempts + 1}/${maxAttempts})`);
+      this.resetError();
+    }, recoveryDelay);
+  }
+
+  private checkDegradedMode(): void {
+    const { enableGracefulDegradation = FALLBACK_CONFIG.DEGRADED_MODE_ENABLED } = this.props;
+    const { fallbackAttempts } = this.state;
+    const maxAttempts = this.props.maxFallbackAttempts || FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS;
+
+    if (!enableGracefulDegradation || fallbackAttempts < maxAttempts) {
+      return;
+    }
+
+    // Enter degraded mode after max attempts
+    this.setState({ isInDegradedMode: true });
+
+    // Clear any existing degraded mode timeout
+    if (this.degradedModeTimeout) {
+      clearTimeout(this.degradedModeTimeout);
+    }
+
+    // Exit degraded mode after timeout
+    this.degradedModeTimeout = setTimeout(() => {
+      this.setState({ isInDegradedMode: false });
+    }, FALLBACK_CONFIG.GRACEFUL_DEGRADATION_TIMEOUT);
+  }
+
   private resetError = (): void => {
+    // Clear recovery timeout
+    if (this.recoveryTimeout) {
+      clearTimeout(this.recoveryTimeout);
+      this.recoveryTimeout = null;
+    }
+
     this.setState({
       hasError: false,
       error: null,
@@ -124,6 +232,48 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.setState({ hasError: false });
   };
 
+  private handleDegradedMode = (): void => {
+    // Force exit degraded mode
+    this.setState({ isInDegradedMode: false });
+    if (this.degradedModeTimeout) {
+      clearTimeout(this.degradedModeTimeout);
+      this.degradedModeTimeout = null;
+    }
+  };
+
+  private renderDegradedMode(): ReactNode {
+    return (
+      <div className="degraded-mode-fallback" style={{ zIndex: Z_INDEX.FALLBACK_UI }}>
+        <div className="degraded-mode-container p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">Degraded Mode Active</h3>
+              <p className="text-sm text-yellow-700 mt-1">
+                Some features may be limited due to repeated errors. Basic functionality remains
+                available.
+              </p>
+              <button
+                onClick={this.handleDegradedMode}
+                className="mt-2 text-sm text-yellow-600 hover:text-yellow-800 font-medium"
+              >
+                Exit Degraded Mode
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   render(): ReactNode {
     if (this.state.hasError) {
       // Custom fallback UI
@@ -131,7 +281,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         return this.props.fallback;
       }
 
-      // Default error UI
+      // Default error UI with graceful fallbacks
       return (
         <div className={`sidebar-error-boundary ${this.props.className || ''}`}>
           <div className="error-boundary-container">
@@ -144,6 +294,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               dismissDelay={TIMEOUTS.ERROR_MESSAGE}
             />
 
+            {/* Degraded mode indicator */}
+            {this.state.isInDegradedMode && this.renderDegradedMode()}
+
             {/* Development-only detailed error info */}
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="error-details mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -153,6 +306,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 <div className="mt-2 text-xs font-mono">
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error.toString()}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Fallback Attempts:</strong> {this.state.fallbackAttempts}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Degraded Mode:</strong>{' '}
+                    {this.state.isInDegradedMode ? 'Active' : 'Inactive'}
                   </div>
                   {this.state.errorInfo && (
                     <div>
