@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import CollapsedSidebarContent from './CollapsedSidebarContent';
 import ExpandedSidebarContent from './ExpandedSidebarContent';
+import { UserFacingError } from '../../shared/error-handling';
 
 interface SidebarContainerProps {
   side: 'left' | 'right';
@@ -20,8 +21,14 @@ interface SidebarContainerProps {
   isSwitchingSide: boolean;
   isCapturing: boolean;
   onCapture: () => Promise<void>;
-  error: string | null;
+  onAreaCapture: () => void;
+  onAreaCaptureComplete: (imageData: string) => Promise<void>;
+  hideOverlay: () => void;
+  showOverlay: boolean;
+  error: UserFacingError | null;
   onResetError: () => void;
+  successMessage: string | null;
+  onClearSuccessMessage: () => void;
 }
 
 const SidebarContainer: React.FC<SidebarContainerProps> = ({
@@ -40,8 +47,14 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
   isSwitchingSide,
   isCapturing,
   onCapture,
+  onAreaCapture,
+  onAreaCaptureComplete,
+  hideOverlay,
+  showOverlay,
   error,
   onResetError,
+  successMessage,
+  onClearSuccessMessage,
 }) => {
   const className = `sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`;
 
@@ -62,8 +75,14 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
         isSwitchingSide={isSwitchingSide}
         isCapturing={isCapturing}
         onCapture={onCapture}
+        onAreaCapture={onAreaCapture}
+        onAreaCaptureComplete={onAreaCaptureComplete}
+        hideOverlay={hideOverlay}
+        showOverlay={showOverlay}
         error={error}
         onResetError={onResetError}
+        successMessage={successMessage}
+        onClearSuccessMessage={onClearSuccessMessage}
       />
     );
   };

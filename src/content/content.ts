@@ -24,7 +24,8 @@ interface ContentScriptMessage {
     | 'getElementInfo'
     | 'openSidebar'
     | 'closeSidebar'
-    | 'startAreaSelection';
+    | 'startAreaSelection'
+    | 'getScrollInfo';
   [key: string]: unknown;
 }
 
@@ -94,6 +95,20 @@ chrome.runtime.onMessage.addListener(
       case 'startAreaSelection': {
         startAreaSelection(sendResponse);
         return true;
+      }
+
+      case 'getScrollInfo': {
+        // Provide scroll position and viewport information for area capture
+        const scrollInfo = {
+          scrollX: window.pageXOffset || document.documentElement.scrollLeft,
+          scrollY: window.pageYOffset || document.documentElement.scrollTop,
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          pageWidth: document.documentElement.scrollWidth,
+          pageHeight: document.documentElement.scrollHeight,
+        };
+        sendResponse({ success: true, ...scrollInfo });
+        break;
       }
 
       default:

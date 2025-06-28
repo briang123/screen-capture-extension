@@ -3,22 +3,24 @@ import {
   createUserFacingError,
   UserFacingError,
   retryOperation,
-  NetworkError,
-  PermissionError,
-  StorageError,
-  ErrorContext,
 } from '../../shared/error-handling';
 
 interface CaptureState {
   isCapturing: boolean;
   error: UserFacingError | null;
   lastCaptureTime: number | null;
+  showOverlay: boolean;
+  successMessage: string | null;
 }
 
 interface UseCaptureReturn extends CaptureState {
   handleCapture: () => Promise<void>;
+  handleAreaCapture: () => void;
   resetError: () => void;
   retryCapture: () => Promise<void>;
+  hideOverlay: () => void;
+  clearSuccessMessage: () => void;
+  onAreaCaptureComplete: (imageData: string) => Promise<void>;
 }
 
 /**
@@ -35,6 +37,7 @@ interface UseCaptureReturn extends CaptureState {
  * - Tracks capture history and timing
  * - Integrates with Chrome extension messaging system
  * - Provides user-friendly error messages and retry mechanisms
+ * - Supports area selection capture with clipboard integration
  *
  * COMMON USE CASES:
  * - Screen capture button state management
@@ -44,6 +47,8 @@ interface UseCaptureReturn extends CaptureState {
  * - Integration with background scripts
  * - User feedback during capture operations
  * - Automatic retry for transient failures
+ * - Area selection capture with visual feedback
+ * - Clipboard integration for captured images
  *
  * KEY FEATURES:
  * - Capture state management (isCapturing, error, lastCaptureTime)
@@ -54,6 +59,8 @@ interface UseCaptureReturn extends CaptureState {
  * - Prevention of concurrent captures
  * - Integration with Chrome extension APIs
  * - Comprehensive error logging and context
+ * - Area selection overlay management
+ * - Clipboard integration with success feedback
  *
  * PERFORMANCE BENEFITS:
  * - Prevents multiple simultaneous capture operations
@@ -68,6 +75,7 @@ interface UseCaptureReturn extends CaptureState {
  * - Keyboard navigation support
  * - ARIA attribute updates during capture
  * - Retry mechanisms for failed operations
+ * - Visual feedback for area selection
  */
 
 export function useCapture(): UseCaptureReturn {
@@ -75,39 +83,50 @@ export function useCapture(): UseCaptureReturn {
     isCapturing: false,
     error: null,
     lastCaptureTime: null,
+    showOverlay: false,
+    successMessage: null,
   });
 
   const performCapture = useCallback(async (): Promise<void> => {
-    const context: ErrorContext = {
-      operation: 'screen-capture',
-      component: 'useCapture',
-      timestamp: Date.now(),
-    };
-
-    // TODO: Implement actual capture logic
-    // This could involve:
-    // 1. Sending message to background script
-    // 2. Capturing screen content
-    // 3. Processing the captured data
-
-    // Simulate capture process with potential errors
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate different types of errors for testing
-        const random = Math.random();
-        if (random < 0.1) {
-          reject(new NetworkError('Request timed out during capture', 'error', true, context));
-        } else if (random < 0.15) {
-          reject(
-            new PermissionError('Screen capture permission denied', 'warning', false, context)
-          );
-        } else if (random < 0.2) {
-          reject(new StorageError('Failed to save capture data', 'error', true, context));
-        } else {
-          resolve(undefined);
-        }
-      }, 1200);
+    // Send message to background script to capture screen
+    const response = await chrome.runtime.sendMessage({
+      action: 'captureScreen',
     });
+
+    if (!response.success) {
+      throw new Error(response.error || 'Capture failed');
+    }
+
+    // Copy to clipboard
+    await copyImageToClipboard(response.imageData);
+  }, []);
+
+  const copyImageToClipboard = useCallback(async (imageData: string): Promise<void> => {
+    try {
+      // Convert data URL to blob
+      const response = await fetch(imageData);
+      const blob = await response.blob();
+
+      // Copy to clipboard using Clipboard API
+      const nav = window.navigator as any;
+      if (nav.clipboard && nav.clipboard.write) {
+        const clipboardItem = new (window as any).ClipboardItem({
+          [blob.type]: blob,
+        });
+        await nav.clipboard.write([clipboardItem]);
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = imageData;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      throw new Error('Failed to copy image to clipboard');
+    }
   }, []);
 
   const handleCapture = useCallback(async () => {
@@ -119,6 +138,7 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       isCapturing: true,
       error: null,
+      successMessage: null,
     }));
 
     try {
@@ -137,7 +157,16 @@ export function useCapture(): UseCaptureReturn {
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
+        successMessage: 'Screenshot copied to clipboard! 📋',
       }));
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setState((prev) => ({
+          ...prev,
+          successMessage: null,
+        }));
+      }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
 
@@ -149,6 +178,60 @@ export function useCapture(): UseCaptureReturn {
     }
   }, [state.isCapturing, performCapture]);
 
+  const handleAreaCapture = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      showOverlay: true,
+      error: null,
+      successMessage: null,
+    }));
+  }, []);
+
+  const handleAreaCaptureComplete = useCallback(
+    async (imageData: string) => {
+      setState((prev) => ({
+        ...prev,
+        showOverlay: false,
+        isCapturing: true,
+      }));
+
+      try {
+        await copyImageToClipboard(imageData);
+
+        setState((prev) => ({
+          ...prev,
+          isCapturing: false,
+          lastCaptureTime: Date.now(),
+          successMessage: 'Area screenshot copied to clipboard! 📋',
+        }));
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setState((prev) => ({
+            ...prev,
+            successMessage: null,
+          }));
+        }, 3000);
+      } catch (error) {
+        const userFacingError = createUserFacingError(error);
+
+        setState((prev) => ({
+          ...prev,
+          isCapturing: false,
+          error: userFacingError,
+        }));
+      }
+    },
+    [copyImageToClipboard]
+  );
+
+  const hideOverlay = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      showOverlay: false,
+    }));
+  }, []);
+
   const retryCapture = useCallback(async () => {
     if (state.isCapturing) {
       return; // Prevent multiple simultaneous captures
@@ -158,6 +241,7 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       isCapturing: true,
       error: null,
+      successMessage: null,
     }));
 
     try {
@@ -176,7 +260,16 @@ export function useCapture(): UseCaptureReturn {
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
+        successMessage: 'Screenshot copied to clipboard! 📋',
       }));
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setState((prev) => ({
+          ...prev,
+          successMessage: null,
+        }));
+      }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
 
@@ -195,10 +288,21 @@ export function useCapture(): UseCaptureReturn {
     }));
   }, []);
 
+  const clearSuccessMessage = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      successMessage: null,
+    }));
+  }, []);
+
   return {
     ...state,
     handleCapture,
+    handleAreaCapture,
     resetError,
     retryCapture,
+    hideOverlay,
+    clearSuccessMessage,
+    onAreaCaptureComplete: handleAreaCaptureComplete,
   };
 }

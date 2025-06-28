@@ -1,6 +1,7 @@
 import React from 'react';
 import SidebarPanelHeader from './SidebarPanelHeader';
 import SidebarPanelBody from './SidebarPanelBody';
+import { UserFacingError } from '../../shared/error-handling';
 
 interface ExpandedSidebarContentProps {
   theme: 'light' | 'dark';
@@ -12,8 +13,14 @@ interface ExpandedSidebarContentProps {
   isSwitchingSide: boolean;
   isCapturing: boolean;
   onCapture: () => Promise<void>;
-  error: string | null;
+  onAreaCapture: () => void;
+  onAreaCaptureComplete: (imageData: string) => Promise<void>;
+  hideOverlay: () => void;
+  showOverlay: boolean;
+  error: UserFacingError | null;
   onResetError: () => void;
+  successMessage: string | null;
+  onClearSuccessMessage: () => void;
 }
 
 const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
@@ -26,8 +33,14 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
   isSwitchingSide,
   isCapturing,
   onCapture,
+  onAreaCapture,
+  onAreaCaptureComplete,
+  hideOverlay,
+  showOverlay,
   error,
   onResetError,
+  successMessage,
+  onClearSuccessMessage,
 }) => {
   return (
     <>
@@ -44,8 +57,14 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
         isSwitchingSide={isSwitchingSide}
         isCapturing={isCapturing}
         onCapture={onCapture}
+        onAreaCapture={onAreaCapture}
+        onAreaCaptureComplete={onAreaCaptureComplete}
+        hideOverlay={hideOverlay}
+        showOverlay={showOverlay}
         error={error}
         onResetError={onResetError}
+        successMessage={successMessage}
+        onClearSuccessMessage={onClearSuccessMessage}
       />
     </>
   );

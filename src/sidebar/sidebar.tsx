@@ -29,7 +29,18 @@ const Sidebar: React.FC = () => {
 
   const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
   const { settings, updateSettings } = useSettings();
-  const { isCapturing, handleCapture, error, resetError } = useCapture();
+  const {
+    isCapturing,
+    handleCapture,
+    handleAreaCapture,
+    onAreaCaptureComplete,
+    hideOverlay,
+    showOverlay,
+    error,
+    resetError,
+    successMessage,
+    clearSuccessMessage,
+  } = useCapture();
 
   const sidebarWidth = 400;
   const getInitialY = useCallback(() => 0, []);
@@ -122,8 +133,14 @@ const Sidebar: React.FC = () => {
         isSwitchingSide={isSwitchingSide}
         isCapturing={isCapturing}
         onCapture={handleCapture}
+        onAreaCapture={handleAreaCapture}
+        onAreaCaptureComplete={onAreaCaptureComplete}
+        hideOverlay={hideOverlay}
+        showOverlay={showOverlay}
         error={error}
         onResetError={resetError}
+        successMessage={successMessage}
+        onClearSuccessMessage={clearSuccessMessage}
       />
     );
   }
