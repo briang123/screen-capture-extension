@@ -2,17 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './sidebar.css';
 import { motion } from 'framer-motion';
-import SidebarPanelHeader from './components/SidebarPanelHeader';
-import SidebarPanelBody from './components/SidebarPanelBody';
+import CollapsedSidebarContent from './components/CollapsedSidebarContent';
+import ExpandedSidebarContent from './components/ExpandedSidebarContent';
 import { useTheme } from './hooks/useTheme';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
-import { useCapture } from './hooks/useCapture';
-import ExpandCollapseButton from './components/ExpandCollapseButton';
-import { useDebug } from './hooks/useDebug';
 import { useSidebarVisibility } from './hooks/useSidebarVisibility';
 import { useSidebarAnimation } from './hooks/useSidebarAnimation';
+import { useCapture } from './hooks/useCapture';
+import { useDebug } from './hooks/useDebug';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -96,28 +95,21 @@ const Sidebar: React.FC = () => {
           style={sidebarStyle}
         >
           {collapsed === 'collapsed' ? (
-            <div className="flex flex-col items-center justify-center h-full p-2">
-              <ExpandCollapseButton side={side} collapsed={true} onClick={handleToggleCollapse} />
-            </div>
+            <CollapsedSidebarContent side={side} onToggleCollapse={handleToggleCollapse} />
           ) : (
-            <>
-              <SidebarPanelHeader
-                theme={theme}
-                onThemeToggle={handleThemeToggle}
-                onMoveSide={handleMoveSide}
-                onToggleCollapse={handleToggleCollapse}
-                onClose={close}
-                side={side}
-                collapsed={false}
-              />
-              <SidebarPanelBody
-                isSwitchingSide={isSwitchingSide}
-                isCapturing={isCapturing}
-                onCapture={handleCapture}
-                error={error}
-                onResetError={resetError}
-              />
-            </>
+            <ExpandedSidebarContent
+              theme={theme}
+              onThemeToggle={handleThemeToggle}
+              onMoveSide={handleMoveSide}
+              onToggleCollapse={handleToggleCollapse}
+              onClose={close}
+              side={side}
+              isSwitchingSide={isSwitchingSide}
+              isCapturing={isCapturing}
+              onCapture={handleCapture}
+              error={error}
+              onResetError={resetError}
+            />
           )}
         </div>
       );
@@ -135,28 +127,21 @@ const Sidebar: React.FC = () => {
         style={sidebarStyle}
       >
         {collapsed === 'collapsed' ? (
-          <div className="flex flex-col items-center justify-center h-full p-2">
-            <ExpandCollapseButton side={side} collapsed={true} onClick={handleToggleCollapse} />
-          </div>
+          <CollapsedSidebarContent side={side} onToggleCollapse={handleToggleCollapse} />
         ) : (
-          <>
-            <SidebarPanelHeader
-              theme={theme}
-              onThemeToggle={handleThemeToggle}
-              onMoveSide={handleMoveSide}
-              onToggleCollapse={handleToggleCollapse}
-              onClose={close}
-              side={side}
-              collapsed={false}
-            />
-            <SidebarPanelBody
-              isSwitchingSide={isSwitchingSide}
-              isCapturing={isCapturing}
-              onCapture={handleCapture}
-              error={error}
-              onResetError={resetError}
-            />
-          </>
+          <ExpandedSidebarContent
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            onMoveSide={handleMoveSide}
+            onToggleCollapse={handleToggleCollapse}
+            onClose={close}
+            side={side}
+            isSwitchingSide={isSwitchingSide}
+            isCapturing={isCapturing}
+            onCapture={handleCapture}
+            error={error}
+            onResetError={resetError}
+          />
         )}
       </motion.div>
     );
