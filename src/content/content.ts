@@ -26,7 +26,14 @@ interface ContentScriptMessage {
     | 'closeSidebar'
     | 'startAreaSelection'
     | 'getScrollInfo'
-    | 'captureFullPage';
+    | 'captureFullPage'
+    | 'captureArea';
+  data?: {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  };
   [key: string]: unknown;
 }
 
@@ -118,6 +125,26 @@ chrome.runtime.onMessage.addListener(
 
       case 'captureFullPage': {
         captureFullPage().then(sendResponse);
+        return true;
+      }
+
+      case 'captureArea': {
+        if (
+          message.data &&
+          typeof message.data.x === 'number' &&
+          typeof message.data.y === 'number' &&
+          typeof message.data.width === 'number' &&
+          typeof message.data.height === 'number'
+        ) {
+          captureArea({
+            x: message.data.x,
+            y: message.data.y,
+            width: message.data.width,
+            height: message.data.height,
+          }).then(sendResponse);
+        } else {
+          sendResponse({ success: false, error: 'Invalid area data' });
+        }
         return true;
       }
 
@@ -513,6 +540,28 @@ async function captureFullPage(): Promise<{
     const dataUrl = canvas.toDataURL('image/png');
     return { success: true, imageData: dataUrl };
   } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+// Area capture logic
+async function captureArea(area: { x: number; y: number; width: number; height: number }): Promise<{
+  success: boolean;
+  imageData?: string;
+  error?: string;
+}> {
+  try {
+    // Capture screenshot of the visible tab
+    const response = await chrome.runtime.sendMessage({ action: 'captureScreen' });
+    if (!response?.success || !response.imageData) {
+      throw new Error('Failed to capture screen');
+    }
+
+    // Crop the image to the selected area
+    const cropped = await cropImage(response.imageData, area.x, area.y, area.width, area.height);
+    return { success: true, imageData: cropped };
+  } catch (error) {
+    console.error('Area capture failed:', error);
     return { success: false, error: (error as Error).message };
   }
 }

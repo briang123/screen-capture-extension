@@ -116,88 +116,21 @@ async function handleAreaCapture(
       throw new Error('No active tab found');
     }
 
-    // Capture the visible area of the tab
-    const imageDataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-      format: 'png',
-      quality: 100,
+    // Delegate area capture to content script
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: 'captureArea',
+      data: message.data,
     });
 
-    // Get scroll position and viewport info from the content script
-    const scrollInfo = await chrome.tabs.sendMessage(tab.id, { action: 'getScrollInfo' });
-
-    if (!scrollInfo || !scrollInfo.success) {
-      throw new Error('Failed to get scroll information');
+    if (response && response.success) {
+      sendResponse({ success: true, imageData: response.imageData });
+    } else {
+      throw new Error(response?.error || 'Area capture failed');
     }
-
-    // Adjust coordinates based on scroll position
-    const adjustedArea = {
-      x: message.data.x - scrollInfo.scrollX,
-      y: message.data.y - scrollInfo.scrollY,
-      width: message.data.width,
-      height: message.data.height,
-    };
-
-    // Ensure coordinates are within the captured image bounds
-    const maxX = scrollInfo.viewportWidth - adjustedArea.width;
-    const maxY = scrollInfo.viewportHeight - adjustedArea.height;
-
-    adjustedArea.x = Math.max(0, Math.min(adjustedArea.x, maxX));
-    adjustedArea.y = Math.max(0, Math.min(adjustedArea.y, maxY));
-
-    // Crop the image to the selected area
-    const croppedImageData = await cropImage(imageDataUrl, adjustedArea);
-
-    sendResponse({ success: true, imageData: croppedImageData });
   } catch (error) {
     console.error('Area capture failed:', error);
     sendResponse({ success: false, error: (error as Error).message });
   }
-}
-
-// Crop image to selected area
-async function cropImage(
-  imageDataUrl: string,
-  area: { x: number; y: number; width: number; height: number }
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-
-        // Set canvas size to the crop area
-        canvas.width = area.width;
-        canvas.height = area.height;
-
-        // Draw the cropped portion
-        ctx.drawImage(
-          img,
-          area.x,
-          area.y,
-          area.width,
-          area.height, // Source rectangle
-          0,
-          0,
-          area.width,
-          area.height // Destination rectangle
-        );
-
-        // Convert to data URL
-        const croppedDataUrl = canvas.toDataURL('image/png');
-        resolve(croppedDataUrl);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = imageDataUrl;
-  });
 }
 
 // Handle opening the editor window

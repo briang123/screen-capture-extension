@@ -5,20 +5,21 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 ## Overlay & Selection Experience
 
 - [x] Render a full-viewport overlay (covers the entire visible area of the tab content)
-- [ ] Overlay uses blur and/or semi-transparent dark background
-- [ ] Overlay is rendered as a React portal to `document.body` for stacking
-- [ ] Overlay is always visible when area selection is active
-- [ ] Overlay handles all mouse/touch events for selection
-
-- [ ] After rendering the full-viewport overlay, when I tap button to collapse window to side of screen, the overlay disappears and i want it to remain in place because I want the ability to capture more area which was behind the sidebar panel.
+- [x] Overlay uses blur and/or semi-transparent dark background
+- [x] Overlay is rendered as a React portal to `document.body` for stacking
+- [x] Overlay is always visible when area selection is active
+- [x] Overlay handles all mouse/touch events for selection
+- [x] After rendering the full-viewport overlay, when I tap button to collapse window to side of screen, the overlay disappears and i want it to remain in place because I want the ability to capture more area which was behind the sidebar panel.
+- [x] When collapsing the sidebar panel after tapping on the "select a capture area" button, I need the screen to function as if I hadn't collapsed the sidebar panel without errors and unexpected behaviors.
 
 ## Selection Rectangle
 
-- [ ] Draw a visible selection rectangle as the user drags
+- [x] Draw a visible selection rectangle as the user drags
 - [ ] Rectangle is clearly visible (border, corner handles, etc.)
 - [ ] Area inside the rectangle is less dark/more see-through than the rest of the overlay
-- [ ] Rectangle updates in real time as the user drags
-- [ ] Show size (width × height) indicator near the rectangle
+- [x] Rectangle updates in real time as the user drags
+- [x] Show size (width × height) indicator near the rectangle
+- [ ] Rectangle should not appear in same place as it was before when tapping the "select a capture area" button again. Should reset
 
 ## User Interaction
 

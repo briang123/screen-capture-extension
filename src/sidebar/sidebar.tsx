@@ -11,8 +11,9 @@ import { useSidebarVisibility } from './hooks/useSidebarVisibility';
 import { useSidebarAnimation } from './hooks/useSidebarAnimation';
 import { useSidebarPosition } from './hooks/useSidebarPosition';
 import { useDebug } from './hooks/useDebug';
-import { CaptureProvider } from './contexts/CaptureContext';
+import { CaptureProvider, useCaptureContext } from './contexts/CaptureContext';
 import { ANIMATION_DURATIONS, FALLBACK_CONFIG, TIMEOUTS } from '@/shared/constants';
+import { OverlayProvider } from './components/OverlayProvider';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 let reactSidebarRoot: Root | null = null;
@@ -119,32 +120,30 @@ const Sidebar: React.FC = () => {
         maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
         autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
       >
-        <CaptureProvider>
-          <ErrorBoundary
-            onError={(error, errorInfo) => {
-              console.error('CaptureProvider error:', error, errorInfo);
-            }}
-            enableGracefulDegradation={FALLBACK_CONFIG.DEGRADED_MODE_ENABLED}
-            maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
-            autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
-          >
-            <SidebarContainer
-              side={side}
-              collapsed={collapsed}
-              isResizing={isResizing}
-              containerRef={containerRef as React.RefObject<HTMLDivElement>}
-              sidebarStyle={sidebarStyle}
-              animationVariants={sidebarAnimation.variants}
-              animationTransition={sidebarAnimation.transition}
-              theme={settings.theme}
-              onThemeToggle={handleThemeToggle}
-              onMoveSide={handleMoveSide}
-              onToggleCollapse={handleToggleCollapse}
-              onClose={handleClose}
-              isSwitchingSide={isSwitchingSide}
-            />
-          </ErrorBoundary>
-        </CaptureProvider>
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            console.error('CaptureProvider error:', error, errorInfo);
+          }}
+          enableGracefulDegradation={FALLBACK_CONFIG.DEGRADED_MODE_ENABLED}
+          maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
+          autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
+        >
+          <SidebarContainer
+            side={side}
+            collapsed={collapsed}
+            isResizing={isResizing}
+            containerRef={containerRef as React.RefObject<HTMLDivElement>}
+            sidebarStyle={sidebarStyle}
+            animationVariants={sidebarAnimation.variants}
+            animationTransition={sidebarAnimation.transition}
+            theme={settings.theme}
+            onThemeToggle={handleThemeToggle}
+            onMoveSide={handleMoveSide}
+            onToggleCollapse={handleToggleCollapse}
+            onClose={handleClose}
+            isSwitchingSide={isSwitchingSide}
+          />
+        </ErrorBoundary>
       </ErrorBoundary>
     );
   }
@@ -174,11 +173,24 @@ export function mountSidebar() {
         maxFallbackAttempts={FALLBACK_CONFIG.MAX_FALLBACK_ATTEMPTS}
         autoRecoveryEnabled={FALLBACK_CONFIG.AUTO_RECOVERY_ENABLED}
       >
-        <Sidebar />
+        <CaptureProvider>
+          <OverlayProviderWrapper />
+        </CaptureProvider>
       </ErrorBoundary>
     </React.StrictMode>
   );
 }
+
+// Wrapper component to access capture context and pass it to OverlayProvider
+const OverlayProviderWrapper: React.FC = () => {
+  const { onAreaCaptureComplete } = useCaptureContext();
+
+  return (
+    <OverlayProvider onAreaCaptureComplete={onAreaCaptureComplete}>
+      <Sidebar />
+    </OverlayProvider>
+  );
+};
 
 export function unmountSidebar() {
   const container = document.getElementById(SIDEBAR_ROOT_ID);

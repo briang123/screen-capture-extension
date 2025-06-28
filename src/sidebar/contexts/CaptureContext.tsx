@@ -10,6 +10,7 @@ interface CaptureContextType {
   successMessage: string | null;
   capturedImages: string[];
   showOverlay: boolean;
+  setShowOverlay: (visible: boolean) => void;
 
   // Actions
   onCapture: () => Promise<void>;
@@ -49,7 +50,6 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     handleFullPageCapture,
     setError,
     hideOverlay,
-    showOverlay,
     successMessage,
     capturedImages,
     setSuccessMessage,
@@ -89,8 +89,8 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     error,
     successMessage,
     capturedImages,
-    showOverlay,
-
+    showOverlay: false, // This will be managed by OverlayProvider
+    setShowOverlay: () => {}, // Placeholder, not used
     // Actions
     onCapture,
     onAreaCapture,

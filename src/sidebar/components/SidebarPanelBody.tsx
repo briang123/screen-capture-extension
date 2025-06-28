@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CaptureButton } from '@/sidebar/components/Button';
-import { CaptureOverlay } from '@/sidebar/components/CaptureOverlay';
+import { useOverlay } from '@/sidebar/components/OverlayProvider';
 import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
 import LoadingSpinner from '@/shared/components/LoadingSpinner';
 import { ICON_SIZES } from '@/shared/constants';
@@ -14,8 +14,6 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
   const {
     isCapturing,
     onCapture,
-    onAreaCapture,
-    onAreaCaptureComplete,
     hideOverlay,
     showOverlay,
     error,
@@ -29,6 +27,8 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
     deleteCapturedImage,
     cancelActiveCapture,
   } = useCaptureContext();
+
+  const { show: showOverlayFunc } = useOverlay();
 
   useEffect(() => {
     if (capturedImages.length > 0) {
@@ -85,6 +85,11 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
     document.addEventListener('keydown', handleEscape, true);
     return () => document.removeEventListener('keydown', handleEscape, true);
   }, [showOverlay, isCapturing, hideOverlay, cancelActiveCapture]);
+
+  // Use the overlay provider to show area capture
+  const handleAreaCapture = useCallback(() => {
+    showOverlayFunc();
+  }, [showOverlayFunc]);
 
   return (
     <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
@@ -162,7 +167,7 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
           {!isSwitchingSide && (
             <>
               <button
-                onClick={onAreaCapture}
+                onClick={handleAreaCapture}
                 disabled={isCapturing}
                 className="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-xl shadow-soft hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-busy={isCapturing}
@@ -231,13 +236,6 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
           </motion.div>
         )}
       </motion.div>
-
-      {/* Capture Overlay */}
-      <CaptureOverlay
-        isVisible={showOverlay}
-        onCapture={onAreaCaptureComplete}
-        onCancel={hideOverlay}
-      />
     </div>
   );
 };
