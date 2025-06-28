@@ -4,6 +4,7 @@ import { CaptureButton } from '@/sidebar/components/Button';
 import { CaptureOverlay } from '@/sidebar/components/CaptureOverlay';
 import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
 import LoadingSpinner from '@/shared/components/LoadingSpinner';
+import { ICON_SIZES } from '@/shared/constants';
 
 interface SidebarPanelBodyProps {
   isSwitchingSide: boolean;
@@ -49,13 +50,22 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
             >
               <div
                 className="w-24 h-12 p-1 rounded-xl border-2 border-gray-300 bg-white shadow overflow-hidden flex items-center justify-center"
-                style={{ minWidth: 96, minHeight: 48, maxWidth: 96, maxHeight: 48 }}
+                style={{
+                  minWidth: ICON_SIZES.THUMBNAIL_WIDTH,
+                  minHeight: ICON_SIZES.THUMBNAIL_HEIGHT,
+                  maxWidth: ICON_SIZES.THUMBNAIL_WIDTH,
+                  maxHeight: ICON_SIZES.THUMBNAIL_HEIGHT,
+                }}
               >
                 <motion.img
                   src={img}
                   alt={`Captured screenshot thumbnail ${idx + 1}`}
                   className="w-full h-full object-cover rounded-lg block"
-                  style={{ width: 96, height: 48, objectFit: 'cover' }}
+                  style={{
+                    width: ICON_SIZES.THUMBNAIL_WIDTH,
+                    height: ICON_SIZES.THUMBNAIL_HEIGHT,
+                    objectFit: 'cover',
+                  }}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}

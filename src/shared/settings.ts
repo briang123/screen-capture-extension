@@ -59,6 +59,7 @@ import {
   isChromeStorageAvailable,
   ErrorContext,
 } from './error-handling';
+import { RETRY_CONFIG, OPERATION_NAMES } from '@/shared/constants';
 
 // Shared settings management utilities
 export interface Settings {
@@ -111,7 +112,7 @@ export function mergeSettings(existingSettings: unknown, updates: Partial<Settin
  */
 export async function updateSettings(updates: Partial<Settings>): Promise<void> {
   const context: ErrorContext = {
-    operation: 'updateSettings',
+    operation: OPERATION_NAMES.UPDATE_SETTINGS,
     component: 'settings',
     timestamp: Date.now(),
   };
@@ -153,8 +154,8 @@ export async function updateSettings(updates: Partial<Settings>): Promise<void> 
         );
       }
     },
-    3, // maxRetries
-    1000, // baseDelay
+    RETRY_CONFIG.MAX_RETRIES, // maxRetries
+    RETRY_CONFIG.BASE_DELAY, // baseDelay
     context
   );
 }
@@ -164,7 +165,7 @@ export async function updateSettings(updates: Partial<Settings>): Promise<void> 
  */
 export async function getSettings(): Promise<Settings> {
   const context: ErrorContext = {
-    operation: 'getSettings',
+    operation: OPERATION_NAMES.GET_SETTINGS,
     component: 'settings',
     timestamp: Date.now(),
   };
@@ -189,8 +190,8 @@ export async function getSettings(): Promise<Settings> {
         throw new StorageError(`Failed to get settings: ${errorMessage}`, 'error', true, context);
       }
     },
-    3, // maxRetries
-    1000, // baseDelay
+    RETRY_CONFIG.MAX_RETRIES, // maxRetries
+    RETRY_CONFIG.BASE_DELAY, // baseDelay
     context
   ).catch(() => {
     // Fallback to defaults if all retries fail
@@ -204,7 +205,7 @@ export async function getSettings(): Promise<Settings> {
  */
 export async function resetSettings(): Promise<void> {
   const context: ErrorContext = {
-    operation: 'resetSettings',
+    operation: OPERATION_NAMES.RESET_SETTINGS,
     component: 'settings',
     timestamp: Date.now(),
   };
@@ -232,8 +233,8 @@ export async function resetSettings(): Promise<void> {
         throw new StorageError(`Failed to reset settings: ${errorMessage}`, 'error', true, context);
       }
     },
-    3, // maxRetries
-    1000, // baseDelay
+    RETRY_CONFIG.MAX_RETRIES, // maxRetries
+    RETRY_CONFIG.BASE_DELAY, // baseDelay
     context
   );
 }

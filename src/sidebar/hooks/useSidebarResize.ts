@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SidebarSide } from './useSidebarSide';
+import { TIMEOUTS } from '@/shared/constants';
 
 export function useSidebarResize(
   side: SidebarSide,
@@ -16,7 +17,7 @@ export function useSidebarResize(
       } else {
         setPosition((pos) => ({ ...pos, x: 0 }));
       }
-      setTimeout(() => setIsResizing(false), 50); // short timeout to allow instant update
+      setTimeout(() => setIsResizing(false), TIMEOUTS.RESIZE_TIMEOUT); // short timeout to allow instant update
     }
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);

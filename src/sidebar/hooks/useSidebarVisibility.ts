@@ -35,6 +35,7 @@
 
 import { useState, useEffect, useCallback, useRef, RefObject } from 'react';
 import { useFocusTrap } from './useFocusTrap';
+import { TIMEOUTS } from '@/shared/constants';
 
 export interface UseSidebarVisibilityOptions {
   /** Initial visibility state */
@@ -148,7 +149,7 @@ export function useSidebarVisibility(
     onOpen?.();
 
     // Reset transition state after animation
-    setTimeout(() => setIsTransitioning(false), 300);
+    setTimeout(() => setIsTransitioning(false), TIMEOUTS.SIDEBAR_TRANSITION);
   }, [controlled, saveFocus, onVisibilityChange, onOpen]);
 
   // Close the sidebar
@@ -166,7 +167,7 @@ export function useSidebarVisibility(
     setTimeout(() => {
       restoreFocusToPrevious();
       setIsTransitioning(false);
-    }, 300);
+    }, TIMEOUTS.SIDEBAR_TRANSITION);
   }, [controlled, restoreFocusToPrevious, onVisibilityChange, onClose]);
 
   // Toggle the sidebar
@@ -187,7 +188,7 @@ export function useSidebarVisibility(
         setIsTransitioning(true);
         onVisibilityChange?.(true);
         onOpen?.();
-        setTimeout(() => setIsTransitioning(false), 300);
+        setTimeout(() => setIsTransitioning(false), TIMEOUTS.SIDEBAR_TRANSITION);
       } else {
         setIsTransitioning(true);
         setVisibleState(false);
@@ -196,7 +197,7 @@ export function useSidebarVisibility(
         setTimeout(() => {
           restoreFocusToPrevious();
           setIsTransitioning(false);
-        }, 300);
+        }, TIMEOUTS.SIDEBAR_TRANSITION);
       }
     },
     [saveFocus, restoreFocusToPrevious, onVisibilityChange, onOpen, onClose]

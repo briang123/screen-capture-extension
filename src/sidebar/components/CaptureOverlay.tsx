@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z_INDEX, CHROME_ACTIONS } from '@/shared/constants';
 
 interface CaptureOverlayProps {
   isVisible: boolean;
@@ -93,7 +94,7 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
     if (!selection) return;
     try {
       const response = await chrome.runtime.sendMessage({
-        action: 'captureArea',
+        action: CHROME_ACTIONS.CAPTURE_AREA,
         data: {
           x: selection.x,
           y: selection.y,
@@ -180,7 +181,7 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
             top: 16,
             left: 0,
             width: '100vw',
-            zIndex: 10000,
+            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
             textAlign: 'center',
             pointerEvents: 'none',
           }}
@@ -194,7 +195,7 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
         {/* Cancel button */}
         <button
           onClick={onCancel}
-          style={{ position: 'fixed', top: 16, left: 16, zIndex: 10001 }}
+          style={{ position: 'fixed', top: 16, left: 16, zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY }}
           className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow border border-gray-200"
         >
           Cancel
@@ -236,7 +237,7 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
               bottom: 32,
               left: 0,
               width: '100vw',
-              zIndex: 10002,
+              zIndex: Z_INDEX.SELECTION_OVERLAY,
               textAlign: 'center',
               pointerEvents: 'none',
             }}

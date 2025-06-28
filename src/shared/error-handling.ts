@@ -36,6 +36,8 @@
  * - UnknownError: Unclassified errors with fallback handling
  */
 
+import { RETRY_CONFIG, ERROR_IDS } from '@/shared/constants';
+
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
 
 export interface ErrorContext {
@@ -74,7 +76,7 @@ export class StorageError extends Error {
     this.retryable = retryable;
 
     this.userFacing = {
-      id: 'storage-error',
+      id: ERROR_IDS.STORAGE_ERROR,
       title: 'Storage Error',
       message: this.getUserFacingMessage(message),
       severity,
@@ -144,7 +146,7 @@ export class NetworkError extends Error {
     this.retryable = retryable;
 
     this.userFacing = {
-      id: 'network-error',
+      id: ERROR_IDS.NETWORK_ERROR,
       title: 'Network Error',
       message: this.getUserFacingMessage(message),
       severity,
@@ -207,7 +209,7 @@ export class PermissionError extends Error {
     this.retryable = retryable;
 
     this.userFacing = {
-      id: 'permission-error',
+      id: ERROR_IDS.PERMISSION_ERROR,
       title: 'Permission Required',
       message: this.getUserFacingMessage(message),
       severity,
@@ -280,8 +282,8 @@ export function createUserFacingError(error: unknown): UserFacingError {
  */
 export async function retryOperation<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000,
+  maxRetries: number = RETRY_CONFIG.MAX_RETRIES,
+  baseDelay: number = RETRY_CONFIG.BASE_DELAY,
   context?: ErrorContext
 ): Promise<T> {
   let lastError: Error | null = null;

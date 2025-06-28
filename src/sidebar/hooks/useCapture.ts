@@ -4,6 +4,7 @@ import { captureTabViewport, captureFullPage } from '@utils/capture';
 import { copyImageToClipboard } from '@utils/clipboard';
 import { useSuccessMessage } from './useSuccessMessage';
 import { useErrorMessage } from './useErrorMessage';
+import { TIMEOUTS, RETRY_CONFIG, OPERATION_NAMES } from '@/shared/constants';
 
 interface CaptureState {
   isCapturing: boolean;
@@ -91,8 +92,8 @@ export function useCapture(): UseCaptureReturn {
     capturedImages: [],
   });
 
-  const [successMessage, setSuccessMessage] = useSuccessMessage(3000);
-  const [error, setError] = useErrorMessage(5000);
+  const [successMessage, setSuccessMessage] = useSuccessMessage(TIMEOUTS.SUCCESS_MESSAGE);
+  const [error, setError] = useErrorMessage(TIMEOUTS.ERROR_MESSAGE);
 
   const performCapture = useCallback(async (): Promise<void> => {
     const result = await captureTabViewport();
@@ -113,8 +114,8 @@ export function useCapture(): UseCaptureReturn {
       isCapturing: true,
     }));
     try {
-      await retryOperation(performCapture, 3, 1000, {
-        operation: 'screen-capture',
+      await retryOperation(performCapture, RETRY_CONFIG.MAX_RETRIES, RETRY_CONFIG.BASE_DELAY, {
+        operation: OPERATION_NAMES.SCREEN_CAPTURE,
         component: 'useCapture',
         timestamp: Date.now(),
       });
@@ -183,10 +184,10 @@ export function useCapture(): UseCaptureReturn {
     try {
       await retryOperation(
         performCapture,
-        2, // Fewer retries for manual retry
-        500, // Shorter base delay for manual retry
+        RETRY_CONFIG.MANUAL_MAX_RETRIES,
+        RETRY_CONFIG.MANUAL_RETRY_DELAY,
         {
-          operation: 'screen-capture-retry',
+          operation: OPERATION_NAMES.SCREEN_CAPTURE_RETRY,
           component: 'useCapture',
           timestamp: Date.now(),
         }

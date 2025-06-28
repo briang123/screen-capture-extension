@@ -35,6 +35,7 @@
  * - captureElements(selectors: string[]): Promise<{ imageData: string } | { error: UserFacingError }>
  */
 import { createUserFacingError, UserFacingError } from '@/shared/error-handling';
+import { CHROME_ACTIONS } from '@/shared/constants';
 
 export async function captureViaMessage(
   action: string,
@@ -53,22 +54,22 @@ export async function captureViaMessage(
 }
 
 export function captureWindow() {
-  return captureViaMessage('captureWindow');
+  return captureViaMessage(CHROME_ACTIONS.CAPTURE_WINDOW);
 }
 
 export function captureTabViewport() {
-  return captureViaMessage('captureScreen');
+  return captureViaMessage(CHROME_ACTIONS.CAPTURE_SCREEN);
 }
 
 export async function captureFullPage() {
   // If you need to send a message to a specific tab, add logic here.
-  return captureViaMessage('captureFullPage');
+  return captureViaMessage(CHROME_ACTIONS.CAPTURE_FULL_PAGE);
 }
 
 export function captureArea(area: { x: number; y: number; width: number; height: number }) {
-  return captureViaMessage('captureArea', area);
+  return captureViaMessage(CHROME_ACTIONS.CAPTURE_AREA, area);
 }
 
 export function captureElements(selectors: string[]) {
-  return captureViaMessage('captureElements', { selectors });
+  return captureViaMessage(CHROME_ACTIONS.CAPTURE_ELEMENTS, { selectors });
 }
