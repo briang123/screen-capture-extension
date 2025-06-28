@@ -1,0 +1,31 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+interface FullViewportOverlayProps {
+  visible: boolean;
+  children?: React.ReactNode;
+}
+
+const FullViewportOverlay: React.FC<FullViewportOverlayProps> = ({ visible, children }) => {
+  if (!visible) return null;
+  return ReactDOM.createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 9999,
+        background: 'rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(8px)',
+        pointerEvents: 'auto',
+      }}
+    >
+      {children}
+    </div>,
+    document.body
+  );
+};
+
+export default FullViewportOverlay;

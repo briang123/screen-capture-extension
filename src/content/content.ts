@@ -100,15 +100,19 @@ chrome.runtime.onMessage.addListener(
 
       case 'getScrollInfo': {
         // Provide scroll position and viewport information for area capture
-        const scrollInfo = {
-          scrollX: window.pageXOffset || document.documentElement.scrollLeft,
-          scrollY: window.pageYOffset || document.documentElement.scrollTop,
-          viewportWidth: window.innerWidth,
-          viewportHeight: window.innerHeight,
-          pageWidth: document.documentElement.scrollWidth,
-          pageHeight: document.documentElement.scrollHeight,
-        };
-        sendResponse({ success: true, ...scrollInfo });
+        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+          const scrollInfo = {
+            scrollX: window.pageXOffset || document.documentElement.scrollLeft,
+            scrollY: window.pageYOffset || document.documentElement.scrollTop,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            pageWidth: document.documentElement.scrollWidth,
+            pageHeight: document.documentElement.scrollHeight,
+          };
+          sendResponse({ success: true, ...scrollInfo });
+        } else {
+          sendResponse({ success: false, error: 'window or document is not defined' });
+        }
         break;
       }
 
