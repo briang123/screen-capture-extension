@@ -11,6 +11,37 @@
  * - Integrates with editor state (tools, panels, canvas)
  * - Optimized for editor performance
  * - Consistent animation timing across editor components
+ * - Enhances user experience with smooth transitions
+ *
+ * COMMON USE CASES:
+ * - Editor toolbar show/hide animations
+ * - Panel expand/collapse transitions
+ * - Tool selection active/inactive states
+ * - Canvas zoom and pan animations
+ * - Fullscreen mode transitions
+ * - Editor content loading animations
+ *
+ * KEY FEATURES:
+ * - Toolbar animations (show/hide, slide)
+ * - Panel animations (expand/collapse)
+ * - Tool selection animations (active/inactive states)
+ * - Canvas animations (zoom, pan)
+ * - Fullscreen animations (enter/exit)
+ * - Customizable timing for different animation types
+ *
+ * PERFORMANCE BENEFITS:
+ * - Optimized animations for editor-specific use cases
+ * - Reduced re-renders with proper memoization
+ * - Efficient variant generation based on editor state
+ * - Memory-efficient animation cleanup
+ * - Smooth 60fps animations for complex editor interactions
+ *
+ * ACCESSIBILITY FEATURES:
+ * - Respects reduced motion preferences
+ * - Proper timing for screen reader announcements
+ * - Focus management during editor transitions
+ * - ARIA attribute updates for editor state changes
+ * - Keyboard navigation support during animations
  */
 
 import { useMemo } from 'react';

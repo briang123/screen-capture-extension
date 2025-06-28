@@ -11,6 +11,35 @@
  * - Integrates with sidebar state (collapsed, side, theme)
  * - Optimized for sidebar performance
  * - Consistent animation timing across sidebar components
+ * - Type-safe integration with SidebarSide type
+ *
+ * COMMON USE CASES:
+ * - Sidebar slide in/out animations
+ * - Sidebar collapse/expand transitions
+ * - Theme switching animations (light/dark)
+ * - Side switching animations (left/right)
+ * - Sidebar visibility transitions
+ * - Sidebar content loading animations
+ *
+ * KEY FEATURES:
+ * - Slide animations (left/right side support)
+ * - Collapse/expand animations with width transitions
+ * - Theme transition animations (light/dark)
+ * - Side switching animations with smooth transitions
+ * - Customizable timing for different animation types
+ * - Integration with SidebarSide type for type safety
+ *
+ * PERFORMANCE BENEFITS:
+ * - Optimized animations for sidebar-specific use cases
+ * - Reduced re-renders with proper memoization
+ * - Efficient variant generation based on sidebar state
+ * - Memory-efficient animation cleanup
+ *
+ * ACCESSIBILITY FEATURES:
+ * - Respects reduced motion preferences
+ * - Proper timing for screen reader announcements
+ * - Focus management during sidebar transitions
+ * - ARIA attribute updates for sidebar state changes
  */
 
 import { useMemo } from 'react';

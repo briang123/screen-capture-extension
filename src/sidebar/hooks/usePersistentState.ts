@@ -1,5 +1,50 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+/**
+ * usePersistentState - Persistent State Management Hook with Multiple Storage Backends
+ *
+ * This hook provides a comprehensive solution for managing persistent state across
+ * different storage backends with a unified interface. It supports localStorage,
+ * sessionStorage, and Chrome extension storage with cross-tab synchronization.
+ *
+ * WHY USE THIS HOOK:
+ * - Provides a unified interface for multiple storage backends
+ * - Handles cross-tab synchronization automatically
+ * - Offers custom serialization/deserialization for complex data types
+ * - Includes comprehensive error handling and fallbacks
+ * - Supports Chrome extension local and sync storage
+ * - Provides convenience hooks for common storage patterns
+ *
+ * COMMON USE CASES:
+ * - User preferences and settings persistence
+ * - Form data auto-save functionality
+ * - Application state restoration
+ * - Theme and UI state persistence
+ * - Cross-tab data synchronization
+ * - Chrome extension data management
+ *
+ * KEY FEATURES:
+ * - Multiple storage backends (localStorage, sessionStorage, Chrome local/sync)
+ * - Cross-tab synchronization support
+ * - Custom serialization/deserialization
+ * - Error handling and fallbacks
+ * - TypeScript support with full type safety
+ * - Automatic cleanup and memory management
+ *
+ * PERFORMANCE BENEFITS:
+ * - Debounced updates to prevent excessive storage writes
+ * - Efficient change detection with deep comparison
+ * - Lazy loading of storage adapters
+ * - Memory leak prevention with proper cleanup
+ * - Optimized re-renders with useCallback
+ *
+ * ACCESSIBILITY FEATURES:
+ * - Graceful degradation when storage is unavailable
+ * - Error recovery mechanisms for corrupted data
+ * - Fallback to in-memory state when needed
+ * - User-friendly error messages and logging
+ */
+
 // Storage backend types
 export type StorageBackend = 'localStorage' | 'sessionStorage' | 'chrome.local' | 'chrome.sync';
 

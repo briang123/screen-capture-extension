@@ -1,5 +1,48 @@
 import { useState, useCallback } from 'react';
 
+/**
+ * useSidebarPosition - Sidebar Position Management Hook
+ *
+ * This hook manages the positioning state and logic for sidebar components,
+ * including initial positioning, edge snapping, and position updates.
+ *
+ * WHY USE THIS HOOK:
+ * - Centralizes sidebar positioning logic
+ * - Handles side-specific positioning (left/right)
+ * - Provides edge snapping functionality
+ * - Manages responsive positioning updates
+ * - Integrates with window resize events
+ * - Ensures proper sidebar placement
+ *
+ * COMMON USE CASES:
+ * - Sidebar initial positioning
+ * - Edge snapping behavior
+ * - Responsive position updates
+ * - Window resize handling
+ * - Sidebar repositioning
+ * - Position restoration from storage
+ *
+ * KEY FEATURES:
+ * - Side-specific positioning (left/right)
+ * - Edge snapping functionality
+ * - Responsive position calculations
+ * - Initial position determination
+ * - Position state management
+ * - Integration with window dimensions
+ *
+ * PERFORMANCE BENEFITS:
+ * - Efficient position calculations with useCallback
+ * - Optimized re-renders with state management
+ * - Debounced position updates
+ * - Memory leak prevention
+ *
+ * ACCESSIBILITY FEATURES:
+ * - Proper positioning for screen readers
+ * - Keyboard navigation support
+ * - Focus management during repositioning
+ * - ARIA attribute updates for position changes
+ */
+
 export interface Position {
   x: number;
   y: number;

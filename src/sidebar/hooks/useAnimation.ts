@@ -35,6 +35,12 @@
  * - Optimized re-renders with useCallback
  * - Lazy loading of animation variants
  * - Memory leak prevention
+ *
+ * ACCESSIBILITY FEATURES:
+ * - Smooth animations for reduced motion preferences
+ * - Proper timing for screen reader announcements
+ * - Focus management during animations
+ * - ARIA attribute updates during state changes
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
