@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CaptureButton } from './Button';
 import { CaptureOverlay } from './CaptureOverlay';
 import { useCaptureContext } from '../contexts/CaptureContext';
+import LoadingSpinner from '../../shared/components/LoadingSpinner';
 
 interface SidebarPanelBodyProps {
   isSwitchingSide: boolean;
@@ -27,7 +28,12 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
     deleteCapturedImage,
   } = useCaptureContext();
 
-  console.log('SidebarPanelBody capturedImages:', capturedImages);
+  useEffect(() => {
+    if (capturedImages.length > 0) {
+      console.log('SidebarPanelBody capturedImages:', capturedImages);
+    }
+  }, [capturedImages]);
+
   return (
     <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
       {/* Thumbnails at the top */}
@@ -79,6 +85,9 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
           ))}
         </div>
       )}
+
+      {/* Loading Spinner */}
+      {isCapturing && <LoadingSpinner size="md" message="Capturing..." />}
 
       {/* Main sidebar content below thumbnails */}
       <motion.div
