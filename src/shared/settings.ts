@@ -53,6 +53,13 @@
  * - Secure default values for all settings
  */
 
+import {
+  StorageError,
+  retryOperation,
+  isChromeStorageAvailable,
+  ErrorContext,
+} from './error-handling';
+
 // Shared settings management utilities
 export interface Settings {
   autoSave: boolean;
@@ -100,43 +107,133 @@ export function mergeSettings(existingSettings: unknown, updates: Partial<Settin
 }
 
 /**
- * Updates settings in Chrome storage with proper merging
+ * Updates settings in Chrome storage with proper merging and retry mechanism
  */
 export async function updateSettings(updates: Partial<Settings>): Promise<void> {
-  try {
-    const result = await chrome.storage.sync.get('settings');
-    const currentSettings = result.settings;
+  const context: ErrorContext = {
+    operation: 'updateSettings',
+    component: 'settings',
+    timestamp: Date.now(),
+  };
 
-    const mergedSettings = mergeSettings(currentSettings, updates);
-
-    await chrome.storage.sync.set({ settings: mergedSettings });
-  } catch (error) {
-    console.error('Failed to update settings:', error);
-    throw error;
+  if (!isChromeStorageAvailable()) {
+    throw new StorageError('Chrome storage is not available', 'error', false, context);
   }
+
+  return retryOperation(
+    async () => {
+      try {
+        const result = await chrome.storage.sync.get('settings');
+        const currentSettings = result.settings;
+
+        const mergedSettings = mergeSettings(currentSettings, updates);
+
+        await chrome.storage.sync.set({ settings: mergedSettings });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes('QUOTA')) {
+          throw new StorageError(
+            `Storage quota exceeded: ${errorMessage}`,
+            'error',
+            false, // Don't retry quota errors
+            context
+          );
+        }
+
+        if (errorMessage.includes('not available')) {
+          throw new StorageError(`Storage not available: ${errorMessage}`, 'error', true, context);
+        }
+
+        throw new StorageError(
+          `Failed to update settings: ${errorMessage}`,
+          'error',
+          true,
+          context
+        );
+      }
+    },
+    3, // maxRetries
+    1000, // baseDelay
+    context
+  );
 }
 
 /**
- * Gets settings from Chrome storage with defaults and migration
+ * Gets settings from Chrome storage with defaults, migration, and retry mechanism
  */
 export async function getSettings(): Promise<Settings> {
-  try {
-    const result = await chrome.storage.sync.get('settings');
-    return mergeSettings(result.settings, {});
-  } catch (error) {
-    console.error('Failed to get settings:', error);
+  const context: ErrorContext = {
+    operation: 'getSettings',
+    component: 'settings',
+    timestamp: Date.now(),
+  };
+
+  if (!isChromeStorageAvailable()) {
+    console.warn('Chrome storage not available, returning default settings');
     return DEFAULT_SETTINGS;
   }
+
+  return retryOperation(
+    async () => {
+      try {
+        const result = await chrome.storage.sync.get('settings');
+        return mergeSettings(result.settings, {});
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes('not available')) {
+          throw new StorageError(`Storage not available: ${errorMessage}`, 'error', true, context);
+        }
+
+        throw new StorageError(`Failed to get settings: ${errorMessage}`, 'error', true, context);
+      }
+    },
+    3, // maxRetries
+    1000, // baseDelay
+    context
+  ).catch(() => {
+    // Fallback to defaults if all retries fail
+    console.error('All retries failed for getSettings, using defaults');
+    return DEFAULT_SETTINGS;
+  });
 }
 
 /**
- * Resets settings to defaults
+ * Resets settings to defaults with retry mechanism
  */
 export async function resetSettings(): Promise<void> {
-  try {
-    await chrome.storage.sync.set({ settings: DEFAULT_SETTINGS });
-  } catch (error) {
-    console.error('Failed to reset settings:', error);
-    throw error;
+  const context: ErrorContext = {
+    operation: 'resetSettings',
+    component: 'settings',
+    timestamp: Date.now(),
+  };
+
+  if (!isChromeStorageAvailable()) {
+    throw new StorageError('Chrome storage is not available', 'error', false, context);
   }
+
+  return retryOperation(
+    async () => {
+      try {
+        await chrome.storage.sync.set({ settings: DEFAULT_SETTINGS });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        if (errorMessage.includes('QUOTA')) {
+          throw new StorageError(
+            `Storage quota exceeded: ${errorMessage}`,
+            'error',
+            false, // Don't retry quota errors
+            context
+          );
+        }
+
+        throw new StorageError(`Failed to reset settings: ${errorMessage}`, 'error', true, context);
+      }
+    },
+    3, // maxRetries
+    1000, // baseDelay
+    context
+  );
 }

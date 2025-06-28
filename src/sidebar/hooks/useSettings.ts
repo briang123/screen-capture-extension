@@ -61,6 +61,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Settings, DEFAULT_SETTINGS, mergeSettings, updateSettings } from '../../shared/settings';
+import { createUserFacingError, UserFacingError } from '../../shared/error-handling';
+
+export interface UseSettingsReturn {
+  settings: Settings;
+  isLoading: boolean;
+  error: UserFacingError | null;
+  updateSettings: (updates: Partial<Settings>) => Promise<void>;
+  resetSettings: () => Promise<void>;
+  retry: () => Promise<void>;
+  clearError: () => void;
+}
 
 /**
  * useSettings - Settings Management Hook
@@ -68,33 +79,38 @@ import { Settings, DEFAULT_SETTINGS, mergeSettings, updateSettings } from '../..
  * Manages extension settings with proper merging, migration, and Chrome sync storage.
  * Uses the shared settings helper for consistent behavior across the extension.
  */
-export function useSettings(): [
-  Settings,
-  (updates: Partial<Settings>) => Promise<void>,
-  () => Promise<void>,
-] {
+export function useSettings(): UseSettingsReturn {
   const [settings, setSettingsState] = useState<Settings>(DEFAULT_SETTINGS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<UserFacingError | null>(null);
 
   // Load settings on mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        if (chrome?.storage?.sync) {
-          const result = await chrome.storage.sync.get('settings');
-          const loadedSettings = mergeSettings(result.settings, {});
-          setSettingsState(loadedSettings);
-        } else {
-          // Fallback to defaults if Chrome storage is not available
-          setSettingsState(DEFAULT_SETTINGS);
-        }
-      } catch (error) {
-        console.error('Failed to load settings:', error);
+  const loadSettings = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (chrome?.storage?.sync) {
+        const result = await chrome.storage.sync.get('settings');
+        const loadedSettings = mergeSettings(result.settings, {});
+        setSettingsState(loadedSettings);
+      } else {
+        // Fallback to defaults if Chrome storage is not available
         setSettingsState(DEFAULT_SETTINGS);
       }
-    };
-
-    loadSettings();
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      const userFacingError = createUserFacingError(error);
+      setError(userFacingError);
+      setSettingsState(DEFAULT_SETTINGS);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   // Listen for storage changes
   useEffect(() => {
@@ -105,8 +121,15 @@ export function useSettings(): [
       areaName: string
     ) => {
       if (areaName === 'sync' && changes.settings) {
-        const newSettings = mergeSettings(changes.settings.newValue, {});
-        setSettingsState(newSettings);
+        try {
+          const newSettings = mergeSettings(changes.settings.newValue, {});
+          setSettingsState(newSettings);
+          setError(null); // Clear any previous errors
+        } catch (error) {
+          console.error('Failed to process storage change:', error);
+          const userFacingError = createUserFacingError(error);
+          setError(userFacingError);
+        }
       }
     };
 
@@ -114,36 +137,62 @@ export function useSettings(): [
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
-  // Update settings with proper merging
+  // Update settings with proper merging and error handling
   const updateSettingsState = useCallback(async (updates: Partial<Settings>) => {
+    setError(null);
+
     try {
       await updateSettings(updates);
       // The storage change listener will update the state
     } catch (error) {
       console.error('Failed to update settings:', error);
+      const userFacingError = createUserFacingError(error);
+      setError(userFacingError);
       throw error;
     }
   }, []);
 
-  // Reset settings to defaults
-  const resetSettings = useCallback(async () => {
+  // Reset settings to defaults with error handling
+  const resetSettingsState = useCallback(async () => {
+    setError(null);
+
     try {
       await updateSettings(DEFAULT_SETTINGS);
       // The storage change listener will update the state
     } catch (error) {
       console.error('Failed to reset settings:', error);
+      const userFacingError = createUserFacingError(error);
+      setError(userFacingError);
       throw error;
     }
   }, []);
 
-  return [settings, updateSettingsState, resetSettings];
+  // Retry loading settings
+  const retry = useCallback(async () => {
+    await loadSettings();
+  }, [loadSettings]);
+
+  // Clear error state
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  return {
+    settings,
+    isLoading,
+    error,
+    updateSettings: updateSettingsState,
+    resetSettings: resetSettingsState,
+    retry,
+    clearError,
+  };
 }
 
 /**
  * Convenience hook for theme management
  */
 export function useTheme(): ['light' | 'dark', () => Promise<void>] {
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
 
   const toggleTheme = useCallback(async () => {
     const newTheme = settings.theme === 'light' ? 'dark' : 'light';
@@ -160,7 +209,7 @@ export function useQuality(): [
   'low' | 'medium' | 'high',
   (quality: 'low' | 'medium' | 'high') => Promise<void>,
 ] {
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
 
   const setQuality = useCallback(
     async (quality: 'low' | 'medium' | 'high') => {
@@ -179,7 +228,7 @@ export function useFormat(): [
   'png' | 'jpg' | 'webp',
   (format: 'png' | 'jpg' | 'webp') => Promise<void>,
 ] {
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
 
   const setFormat = useCallback(
     async (format: 'png' | 'jpg' | 'webp') => {
