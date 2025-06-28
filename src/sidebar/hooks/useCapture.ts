@@ -6,17 +6,18 @@ import {
 } from '../../shared/error-handling';
 import { captureTabViewport, captureFullPage } from '../../utils/capture';
 import { copyImageToClipboard } from '../../utils/clipboard';
+import { useSuccessMessage } from './useSuccessMessage';
 
 interface CaptureState {
   isCapturing: boolean;
   error: UserFacingError | null;
   lastCaptureTime: number | null;
   showOverlay: boolean;
-  successMessage: string | null;
   capturedImages: string[];
 }
 
 interface UseCaptureReturn extends CaptureState {
+  successMessage: string;
   handleCapture: () => Promise<void>;
   handleAreaCapture: () => void;
   resetError: () => void;
@@ -91,9 +92,10 @@ export function useCapture(): UseCaptureReturn {
     error: null,
     lastCaptureTime: null,
     showOverlay: false,
-    successMessage: null,
     capturedImages: [],
   });
+
+  const [successMessage, setSuccessMessage] = useSuccessMessage(3000);
 
   const performCapture = useCallback(async (): Promise<void> => {
     const result = await captureTabViewport();
@@ -109,7 +111,6 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       isCapturing: true,
       error: null,
-      successMessage: null,
     }));
     try {
       await retryOperation(performCapture, 3, 1000, {
@@ -125,13 +126,7 @@ export function useCapture(): UseCaptureReturn {
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
-        successMessage: 'Screenshot copied to clipboard! 📋',
-        // Optionally, add the image to capturedImages if you want to keep a history
-        // capturedImages: [result.imageData, ...prev.capturedImages],
       }));
-      setTimeout(() => {
-        setState((prev) => ({ ...prev, successMessage: null }));
-      }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
       setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
@@ -143,7 +138,6 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       showOverlay: true,
       error: null,
-      successMessage: null,
     }));
   }, []);
 
@@ -162,17 +156,8 @@ export function useCapture(): UseCaptureReturn {
           ...prev,
           isCapturing: false,
           lastCaptureTime: Date.now(),
-          successMessage: 'Area screenshot copied to clipboard! 📋',
           capturedImages: [imageData, ...prev.capturedImages],
         }));
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setState((prev) => ({
-            ...prev,
-            successMessage: null,
-          }));
-        }, 3000);
       } catch (error) {
         const userFacingError = createUserFacingError(error);
 
@@ -202,7 +187,6 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       isCapturing: true,
       error: null,
-      successMessage: null,
     }));
 
     try {
@@ -221,16 +205,7 @@ export function useCapture(): UseCaptureReturn {
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
-        successMessage: 'Screenshot copied to clipboard! 📋',
       }));
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          successMessage: null,
-        }));
-      }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
 
@@ -250,11 +225,8 @@ export function useCapture(): UseCaptureReturn {
   }, []);
 
   const clearSuccessMessage = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      successMessage: null,
-    }));
-  }, []);
+    setSuccessMessage(null);
+  }, [setSuccessMessage]);
 
   const handleFullPageCapture = useCallback(async () => {
     if (state.isCapturing) return;
@@ -262,7 +234,6 @@ export function useCapture(): UseCaptureReturn {
       ...prev,
       isCapturing: true,
       error: null,
-      successMessage: null,
     }));
     try {
       const result = await captureFullPage();
@@ -272,12 +243,8 @@ export function useCapture(): UseCaptureReturn {
         ...prev,
         isCapturing: false,
         lastCaptureTime: Date.now(),
-        successMessage: 'Full page screenshot copied to clipboard! 📋',
         capturedImages: [result.imageData, ...prev.capturedImages],
       }));
-      setTimeout(() => {
-        setState((prev) => ({ ...prev, successMessage: null }));
-      }, 3000);
     } catch (error) {
       const userFacingError = createUserFacingError(error);
       setState((prev) => ({ ...prev, isCapturing: false, error: userFacingError }));
@@ -296,19 +263,10 @@ export function useCapture(): UseCaptureReturn {
       const image = state.capturedImages[index];
       if (image) {
         await copyImageToClipboard(image);
-        setState((prev) => ({
-          ...prev,
-          successMessage: 'Image copied to clipboard! 📋',
-        }));
-        setTimeout(() => {
-          setState((prev) => ({
-            ...prev,
-            successMessage: null,
-          }));
-        }, 2000);
+        setSuccessMessage('Image copied to clipboard! 📋');
       }
     },
-    [state.capturedImages, copyImageToClipboard]
+    [state.capturedImages, copyImageToClipboard, setSuccessMessage]
   );
 
   const openCapturedImageInEditor = useCallback(
@@ -323,6 +281,7 @@ export function useCapture(): UseCaptureReturn {
 
   return {
     ...state,
+    successMessage,
     handleCapture,
     handleAreaCapture,
     resetError,
