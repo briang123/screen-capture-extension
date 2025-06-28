@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { SidebarSide } from './useSidebarSide';
 
 export function useSidebarResize(
-  side: 'left' | 'right',
+  side: SidebarSide,
   getRightEdge: () => number,
   setPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>
 ): boolean {
