@@ -60,8 +60,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Settings, DEFAULT_SETTINGS, mergeSettings, updateSettings } from '../../shared/settings';
-import { createUserFacingError, UserFacingError } from '../../shared/error-handling';
+import { Settings, DEFAULT_SETTINGS, mergeSettings, updateSettings } from '@/shared/settings';
+import { createUserFacingError, UserFacingError } from '@/shared/error-handling';
 
 export interface UseSettingsReturn {
   settings: Settings;

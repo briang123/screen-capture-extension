@@ -8,8 +8,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSettings } from './useSettings';
-import { StorageError, NetworkError, PermissionError } from '../../shared/error-handling';
-import { mockChromeStorage, resetAllMocks } from '../../test-setup';
+import { StorageError, NetworkError, PermissionError } from '@/shared/error-handling';
+import { mockChromeStorage, resetAllMocks } from '@/test-setup';
 
 describe('useSettings', () => {
   beforeEach(() => {

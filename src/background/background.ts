@@ -2,7 +2,7 @@
 // TODO: Add error handling and logging
 // TODO: Implement retry logic for failed operations
 
-import { DEFAULT_SETTINGS } from '../shared/settings';
+import { DEFAULT_SETTINGS } from '@/shared/settings';
 
 interface CaptureMessage {
   action: 'captureScreen';

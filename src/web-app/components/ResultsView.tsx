@@ -1,6 +1,6 @@
 import React from 'react';
-import { ExtensionConfig } from '../../shared/types';
-import { generateNextSteps } from '../../shared/next-steps';
+import { ExtensionConfig } from '@/shared/types';
+import { generateNextSteps } from '@/shared/next-steps';
 
 interface ResultsViewProps {
   config: ExtensionConfig;

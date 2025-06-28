@@ -4,7 +4,7 @@
 // TODO: Add keyboard shortcuts for capture
 
 import './content.css';
-import { mountSidebar, unmountSidebar } from '../sidebar/sidebar';
+import { mountSidebar, unmountSidebar } from '@/sidebar/sidebar';
 
 console.log('Screen Capture Extension content script loaded');
 

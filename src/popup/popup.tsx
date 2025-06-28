@@ -1,7 +1,7 @@
 import './popup.css';
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { useSettings } from '../sidebar/hooks/useSettings';
+import { useSettings } from '@/sidebar/hooks/useSettings';
 
 const Popup: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);

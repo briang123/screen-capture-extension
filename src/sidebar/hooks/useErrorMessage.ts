@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { UserFacingError } from '../../shared/error-handling';
+import type { UserFacingError } from '@/shared/error-handling';
 
 /**
  * useErrorMessage - Custom hook for managing an error message with auto-clear timeout.

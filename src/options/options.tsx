@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSettings } from '../sidebar/hooks/useSettings';
+import { useSettings } from '@/sidebar/hooks/useSettings';
 
 const Options: React.FC = () => {
   const { settings, updateSettings, resetSettings } = useSettings();

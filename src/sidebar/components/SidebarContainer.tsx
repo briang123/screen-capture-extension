@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
-import CollapsedSidebarContent from './CollapsedSidebarContent';
-import ExpandedSidebarContent from './ExpandedSidebarContent';
-import { useCaptureContext } from '../contexts/CaptureContext';
+import CollapsedSidebarContent from '@/sidebar/components/CollapsedSidebarContent';
+import ExpandedSidebarContent from '@/sidebar/components/ExpandedSidebarContent';
+import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
 
 interface SidebarContainerProps {
   side: 'left' | 'right';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ExtensionConfig } from '../../shared/types';
-import { validateConfig } from '../../shared/validation';
+import { ExtensionConfig } from '@/shared/types';
+import { validateConfig } from '@/shared/validation';
 
 interface ConfigFormProps {
   onSubmit: (config: ExtensionConfig) => void;

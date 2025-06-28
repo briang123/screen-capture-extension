@@ -14,7 +14,7 @@ import {
   NetworkError,
   PermissionError,
   createUserFacingError,
-} from '../error-handling';
+} from '@/shared/error-handling';
 
 describe('ErrorNotification', () => {
   const mockOnRetry = vi.fn();

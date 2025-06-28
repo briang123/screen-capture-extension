@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback } from 'react';
-import { UserFacingError } from '../../shared/error-handling';
-import { useCapture } from '../hooks/useCapture';
+import { UserFacingError } from '@/shared/error-handling';
+import { useCapture } from '@/sidebar/hooks/useCapture';
 
 interface CaptureContextType {
   // State

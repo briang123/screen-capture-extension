@@ -34,7 +34,7 @@
  * - captureArea(area: { x: number, y: number, width: number, height: number }): Promise<{ imageData: string } | { error: UserFacingError }>
  * - captureElements(selectors: string[]): Promise<{ imageData: string } | { error: UserFacingError }>
  */
-import { createUserFacingError, UserFacingError } from '../shared/error-handling';
+import { createUserFacingError, UserFacingError } from '@/shared/error-handling';
 
 export async function captureViaMessage(
   action: string,

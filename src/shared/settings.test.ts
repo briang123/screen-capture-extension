@@ -15,7 +15,7 @@ import {
   Settings,
 } from './settings';
 import { StorageError } from './error-handling';
-import { mockChromeStorage, resetAllMocks, mockChrome } from '../test-setup';
+import { mockChromeStorage, resetAllMocks, mockChrome } from '@/test-setup';
 
 describe('Settings Interface', () => {
   beforeEach(() => {

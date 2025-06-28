@@ -1,11 +1,7 @@
 import { useState, useCallback } from 'react';
-import {
-  UserFacingError,
-  retryOperation,
-  createUserFacingError,
-} from '../../shared/error-handling';
-import { captureTabViewport, captureFullPage } from '../../utils/capture';
-import { copyImageToClipboard } from '../../utils/clipboard';
+import { UserFacingError, retryOperation, createUserFacingError } from '@/shared/error-handling';
+import { captureTabViewport, captureFullPage } from '@utils/capture';
+import { copyImageToClipboard } from '@utils/clipboard';
 import { useSuccessMessage } from './useSuccessMessage';
 import { useErrorMessage } from './useErrorMessage';
 

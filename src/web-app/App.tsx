@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ExtensionConfig } from '../shared/types';
-import { generateExtension } from '../shared/config-generator';
+import { ExtensionConfig } from '@/shared/types';
+import { generateExtension } from '@/shared/config-generator';
 import ConfigForm from './components/ConfigForm';
 import ResultsView from './components/ResultsView';
 import './App.css';

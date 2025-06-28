@@ -22,7 +22,7 @@
  */
 
 import React, { useState } from 'react';
-import { UserFacingError } from '../error-handling';
+import { UserFacingError } from '@/shared/error-handling';
 
 export interface ErrorNotificationProps {
   error: UserFacingError;

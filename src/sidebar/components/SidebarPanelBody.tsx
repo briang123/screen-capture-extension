@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CaptureButton } from './Button';
-import { CaptureOverlay } from './CaptureOverlay';
-import { useCaptureContext } from '../contexts/CaptureContext';
-import LoadingSpinner from '../../shared/components/LoadingSpinner';
+import { CaptureButton } from '@/sidebar/components/Button';
+import { CaptureOverlay } from '@/sidebar/components/CaptureOverlay';
+import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
+import LoadingSpinner from '@/shared/components/LoadingSpinner';
 
 interface SidebarPanelBodyProps {
   isSwitchingSide: boolean;

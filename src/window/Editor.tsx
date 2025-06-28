@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fabric } from 'fabric';
 import { HexColorPicker } from 'react-colorful';
-import { useSettings } from '../sidebar/hooks/useSettings';
+import { useSettings } from '@/sidebar/hooks/useSettings';
 
 const Editor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
