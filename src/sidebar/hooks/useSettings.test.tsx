@@ -166,8 +166,31 @@ describe('useSettings', () => {
         format: 'png' as const,
       };
 
+      // Mock the initial load
       mockChromeStorage.sync.get({ settings: initialSettings });
-      mockChromeStorage.sync.set();
+
+      // Capture the storage change listener
+      let storageChangeListener: ((changes: any, areaName: string) => void) | null = null;
+      global.chrome.storage.onChanged.addListener = vi.fn().mockImplementation((listener) => {
+        storageChangeListener = listener;
+      });
+
+      // Mock the update operation to trigger storage change event
+      const mockSet = vi.fn().mockImplementation(async (data) => {
+        // Simulate the storage change event that would be triggered
+        if (storageChangeListener) {
+          storageChangeListener(
+            {
+              settings: {
+                oldValue: initialSettings,
+                newValue: data.settings,
+              },
+            },
+            'sync'
+          );
+        }
+      });
+      global.chrome.storage.sync.set = mockSet;
 
       const { result } = renderHook(() => useSettings());
 
@@ -175,29 +198,12 @@ describe('useSettings', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Mock the storage change event to simulate the update
-      const mockStorageChange = {
-        settings: {
-          oldValue: initialSettings,
-          newValue: { ...initialSettings, theme: 'dark' },
-        },
-      };
-
+      // Update settings
       await act(async () => {
         await result.current.updateSettings({ theme: 'dark' });
-
-        // Simulate the storage change listener
-        if (global.chrome?.storage?.onChanged?.addListener) {
-          const listeners = global.chrome.storage.onChanged.addListener as unknown as [
-            (changes: Record<string, unknown>, areaName: string) => void,
-          ][];
-          if (listeners.length > 0) {
-            const listener = listeners[0][0];
-            listener(mockStorageChange, 'sync');
-          }
-        }
       });
 
+      // The settings should be updated via the storage change listener
       expect(result.current.settings.theme).toBe('dark');
       expect(result.current.settings.autoSave).toBe(false); // Should preserve other settings
       expect(result.current.error).toBeNull();
@@ -242,8 +248,31 @@ describe('useSettings', () => {
         format: 'png' as const,
       };
 
-      global.chrome.storage.sync.get = vi.fn().mockResolvedValue({ settings: initialSettings });
-      global.chrome.storage.sync.set = vi.fn().mockResolvedValue(undefined);
+      // Mock the initial load
+      mockChromeStorage.sync.get({ settings: initialSettings });
+
+      // Capture the storage change listener
+      let storageChangeListener: ((changes: any, areaName: string) => void) | null = null;
+      global.chrome.storage.onChanged.addListener = vi.fn().mockImplementation((listener) => {
+        storageChangeListener = listener;
+      });
+
+      // Mock the update operation to trigger storage change event
+      const mockSet = vi.fn().mockImplementation(async (data) => {
+        // Simulate the storage change event that would be triggered
+        if (storageChangeListener) {
+          storageChangeListener(
+            {
+              settings: {
+                oldValue: initialSettings,
+                newValue: data.settings,
+              },
+            },
+            'sync'
+          );
+        }
+      });
+      global.chrome.storage.sync.set = mockSet;
 
       const { result } = renderHook(() => useSettings());
 
@@ -251,32 +280,14 @@ describe('useSettings', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Mock the storage change event to simulate the update
-      const mockStorageChange = {
-        settings: {
-          oldValue: initialSettings,
-          newValue: { ...initialSettings, theme: 'dark', quality: 'medium' },
-        },
-      };
-
+      // Update multiple settings
       await act(async () => {
         await result.current.updateSettings({ theme: 'dark', quality: 'medium' });
-        // Simulate the storage change listener
-        if (global.chrome?.storage?.onChanged?.addListener) {
-          const listeners = global.chrome.storage.onChanged.addListener as unknown as [
-            (changes: Record<string, unknown>, areaName: string) => void,
-          ][];
-          if (listeners.length > 0) {
-            const listener = listeners[0][0];
-            listener(mockStorageChange, 'sync');
-          }
-        }
-        await Promise.resolve();
       });
-      await waitFor(() => {
-        expect(result.current.settings.theme).toBe('dark');
-        expect(result.current.settings.quality).toBe('medium');
-      });
+
+      // The settings should be updated via the storage change listener
+      expect(result.current.settings.theme).toBe('dark');
+      expect(result.current.settings.quality).toBe('medium');
       expect(result.current.settings.autoSave).toBe(false); // Should preserve other settings
     }, 10000);
   });
