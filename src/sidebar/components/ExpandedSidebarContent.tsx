@@ -21,6 +21,9 @@ interface ExpandedSidebarContentProps {
   onResetError: () => void;
   successMessage: string | null;
   onClearSuccessMessage: () => void;
+  onFullPageCapture: () => void;
+  lastCapturedImage: string | null;
+  deleteCapturedImage: () => void;
 }
 
 const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
@@ -41,6 +44,9 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
   onResetError,
   successMessage,
   onClearSuccessMessage,
+  onFullPageCapture,
+  lastCapturedImage,
+  deleteCapturedImage,
 }) => {
   return (
     <>
@@ -65,6 +71,9 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
         onResetError={onResetError}
         successMessage={successMessage}
         onClearSuccessMessage={onClearSuccessMessage}
+        onFullPageCapture={onFullPageCapture}
+        lastCapturedImage={lastCapturedImage}
+        deleteCapturedImage={deleteCapturedImage}
       />
     </>
   );

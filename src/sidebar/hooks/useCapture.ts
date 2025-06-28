@@ -11,6 +11,7 @@ interface CaptureState {
   lastCaptureTime: number | null;
   showOverlay: boolean;
   successMessage: string | null;
+  lastCapturedImage: string | null;
 }
 
 interface UseCaptureReturn extends CaptureState {
@@ -21,6 +22,8 @@ interface UseCaptureReturn extends CaptureState {
   hideOverlay: () => void;
   clearSuccessMessage: () => void;
   onAreaCaptureComplete: (imageData: string) => Promise<void>;
+  handleFullPageCapture: () => Promise<void>;
+  deleteCapturedImage: () => void;
 }
 
 /**
@@ -85,6 +88,7 @@ export function useCapture(): UseCaptureReturn {
     lastCaptureTime: null,
     showOverlay: false,
     successMessage: null,
+    lastCapturedImage: null,
   });
 
   const performCapture = useCallback(async (): Promise<void> => {
@@ -108,9 +112,14 @@ export function useCapture(): UseCaptureReturn {
       const blob = await response.blob();
 
       // Copy to clipboard using Clipboard API
-      const nav = window.navigator as any;
-      if (nav.clipboard && nav.clipboard.write) {
-        const clipboardItem = new (window as any).ClipboardItem({
+      type ClipboardItemType = { new (items: Record<string, Blob>): object };
+      const nav = window.navigator as {
+        clipboard?: { write?: (data: unknown[]) => Promise<void> };
+      };
+      const ClipboardItemClass = (window as unknown as { ClipboardItem?: ClipboardItemType })
+        .ClipboardItem;
+      if (nav.clipboard && nav.clipboard.write && ClipboardItemClass) {
+        const clipboardItem = new ClipboardItemClass({
           [blob.type]: blob,
         });
         await nav.clipboard.write([clipboardItem]);
@@ -153,12 +162,23 @@ export function useCapture(): UseCaptureReturn {
         }
       );
 
-      setState((prev) => ({
-        ...prev,
-        isCapturing: false,
-        lastCaptureTime: Date.now(),
-        successMessage: 'Screenshot copied to clipboard! 📋',
-      }));
+      // Get the captured image from the background script
+      const response = await chrome.runtime.sendMessage({ action: 'captureScreen' });
+      if (response.success && response.imageData) {
+        setState((prev) => ({
+          ...prev,
+          isCapturing: false,
+          lastCaptureTime: Date.now(),
+          successMessage: 'Screenshot copied to clipboard! 📋',
+          lastCapturedImage: response.imageData,
+        }));
+      } else {
+        setState((prev) => ({
+          ...prev,
+          isCapturing: false,
+          error: createUserFacingError('Failed to capture image'),
+        }));
+      }
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -176,7 +196,7 @@ export function useCapture(): UseCaptureReturn {
         error: userFacingError,
       }));
     }
-  }, [state.isCapturing, performCapture]);
+  }, [state.isCapturing, performCapture, copyImageToClipboard]);
 
   const handleAreaCapture = useCallback(() => {
     setState((prev) => ({
@@ -295,6 +315,53 @@ export function useCapture(): UseCaptureReturn {
     }));
   }, []);
 
+  const handleFullPageCapture = useCallback(async () => {
+    if (state.isCapturing) {
+      return;
+    }
+    setState((prev) => ({
+      ...prev,
+      isCapturing: true,
+      error: null,
+      successMessage: null,
+    }));
+    try {
+      // Send message to content script to perform full page capture
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const response = await chrome.tabs.sendMessage(tab.id!, { action: 'captureFullPage' });
+      if (!response.success || !response.imageData) {
+        throw new Error(response.error || 'Full page capture failed');
+      }
+      await copyImageToClipboard(response.imageData);
+      setState((prev) => ({
+        ...prev,
+        isCapturing: false,
+        lastCaptureTime: Date.now(),
+        successMessage: 'Full page screenshot copied to clipboard! 📋',
+      }));
+      setTimeout(() => {
+        setState((prev) => ({
+          ...prev,
+          successMessage: null,
+        }));
+      }, 3000);
+    } catch (error) {
+      const userFacingError = createUserFacingError(error);
+      setState((prev) => ({
+        ...prev,
+        isCapturing: false,
+        error: userFacingError,
+      }));
+    }
+  }, [state.isCapturing, copyImageToClipboard]);
+
+  const deleteCapturedImage = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      lastCapturedImage: null,
+    }));
+  }, []);
+
   return {
     ...state,
     handleCapture,
@@ -304,5 +371,7 @@ export function useCapture(): UseCaptureReturn {
     hideOverlay,
     clearSuccessMessage,
     onAreaCaptureComplete: handleAreaCaptureComplete,
+    handleFullPageCapture,
+    deleteCapturedImage,
   };
 }

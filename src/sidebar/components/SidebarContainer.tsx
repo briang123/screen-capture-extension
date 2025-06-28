@@ -29,6 +29,9 @@ interface SidebarContainerProps {
   onResetError: () => void;
   successMessage: string | null;
   onClearSuccessMessage: () => void;
+  onFullPageCapture: () => void;
+  lastCapturedImage: string | null;
+  deleteCapturedImage: () => void;
 }
 
 const SidebarContainer: React.FC<SidebarContainerProps> = ({
@@ -55,6 +58,9 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
   onResetError,
   successMessage,
   onClearSuccessMessage,
+  onFullPageCapture,
+  lastCapturedImage,
+  deleteCapturedImage,
 }) => {
   const className = `sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`;
 
@@ -83,6 +89,9 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
         onResetError={onResetError}
         successMessage={successMessage}
         onClearSuccessMessage={onClearSuccessMessage}
+        onFullPageCapture={onFullPageCapture}
+        lastCapturedImage={lastCapturedImage}
+        deleteCapturedImage={deleteCapturedImage}
       />
     );
   };

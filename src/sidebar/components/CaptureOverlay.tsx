@@ -14,6 +14,27 @@ interface SelectionRect {
   height: number;
 }
 
+function getPageDimensions() {
+  return {
+    width: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+    height: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+  };
+}
+
+function isSelectionInViewport(sel: SelectionRect) {
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // Check if any part of the selection is in the viewport
+  return (
+    sel.x + sel.width > scrollX &&
+    sel.x < scrollX + vw &&
+    sel.y + sel.height > scrollY &&
+    sel.y < scrollY + vh
+  );
+}
+
 export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
   isVisible,
   onCapture,
@@ -22,60 +43,55 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
   const [isSelecting, setIsSelecting] = useState(false);
   const [selection, setSelection] = useState<SelectionRect | null>(null);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [showWarning, setShowWarning] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [pageDims, setPageDims] = useState(getPageDimensions());
+
+  // Update page dimensions on resize/scroll
+  useEffect(() => {
+    function updateDims() {
+      setPageDims(getPageDimensions());
+    }
+    window.addEventListener('resize', updateDims);
+    window.addEventListener('scroll', updateDims);
+    return () => {
+      window.removeEventListener('resize', updateDims);
+      window.removeEventListener('scroll', updateDims);
+    };
+  }, []);
 
   // Handle mouse down to start selection
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!overlayRef.current) return;
-
-    // Use page coordinates for full-page selection
     const x = e.pageX;
     const y = e.pageY;
-
     setStartPos({ x, y });
     setIsSelecting(true);
     setSelection({ x, y, width: 0, height: 0 });
+    setShowWarning(false);
   }, []);
 
   // Handle mouse move to update selection
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       if (!isSelecting || !startPos) return;
-
       const currentX = e.pageX;
       const currentY = e.pageY;
-
       const x = Math.min(startPos.x, currentX);
       const y = Math.min(startPos.y, currentY);
       const width = Math.abs(currentX - startPos.x);
       const height = Math.abs(currentY - startPos.y);
-
-      setSelection({ x, y, width, height });
+      const sel = { x, y, width, height };
+      setSelection(sel);
+      setShowWarning(!isSelectionInViewport(sel));
     },
     [isSelecting, startPos]
   );
 
-  // Handle mouse up to complete selection
-  const handleMouseUp = useCallback(() => {
-    if (!isSelecting || !selection) return;
-
-    setIsSelecting(false);
-    setStartPos(null);
-
-    // Only capture if selection has minimum size
-    if (selection.width > 10 && selection.height > 10) {
-      captureSelectedArea();
-    } else {
-      setSelection(null);
-    }
-  }, [isSelecting, selection]);
-
   // Capture the selected area
   const captureSelectedArea = useCallback(async () => {
     if (!selection) return;
-
     try {
-      // Send message to background script to capture the selected area
       const response = await chrome.runtime.sendMessage({
         action: 'captureArea',
         data: {
@@ -85,7 +101,6 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
           height: selection.height,
         },
       });
-
       if (response.success && response.imageData) {
         onCapture(response.imageData);
       } else {
@@ -93,19 +108,25 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
       }
     } catch (error) {
       console.error('Area capture failed:', error);
-      // Fallback to full screen capture
-      try {
-        const response = await chrome.runtime.sendMessage({
-          action: 'captureScreen',
-        });
-        if (response.success && response.imageData) {
-          onCapture(response.imageData);
-        }
-      } catch (fallbackError) {
-        console.error('Fallback capture also failed:', fallbackError);
-      }
+      setShowWarning(true);
     }
   }, [selection, onCapture]);
+
+  // Handle mouse up to complete selection
+  const handleMouseUp = useCallback(() => {
+    if (!isSelecting || !selection) return;
+    setIsSelecting(false);
+    setStartPos(null);
+    if (selection.width > 10 && selection.height > 10) {
+      if (!isSelectionInViewport(selection)) {
+        setShowWarning(true);
+        return;
+      }
+      captureSelectedArea();
+    } else {
+      setSelection(null);
+    }
+  }, [isSelecting, selection, captureSelectedArea]);
 
   // Handle escape key to cancel
   useEffect(() => {
@@ -114,7 +135,6 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
         onCancel();
       }
     };
-
     if (isVisible) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
@@ -124,21 +144,9 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
   // Prevent scrolling and add overlay to body when visible
   useEffect(() => {
     if (isVisible) {
-      // Prevent scrolling
       document.body.style.overflow = 'hidden';
-
-      // Add overlay to body for full-page coverage
-      const body = document.body;
-      if (overlayRef.current && !body.contains(overlayRef.current)) {
-        body.appendChild(overlayRef.current);
-      }
-
       return () => {
         document.body.style.overflow = '';
-        // Remove overlay from body when component unmounts
-        if (overlayRef.current && body.contains(overlayRef.current)) {
-          body.removeChild(overlayRef.current);
-        }
       };
     }
   }, [isVisible]);
@@ -149,13 +157,13 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
     <AnimatePresence>
       <motion.div
         ref={overlayRef}
-        className="fixed inset-0 z-[9999] bg-black/10 backdrop-blur-[0.5px]"
+        className="sc-capture-overlay fixed left-0 top-0 z-[9999] bg-black/10 backdrop-blur-[0.5px]"
         style={{
-          position: 'fixed',
-          top: 0,
+          position: 'absolute',
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          top: 0,
+          width: pageDims.width,
+          height: pageDims.height,
           pointerEvents: 'auto',
         }}
         initial={{ opacity: 0 }}
@@ -166,13 +174,31 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
         onMouseUp={handleMouseUp}
       >
         {/* Instructions */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-gray-200">
-          <p className="text-sm text-gray-700 font-medium">
-            {isSelecting ? 'Drag to select area' : 'Click and drag to select capture area'}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">Press ESC to cancel</p>
+        <div
+          style={{
+            position: 'fixed',
+            top: 16,
+            left: 0,
+            width: '100vw',
+            zIndex: 10000,
+            textAlign: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <span className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base">
+            Click and drag to select capture area
+            <br />
+            <span className="text-xs text-gray-500">Press ESC to cancel</span>
+          </span>
         </div>
-
+        {/* Cancel button */}
+        <button
+          onClick={onCancel}
+          style={{ position: 'fixed', top: 16, left: 16, zIndex: 10001 }}
+          className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow border border-gray-200"
+        >
+          Cancel
+        </button>
         {/* Selection rectangle */}
         {selection && (
           <motion.div
@@ -193,25 +219,33 @@ export const CaptureOverlay: React.FC<CaptureOverlayProps> = ({
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full shadow-sm" />
             <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 rounded-full shadow-sm" />
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full shadow-sm" />
-
             {/* Size indicator */}
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
               {Math.round(selection.width)} × {Math.round(selection.height)}
             </div>
-
             {/* Crosshair guides */}
             <div className="absolute top-1/2 left-0 w-full h-px bg-blue-500/30 transform -translate-y-1/2" />
             <div className="absolute left-1/2 top-0 w-px h-full bg-blue-500/30 transform -translate-x-1/2" />
           </motion.div>
         )}
-
-        {/* Cancel button */}
-        <button
-          onClick={onCancel}
-          className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow-lg border border-gray-200"
-        >
-          Cancel
-        </button>
+        {/* Warning if selection is outside viewport */}
+        {showWarning && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 32,
+              left: 0,
+              width: '100vw',
+              zIndex: 10002,
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <span className="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded shadow">
+              Only the visible part of your selection will be captured (Chrome limitation)
+            </span>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

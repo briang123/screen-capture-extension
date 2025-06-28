@@ -25,7 +25,8 @@ interface ContentScriptMessage {
     | 'openSidebar'
     | 'closeSidebar'
     | 'startAreaSelection'
-    | 'getScrollInfo';
+    | 'getScrollInfo'
+    | 'captureFullPage';
   [key: string]: unknown;
 }
 
@@ -109,6 +110,11 @@ chrome.runtime.onMessage.addListener(
         };
         sendResponse({ success: true, ...scrollInfo });
         break;
+      }
+
+      case 'captureFullPage': {
+        captureFullPage().then(sendResponse);
+        return true;
       }
 
       default:
@@ -455,6 +461,56 @@ async function cropImage(
     };
     img.src = dataUrl;
   });
+}
+
+// Full page capture logic
+async function captureFullPage(): Promise<{
+  success: boolean;
+  imageData?: string;
+  error?: string;
+}> {
+  try {
+    const originalScrollY = window.scrollY;
+    const originalScrollX = window.scrollX;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pageWidth = document.documentElement.scrollWidth;
+    const pageHeight = document.documentElement.scrollHeight;
+    const rows = Math.ceil(pageHeight / vh);
+    const cols = Math.ceil(pageWidth / vw);
+    const images: { img: InstanceType<typeof window.Image>; x: number; y: number }[] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        window.scrollTo(col * vw, row * vh);
+        await new Promise((r) => setTimeout(r, 200)); // Wait for scroll/render
+        const resp = await chrome.runtime.sendMessage({ action: 'captureScreen' });
+        if (!resp.success || !resp.imageData) {
+          throw new Error('Failed to capture viewport');
+        }
+        const img = new window.Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Image load error'));
+          img.src = resp.imageData;
+        });
+        images.push({ img, x: col * vw, y: row * vh });
+      }
+    }
+    // Create a canvas and stitch images
+    const canvas = document.createElement('canvas');
+    canvas.width = pageWidth;
+    canvas.height = pageHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+    for (const { img, x, y } of images) {
+      ctx.drawImage(img, 0, 0, vw, vh, x, y, vw, vh);
+    }
+    window.scrollTo(originalScrollX, originalScrollY);
+    const dataUrl = canvas.toDataURL('image/png');
+    return { success: true, imageData: dataUrl };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
 }
 
 // Export functions for testing

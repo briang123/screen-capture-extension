@@ -40,6 +40,9 @@ const Sidebar: React.FC = () => {
     resetError,
     successMessage,
     clearSuccessMessage,
+    handleFullPageCapture,
+    lastCapturedImage,
+    deleteCapturedImage,
   } = useCapture();
 
   const sidebarWidth = 400;
@@ -141,6 +144,9 @@ const Sidebar: React.FC = () => {
         onResetError={resetError}
         successMessage={successMessage}
         onClearSuccessMessage={clearSuccessMessage}
+        onFullPageCapture={handleFullPageCapture}
+        lastCapturedImage={lastCapturedImage}
+        deleteCapturedImage={deleteCapturedImage}
       />
     );
   }

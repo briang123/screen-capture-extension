@@ -16,6 +16,9 @@ interface SidebarPanelBodyProps {
   onResetError: () => void;
   successMessage: string | null;
   onClearSuccessMessage: () => void;
+  onFullPageCapture: () => void;
+  lastCapturedImage: string | null;
+  deleteCapturedImage: () => void;
 }
 
 const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({
@@ -30,6 +33,9 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({
   onResetError,
   successMessage,
   onClearSuccessMessage,
+  onFullPageCapture,
+  lastCapturedImage,
+  deleteCapturedImage,
 }) => (
   <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
     {!isSwitchingSide ? (
@@ -51,7 +57,35 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({
             <span className="mr-2">🎯</span>
             Select Area to Capture
           </button>
+
+          <button
+            onClick={onFullPageCapture}
+            disabled={isCapturing}
+            className="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-xl shadow-soft hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            aria-busy={isCapturing}
+          >
+            <span className="mr-2">🖼️</span>
+            Capture Full Page
+          </button>
         </div>
+
+        {/* Display captured image if available */}
+        {lastCapturedImage && (
+          <div className="mt-6 flex flex-col items-center">
+            <img
+              src={lastCapturedImage}
+              alt="Captured screenshot"
+              className="max-w-full max-h-64 rounded shadow border border-gray-200"
+              style={{ background: '#fff' }}
+            />
+            <button
+              onClick={deleteCapturedImage}
+              className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        )}
 
         {/* Success Message */}
         {successMessage && (
