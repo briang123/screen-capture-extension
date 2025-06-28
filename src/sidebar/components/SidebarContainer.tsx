@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import CollapsedSidebarContent from '@/sidebar/components/CollapsedSidebarContent';
 import ExpandedSidebarContent from '@/sidebar/components/ExpandedSidebarContent';
-import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
+import ErrorBoundary from '@/sidebar/components/ErrorBoundary';
 
 interface SidebarContainerProps {
   side: 'left' | 'right';
@@ -36,57 +36,38 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
   onClose,
   isSwitchingSide,
 }) => {
-  const {
-    isCapturing,
-    onCapture,
-    onAreaCapture,
-    onAreaCaptureComplete,
-    hideOverlay,
-    showOverlay,
-    error,
-    onResetError,
-    successMessage,
-    onClearSuccessMessage,
-    onFullPageCapture,
-    capturedImages,
-    copyCapturedImage,
-    openCapturedImageInEditor,
-    deleteCapturedImage,
-  } = useCaptureContext();
-
   const className = `sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`;
 
-  // Render collapsed or expanded content
+  // Render collapsed or expanded content with error boundaries
   const renderContent = () => {
     if (collapsed === 'collapsed') {
-      return <CollapsedSidebarContent side={side} onToggleCollapse={onToggleCollapse} />;
+      return (
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            console.error('CollapsedSidebarContent error:', error, errorInfo);
+          }}
+        >
+          <CollapsedSidebarContent side={side} onToggleCollapse={onToggleCollapse} />
+        </ErrorBoundary>
+      );
     }
 
     return (
-      <ExpandedSidebarContent
-        theme={theme}
-        onThemeToggle={onThemeToggle}
-        onMoveSide={onMoveSide}
-        onToggleCollapse={onToggleCollapse}
-        onClose={onClose}
-        side={side}
-        isSwitchingSide={isSwitchingSide}
-        isCapturing={isCapturing}
-        onCapture={onCapture}
-        onAreaCapture={onAreaCapture}
-        onAreaCaptureComplete={onAreaCaptureComplete}
-        hideOverlay={hideOverlay}
-        showOverlay={showOverlay}
-        error={error}
-        onResetError={onResetError}
-        successMessage={successMessage}
-        onClearSuccessMessage={onClearSuccessMessage}
-        onFullPageCapture={onFullPageCapture}
-        capturedImages={capturedImages}
-        copyCapturedImage={copyCapturedImage}
-        openCapturedImageInEditor={openCapturedImageInEditor}
-        deleteCapturedImage={deleteCapturedImage}
-      />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('ExpandedSidebarContent error:', error, errorInfo);
+        }}
+      >
+        <ExpandedSidebarContent
+          theme={theme}
+          onThemeToggle={onThemeToggle}
+          onMoveSide={onMoveSide}
+          onToggleCollapse={onToggleCollapse}
+          onClose={onClose}
+          side={side}
+          isSwitchingSide={isSwitchingSide}
+        />
+      </ErrorBoundary>
     );
   };
 

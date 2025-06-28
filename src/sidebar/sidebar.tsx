@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import './sidebar.css';
 import SidebarContainer from './components/SidebarContainer';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useSettings } from './hooks/useSettings';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
@@ -11,6 +12,7 @@ import { useSidebarAnimation } from './hooks/useSidebarAnimation';
 import { useSidebarPosition } from './hooks/useSidebarPosition';
 import { useDebug } from './hooks/useDebug';
 import { CaptureProvider } from './contexts/CaptureContext';
+import { ANIMATION_DURATIONS } from '@/shared/constants';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 let reactSidebarRoot: Root | null = null;
@@ -33,7 +35,10 @@ const Sidebar: React.FC = () => {
   const sidebarWidth = 400;
   const getInitialY = useCallback(() => 0, []);
 
-  const [side, handleMoveSideRaw, isSwitchingSide] = useSidebarSide('right', 500);
+  const [side, handleMoveSideRaw, isSwitchingSide] = useSidebarSide(
+    'right',
+    ANIMATION_DURATIONS.SIDEBAR_SIDE_SWITCH
+  );
 
   // Optimize getRightEdge with useCallback
   const getRightEdge = useCallback(
@@ -53,9 +58,9 @@ const Sidebar: React.FC = () => {
       collapsed: collapsed === 'collapsed',
       visible,
       isSwitchingSide,
-      slideDuration: 0.3,
+      slideDuration: ANIMATION_DURATIONS.VISIBILITY_TRANSITION / 1000, // Convert to seconds
       collapseDuration: 0.4,
-      switchDuration: 0.5,
+      switchDuration: ANIMATION_DURATIONS.SIDEBAR_SIDE_SWITCH / 1000, // Convert to seconds
       smooth: true,
     },
     onAnimationStart: useCallback((variant: string) => {
@@ -105,23 +110,36 @@ const Sidebar: React.FC = () => {
 
   if (visible) {
     return (
-      <CaptureProvider>
-        <SidebarContainer
-          side={side}
-          collapsed={collapsed}
-          isResizing={isResizing}
-          containerRef={containerRef as React.RefObject<HTMLDivElement>}
-          sidebarStyle={sidebarStyle}
-          animationVariants={sidebarAnimation.variants}
-          animationTransition={sidebarAnimation.transition}
-          theme={settings.theme}
-          onThemeToggle={handleThemeToggle}
-          onMoveSide={handleMoveSide}
-          onToggleCollapse={handleToggleCollapse}
-          onClose={handleClose}
-          isSwitchingSide={isSwitchingSide}
-        />
-      </CaptureProvider>
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('Sidebar root error:', error, errorInfo);
+        }}
+        resetOnPropsChange={true}
+      >
+        <CaptureProvider>
+          <ErrorBoundary
+            onError={(error, errorInfo) => {
+              console.error('CaptureProvider error:', error, errorInfo);
+            }}
+          >
+            <SidebarContainer
+              side={side}
+              collapsed={collapsed}
+              isResizing={isResizing}
+              containerRef={containerRef as React.RefObject<HTMLDivElement>}
+              sidebarStyle={sidebarStyle}
+              animationVariants={sidebarAnimation.variants}
+              animationTransition={sidebarAnimation.transition}
+              theme={settings.theme}
+              onThemeToggle={handleThemeToggle}
+              onMoveSide={handleMoveSide}
+              onToggleCollapse={handleToggleCollapse}
+              onClose={handleClose}
+              isSwitchingSide={isSwitchingSide}
+            />
+          </ErrorBoundary>
+        </CaptureProvider>
+      </ErrorBoundary>
     );
   }
   return null;
@@ -137,7 +155,18 @@ export function mountSidebar() {
   reactSidebarRoot = createRoot(container);
   reactSidebarRoot.render(
     <React.StrictMode>
-      <Sidebar />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('Sidebar mount error:', error, errorInfo);
+          // Attempt to recover by remounting
+          setTimeout(() => {
+            unmountSidebar();
+            setTimeout(() => mountSidebar(), 1000);
+          }, 2000);
+        }}
+      >
+        <Sidebar />
+      </ErrorBoundary>
     </React.StrictMode>
   );
 }

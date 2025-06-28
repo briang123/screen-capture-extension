@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { UserFacingError } from '@/shared/error-handling';
+import ErrorBoundary from '@/sidebar/components/ErrorBoundary';
 import { useCapture } from '@/sidebar/hooks/useCapture';
 
 interface CaptureContextType {
@@ -13,13 +14,13 @@ interface CaptureContextType {
   // Actions
   onCapture: () => Promise<void>;
   onAreaCapture: () => void;
-  onAreaCaptureComplete: (imageData: string) => Promise<void>;
-  onFullPageCapture: () => void;
+  onAreaCaptureComplete: (imageData: string) => void;
+  onFullPageCapture: () => Promise<void>;
   hideOverlay: () => void;
   onResetError: () => void;
   onClearSuccessMessage: () => void;
-  copyCapturedImage: (index: number) => void;
-  openCapturedImageInEditor: (index: number) => void;
+  copyCapturedImage: (index: number) => Promise<void>;
+  openCapturedImageInEditor: (index: number) => Promise<void>;
   deleteCapturedImage: (index: number) => void;
 }
 
@@ -45,12 +46,12 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     handleAreaCapture,
     onAreaCaptureComplete,
     handleFullPageCapture,
-    resetError,
+    setError,
     hideOverlay,
     showOverlay,
     successMessage,
     capturedImages,
-    clearSuccessMessage,
+    setSuccessMessage,
     copyCapturedImage,
     openCapturedImageInEditor,
     deleteCapturedImage,
@@ -73,12 +74,12 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
   }, [handleFullPageCapture]);
 
   const onResetError = useCallback(() => {
-    resetError();
-  }, [resetError]);
+    setError(null);
+  }, [setError]);
 
   const onClearSuccessMessage = useCallback(() => {
-    clearSuccessMessage();
-  }, [clearSuccessMessage]);
+    setSuccessMessage(null);
+  }, [setSuccessMessage]);
 
   const value: CaptureContextType = {
     // State
@@ -101,5 +102,13 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     deleteCapturedImage,
   };
 
-  return <CaptureContext.Provider value={value}>{children}</CaptureContext.Provider>;
+  return (
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('CaptureContext error:', error, errorInfo);
+      }}
+    >
+      <CaptureContext.Provider value={value}>{children}</CaptureContext.Provider>
+    </ErrorBoundary>
+  );
 };
