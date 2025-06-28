@@ -12,6 +12,7 @@ import { useCapture } from './hooks/useCapture';
 import ExpandCollapseButton from './components/ExpandCollapseButton';
 import { useDebug } from './hooks/useDebug';
 import { useSidebarVisibility } from './hooks/useSidebarVisibility';
+import { useSidebarAnimation } from './hooks/useSidebarAnimation';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 
@@ -37,7 +38,6 @@ const Sidebar: React.FC = () => {
   };
 
   const sidebarWidth = 400;
-  const collapsedWidth = 48;
   const getRightEdge = () => Math.max(0, document.documentElement.clientWidth - sidebarWidth);
 
   const [position, setPosition] = useState<{ x: number; y: number }>(() => ({
@@ -46,6 +46,26 @@ const Sidebar: React.FC = () => {
   }));
   const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
   const isResizing = useSidebarResize(side, getRightEdge, setPosition);
+
+  // Use the sidebar animation hook
+  const sidebarAnimation = useSidebarAnimation({
+    sidebarConfig: {
+      side,
+      collapsed,
+      visible,
+      isSwitchingSide,
+      slideDuration: 0.3,
+      collapseDuration: 0.4,
+      switchDuration: 0.5,
+      smooth: true,
+    },
+    onAnimationStart: (variant) => {
+      console.log('Sidebar animation started:', variant);
+    },
+    onAnimationComplete: (variant) => {
+      console.log('Sidebar animation completed:', variant);
+    },
+  });
 
   // Move useDebug outside conditional block to follow Rules of Hooks
   useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed, visible });
@@ -57,7 +77,6 @@ const Sidebar: React.FC = () => {
   if (visible) {
     const sidebarStyle = {
       touchAction: 'none',
-      width: collapsed ? collapsedWidth : 400,
       boxShadow: 'var(--shadow-lg)',
       background: collapsed ? 'rgba(0, 255, 0, 0.1)' : '#fff',
       borderRadius: 'var(--radius-lg)',
@@ -68,6 +87,7 @@ const Sidebar: React.FC = () => {
       height: '100vh',
       ...(side === 'left' ? { left: '0' } : { right: '0' }),
     };
+
     if (isResizing) {
       return (
         <div
@@ -106,17 +126,16 @@ const Sidebar: React.FC = () => {
         </div>
       );
     }
-    // Not resizing: use motion.div for animation
+
+    // Use motion.div with sidebar animation variants
     return (
       <motion.div
         ref={containerRef as React.RefObject<HTMLDivElement>}
         className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
-        initial={false}
-        animate={{
-          opacity: 1,
-          width: collapsed ? collapsedWidth : 400,
-        }}
-        transition={{ type: 'tween', duration: 0.5, ease: 'easeInOut' }}
+        variants={sidebarAnimation.variants}
+        initial="visible"
+        animate={collapsed ? 'collapsed' : 'expanded'}
+        transition={sidebarAnimation.transition}
         style={sidebarStyle}
       >
         {collapsed ? (
