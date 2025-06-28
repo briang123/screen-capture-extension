@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import './sidebar.css';
 import SidebarContainer from './components/SidebarContainer';
@@ -21,33 +21,31 @@ const Sidebar: React.FC = () => {
     closeOnEscape: true,
     closeOnOutsideClick: false, // Don't close on outside click for sidebar
     enableFocusTrap: true,
-    onClose: () => {
+    onClose: useCallback(() => {
       // Optionally, send a message to background/content to update state
       console.log('Sidebar closed');
-    },
+    }, []),
   });
 
-  const [collapsed, handleToggleCollapse] = useSidebarCollapse();
-  const [theme, handleThemeToggle] = useTheme();
+  const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
+  const [theme, handleThemeToggleRaw] = useTheme();
   const { isCapturing, handleCapture, error, resetError } = useCapture();
 
   const sidebarWidth = 400;
-  const getInitialY = () => {
-    // const sidebarHeight = 100; // min height
-    // const maxY = Math.max(0, window.innerHeight - sidebarHeight);
-    return 0; // Always start at top
-  };
+  const getInitialY = useCallback(() => 0, []);
 
-  const [side, handleMoveSide, isSwitchingSide] = useSidebarSide('right', 500);
+  const [side, handleMoveSideRaw, isSwitchingSide] = useSidebarSide('right', 500);
+
+  // Optimize getRightEdge with useCallback
+  const getRightEdge = useCallback(
+    () => Math.max(0, document.documentElement.clientWidth - sidebarWidth),
+    [sidebarWidth]
+  );
 
   // Use the sidebar position hook for better position management
   const [position, setPosition] = useSidebarPosition(side, sidebarWidth, getInitialY);
 
-  const isResizing = useSidebarResize(
-    side,
-    () => Math.max(0, document.documentElement.clientWidth - sidebarWidth),
-    setPosition
-  );
+  const isResizing = useSidebarResize(side, getRightEdge, setPosition);
 
   // Use the sidebar animation hook
   const sidebarAnimation = useSidebarAnimation({
@@ -61,13 +59,22 @@ const Sidebar: React.FC = () => {
       switchDuration: 0.5,
       smooth: true,
     },
-    onAnimationStart: (variant) => {
+    onAnimationStart: useCallback((variant: string) => {
       console.log('Sidebar animation started:', variant);
-    },
-    onAnimationComplete: (variant) => {
+    }, []),
+    onAnimationComplete: useCallback((variant: string) => {
       console.log('Sidebar animation completed:', variant);
-    },
+    }, []),
   });
+
+  // Memoize event handlers
+  const handleThemeToggle = useCallback(() => handleThemeToggleRaw(), [handleThemeToggleRaw]);
+  const handleMoveSide = useCallback(() => handleMoveSideRaw(), [handleMoveSideRaw]);
+  const handleToggleCollapse = useCallback(
+    () => handleToggleCollapseRaw(),
+    [handleToggleCollapseRaw]
+  );
+  const handleClose = useCallback(() => close(), [close]);
 
   // Move useDebug outside conditional block to follow Rules of Hooks
   useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed, visible });
@@ -76,8 +83,9 @@ const Sidebar: React.FC = () => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  if (visible) {
-    const sidebarStyle = {
+  // Memoize sidebarStyle
+  const sidebarStyle = useMemo(
+    () => ({
       touchAction: 'none',
       boxShadow: 'var(--shadow-lg)',
       background: collapsed === 'collapsed' ? 'rgba(0, 255, 0, 0.1)' : '#fff',
@@ -88,8 +96,11 @@ const Sidebar: React.FC = () => {
       top: 0,
       height: '100vh',
       ...(side === 'left' ? { left: '0' } : { right: '0' }),
-    };
+    }),
+    [collapsed, side]
+  );
 
+  if (visible) {
     return (
       <SidebarContainer
         side={side}
@@ -103,7 +114,7 @@ const Sidebar: React.FC = () => {
         onThemeToggle={handleThemeToggle}
         onMoveSide={handleMoveSide}
         onToggleCollapse={handleToggleCollapse}
-        onClose={close}
+        onClose={handleClose}
         isSwitchingSide={isSwitchingSide}
         isCapturing={isCapturing}
         onCapture={handleCapture}
