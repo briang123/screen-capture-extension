@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import CollapsedSidebarContent from './CollapsedSidebarContent';
 import ExpandedSidebarContent from './ExpandedSidebarContent';
-import { UserFacingError } from '../../shared/error-handling';
+import { useCaptureContext } from '../contexts/CaptureContext';
 
 interface SidebarContainerProps {
   side: 'left' | 'right';
@@ -19,19 +19,6 @@ interface SidebarContainerProps {
   onToggleCollapse: () => void;
   onClose: () => void;
   isSwitchingSide: boolean;
-  isCapturing: boolean;
-  onCapture: () => Promise<void>;
-  onAreaCapture: () => void;
-  onAreaCaptureComplete: (imageData: string) => Promise<void>;
-  hideOverlay: () => void;
-  showOverlay: boolean;
-  error: UserFacingError | null;
-  onResetError: () => void;
-  successMessage: string | null;
-  onClearSuccessMessage: () => void;
-  onFullPageCapture: () => void;
-  lastCapturedImage: string | null;
-  deleteCapturedImage: () => void;
 }
 
 const SidebarContainer: React.FC<SidebarContainerProps> = ({
@@ -48,20 +35,25 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
   onToggleCollapse,
   onClose,
   isSwitchingSide,
-  isCapturing,
-  onCapture,
-  onAreaCapture,
-  onAreaCaptureComplete,
-  hideOverlay,
-  showOverlay,
-  error,
-  onResetError,
-  successMessage,
-  onClearSuccessMessage,
-  onFullPageCapture,
-  lastCapturedImage,
-  deleteCapturedImage,
 }) => {
+  const {
+    isCapturing,
+    onCapture,
+    onAreaCapture,
+    onAreaCaptureComplete,
+    hideOverlay,
+    showOverlay,
+    error,
+    onResetError,
+    successMessage,
+    onClearSuccessMessage,
+    onFullPageCapture,
+    capturedImages,
+    copyCapturedImage,
+    openCapturedImageInEditor,
+    deleteCapturedImage,
+  } = useCaptureContext();
+
   const className = `sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`;
 
   // Render collapsed or expanded content
@@ -90,7 +82,9 @@ const SidebarContainer: React.FC<SidebarContainerProps> = ({
         successMessage={successMessage}
         onClearSuccessMessage={onClearSuccessMessage}
         onFullPageCapture={onFullPageCapture}
-        lastCapturedImage={lastCapturedImage}
+        capturedImages={capturedImages}
+        copyCapturedImage={copyCapturedImage}
+        openCapturedImageInEditor={openCapturedImageInEditor}
         deleteCapturedImage={deleteCapturedImage}
       />
     );

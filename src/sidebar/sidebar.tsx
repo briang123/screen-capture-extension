@@ -9,8 +9,8 @@ import { useSidebarCollapse } from './hooks/useSidebarCollapse';
 import { useSidebarVisibility } from './hooks/useSidebarVisibility';
 import { useSidebarAnimation } from './hooks/useSidebarAnimation';
 import { useSidebarPosition } from './hooks/useSidebarPosition';
-import { useCapture } from './hooks/useCapture';
 import { useDebug } from './hooks/useDebug';
+import { CaptureProvider } from './contexts/CaptureContext';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 let reactSidebarRoot: Root | null = null;
@@ -29,21 +29,6 @@ const Sidebar: React.FC = () => {
 
   const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
   const { settings, updateSettings } = useSettings();
-  const {
-    isCapturing,
-    handleCapture,
-    handleAreaCapture,
-    onAreaCaptureComplete,
-    hideOverlay,
-    showOverlay,
-    error,
-    resetError,
-    successMessage,
-    clearSuccessMessage,
-    handleFullPageCapture,
-    lastCapturedImage,
-    deleteCapturedImage,
-  } = useCapture();
 
   const sidebarWidth = 400;
   const getInitialY = useCallback(() => 0, []);
@@ -120,34 +105,23 @@ const Sidebar: React.FC = () => {
 
   if (visible) {
     return (
-      <SidebarContainer
-        side={side}
-        collapsed={collapsed}
-        isResizing={isResizing}
-        containerRef={containerRef as React.RefObject<HTMLDivElement>}
-        sidebarStyle={sidebarStyle}
-        animationVariants={sidebarAnimation.variants}
-        animationTransition={sidebarAnimation.transition}
-        theme={settings.theme}
-        onThemeToggle={handleThemeToggle}
-        onMoveSide={handleMoveSide}
-        onToggleCollapse={handleToggleCollapse}
-        onClose={handleClose}
-        isSwitchingSide={isSwitchingSide}
-        isCapturing={isCapturing}
-        onCapture={handleCapture}
-        onAreaCapture={handleAreaCapture}
-        onAreaCaptureComplete={onAreaCaptureComplete}
-        hideOverlay={hideOverlay}
-        showOverlay={showOverlay}
-        error={error}
-        onResetError={resetError}
-        successMessage={successMessage}
-        onClearSuccessMessage={clearSuccessMessage}
-        onFullPageCapture={handleFullPageCapture}
-        lastCapturedImage={lastCapturedImage}
-        deleteCapturedImage={deleteCapturedImage}
-      />
+      <CaptureProvider>
+        <SidebarContainer
+          side={side}
+          collapsed={collapsed}
+          isResizing={isResizing}
+          containerRef={containerRef as React.RefObject<HTMLDivElement>}
+          sidebarStyle={sidebarStyle}
+          animationVariants={sidebarAnimation.variants}
+          animationTransition={sidebarAnimation.transition}
+          theme={settings.theme}
+          onThemeToggle={handleThemeToggle}
+          onMoveSide={handleMoveSide}
+          onToggleCollapse={handleToggleCollapse}
+          onClose={handleClose}
+          isSwitchingSide={isSwitchingSide}
+        />
+      </CaptureProvider>
     );
   }
   return null;

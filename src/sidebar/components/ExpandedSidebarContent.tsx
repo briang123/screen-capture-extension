@@ -1,7 +1,6 @@
 import React from 'react';
 import SidebarPanelHeader from './SidebarPanelHeader';
 import SidebarPanelBody from './SidebarPanelBody';
-import { UserFacingError } from '../../shared/error-handling';
 
 interface ExpandedSidebarContentProps {
   theme: 'light' | 'dark';
@@ -11,19 +10,6 @@ interface ExpandedSidebarContentProps {
   onClose: () => void;
   side: 'left' | 'right';
   isSwitchingSide: boolean;
-  isCapturing: boolean;
-  onCapture: () => Promise<void>;
-  onAreaCapture: () => void;
-  onAreaCaptureComplete: (imageData: string) => Promise<void>;
-  hideOverlay: () => void;
-  showOverlay: boolean;
-  error: UserFacingError | null;
-  onResetError: () => void;
-  successMessage: string | null;
-  onClearSuccessMessage: () => void;
-  onFullPageCapture: () => void;
-  lastCapturedImage: string | null;
-  deleteCapturedImage: () => void;
 }
 
 const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
@@ -34,19 +20,6 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
   onClose,
   side,
   isSwitchingSide,
-  isCapturing,
-  onCapture,
-  onAreaCapture,
-  onAreaCaptureComplete,
-  hideOverlay,
-  showOverlay,
-  error,
-  onResetError,
-  successMessage,
-  onClearSuccessMessage,
-  onFullPageCapture,
-  lastCapturedImage,
-  deleteCapturedImage,
 }) => {
   return (
     <>
@@ -59,22 +32,7 @@ const ExpandedSidebarContent: React.FC<ExpandedSidebarContentProps> = ({
         side={side}
         collapsed={false}
       />
-      <SidebarPanelBody
-        isSwitchingSide={isSwitchingSide}
-        isCapturing={isCapturing}
-        onCapture={onCapture}
-        onAreaCapture={onAreaCapture}
-        onAreaCaptureComplete={onAreaCaptureComplete}
-        hideOverlay={hideOverlay}
-        showOverlay={showOverlay}
-        error={error}
-        onResetError={onResetError}
-        successMessage={successMessage}
-        onClearSuccessMessage={onClearSuccessMessage}
-        onFullPageCapture={onFullPageCapture}
-        lastCapturedImage={lastCapturedImage}
-        deleteCapturedImage={deleteCapturedImage}
-      />
+      <SidebarPanelBody isSwitchingSide={isSwitchingSide} />
     </>
   );
 };

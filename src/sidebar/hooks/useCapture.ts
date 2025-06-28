@@ -11,7 +11,7 @@ interface CaptureState {
   lastCaptureTime: number | null;
   showOverlay: boolean;
   successMessage: string | null;
-  lastCapturedImage: string | null;
+  capturedImages: string[];
 }
 
 interface UseCaptureReturn extends CaptureState {
@@ -23,7 +23,9 @@ interface UseCaptureReturn extends CaptureState {
   clearSuccessMessage: () => void;
   onAreaCaptureComplete: (imageData: string) => Promise<void>;
   handleFullPageCapture: () => Promise<void>;
-  deleteCapturedImage: () => void;
+  deleteCapturedImage: (index: number) => void;
+  copyCapturedImage: (index: number) => Promise<void>;
+  openCapturedImageInEditor: (index: number) => Promise<void>;
 }
 
 /**
@@ -88,7 +90,7 @@ export function useCapture(): UseCaptureReturn {
     lastCaptureTime: null,
     showOverlay: false,
     successMessage: null,
-    lastCapturedImage: null,
+    capturedImages: [],
   });
 
   const performCapture = useCallback(async (): Promise<void> => {
@@ -139,6 +141,7 @@ export function useCapture(): UseCaptureReturn {
   }, []);
 
   const handleCapture = useCallback(async () => {
+    console.log('handleCapture called');
     if (state.isCapturing) {
       return; // Prevent multiple simultaneous captures
     }
@@ -164,20 +167,26 @@ export function useCapture(): UseCaptureReturn {
 
       // Get the captured image from the background script
       const response = await chrome.runtime.sendMessage({ action: 'captureScreen' });
+      console.log('captureScreen response:', response);
       if (response.success && response.imageData) {
-        setState((prev) => ({
-          ...prev,
-          isCapturing: false,
-          lastCaptureTime: Date.now(),
-          successMessage: 'Screenshot copied to clipboard! 📋',
-          lastCapturedImage: response.imageData,
-        }));
+        setState((prev) => {
+          const newState = {
+            ...prev,
+            isCapturing: false,
+            lastCaptureTime: Date.now(),
+            successMessage: 'Screenshot copied to clipboard! 📋',
+            capturedImages: [response.imageData, ...prev.capturedImages],
+          };
+          console.log('Image added to state:', newState.capturedImages);
+          return newState;
+        });
       } else {
         setState((prev) => ({
           ...prev,
           isCapturing: false,
           error: createUserFacingError('Failed to capture image'),
         }));
+        console.log('Failed to capture image');
       }
 
       // Clear success message after 3 seconds
@@ -223,6 +232,7 @@ export function useCapture(): UseCaptureReturn {
           isCapturing: false,
           lastCaptureTime: Date.now(),
           successMessage: 'Area screenshot copied to clipboard! 📋',
+          capturedImages: [imageData, ...prev.capturedImages],
         }));
 
         // Clear success message after 3 seconds
@@ -355,12 +365,42 @@ export function useCapture(): UseCaptureReturn {
     }
   }, [state.isCapturing, copyImageToClipboard]);
 
-  const deleteCapturedImage = useCallback(() => {
+  const deleteCapturedImage = useCallback((index: number) => {
     setState((prev) => ({
       ...prev,
-      lastCapturedImage: null,
+      capturedImages: prev.capturedImages.filter((_, i) => i !== index),
     }));
   }, []);
+
+  const copyCapturedImage = useCallback(
+    async (index: number) => {
+      const image = state.capturedImages[index];
+      if (image) {
+        await copyImageToClipboard(image);
+        setState((prev) => ({
+          ...prev,
+          successMessage: 'Image copied to clipboard! 📋',
+        }));
+        setTimeout(() => {
+          setState((prev) => ({
+            ...prev,
+            successMessage: null,
+          }));
+        }, 2000);
+      }
+    },
+    [state.capturedImages, copyImageToClipboard]
+  );
+
+  const openCapturedImageInEditor = useCallback(
+    async (index: number) => {
+      const image = state.capturedImages[index];
+      if (image) {
+        await chrome.runtime.sendMessage({ action: 'openWindow', data: { imageData: image } });
+      }
+    },
+    [state.capturedImages]
+  );
 
   return {
     ...state,
@@ -373,5 +413,7 @@ export function useCapture(): UseCaptureReturn {
     onAreaCaptureComplete: handleAreaCaptureComplete,
     handleFullPageCapture,
     deleteCapturedImage,
+    copyCapturedImage,
+    openCapturedImageInEditor,
   };
 }
