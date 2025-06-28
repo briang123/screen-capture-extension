@@ -165,15 +165,15 @@ async function handleSetStorage(
 chrome.runtime.onInstalled.addListener((details) => {
   console.log('Extension installed:', details.reason);
 
-  // Set default settings
+  // Set default settings as a JSON string
   chrome.storage.sync.set({
-    settings: {
+    settings: JSON.stringify({
       autoSave: false,
       backgroundType: 'gradient',
       theme: 'light',
       quality: 'high',
       format: 'png',
-    },
+    }),
   });
 });
 

@@ -369,8 +369,9 @@ export function useLocalStorage<T>(
   defaultValue: T,
   options?: Omit<UsePersistentStateOptions<T>, 'key' | 'backend' | 'defaultValue'>
 ) {
+  // Always use 'sc_settings' for site localStorage to avoid conflicts with site keys
   return usePersistentState({
-    key,
+    key: 'sc_settings',
     backend: 'localStorage',
     defaultValue,
     ...options,
@@ -415,4 +416,20 @@ export function useChromeSyncStorage<T>(
     sync: true,
     ...options,
   });
+}
+
+// Convenience hook for site localStorage settings (key: 'sc_settings')
+export function useSiteLocalSettings<T>(
+  defaultValue: T,
+  options?: Omit<UsePersistentStateOptions<T>, 'key' | 'backend' | 'defaultValue'>
+) {
+  return useLocalStorage('sc_settings', defaultValue, options);
+}
+
+// Convenience hook for site sessionStorage settings (key: 'sc_settings')
+export function useSiteSessionSettings<T>(
+  defaultValue: T,
+  options?: Omit<UsePersistentStateOptions<T>, 'key' | 'backend' | 'defaultValue'>
+) {
+  return useSessionStorage('sc_settings', defaultValue, options);
 }
