@@ -57,7 +57,7 @@ export function captureWindow() {
 }
 
 export function captureTabViewport() {
-  return captureViaMessage('captureTabViewport');
+  return captureViaMessage('captureScreen');
 }
 
 export async function captureFullPage() {

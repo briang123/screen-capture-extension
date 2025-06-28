@@ -104,6 +104,10 @@ export function useCapture(): UseCaptureReturn {
       throw new Error(result.error.message);
     }
     await copyImageToClipboard(result.imageData);
+    setState((prev) => ({
+      ...prev,
+      capturedImages: [result.imageData, ...prev.capturedImages],
+    }));
   }, []);
 
   const handleCapture = useCallback(async () => {
