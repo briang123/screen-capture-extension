@@ -30,28 +30,33 @@ interface ResponseData {
 }
 
 // Handle messages from popup and content scripts
-chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
-  console.log('Background received message:', message);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const msg = message as ExtensionMessage;
+  console.log('Background received message:', msg);
 
-  switch (message.action) {
+  switch (msg.action) {
     case 'captureScreen':
       handleScreenCapture(sender, sendResponse);
       return true; // Keep message channel open for async response
 
     case 'openWindow':
-      handleOpenWindow(message, sendResponse);
+      handleOpenWindow(msg, sendResponse);
       return true;
 
     case 'getStorage':
-      handleGetStorage(message, sendResponse);
+      handleGetStorage(msg, sendResponse);
       return true;
 
     case 'setStorage':
-      handleSetStorage(message, sendResponse);
+      handleSetStorage(msg, sendResponse);
       return true;
 
     default:
-      console.warn('Unknown message action:', message.action);
+      if ('action' in msg) {
+        console.warn('Unknown message action:', (msg as ExtensionMessage).action);
+      } else {
+        console.warn('Unknown message:', msg);
+      }
       sendResponse({ success: false, error: 'Unknown action' });
   }
 });
@@ -181,7 +186,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.windows.onRemoved.addListener(async (windowId) => {
   try {
     // Clean up any temporary data for this window
-    await chrome.storage.local.remove(`window_${windowId}_imageData`);
+    await chrome.storage.local.remove(`window_${windowId!}_imageData`);
   } catch (error) {
     console.error('Failed to clean up window data:', error);
   }
@@ -192,15 +197,15 @@ chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id) return;
 
   // Try to send the message first
-  chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' }, async (response) => {
+  chrome.tabs.sendMessage(tab.id!, { action: 'openSidebar' }, async () => {
     if (chrome.runtime.lastError) {
       // If the content script is not injected, inject it
       await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
+        target: { tabId: tab.id! },
         files: ['content.js'],
       });
       // Try sending the message again
-      chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
+      chrome.tabs.sendMessage(tab.id!, { action: 'openSidebar' });
     }
   });
 });
