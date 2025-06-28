@@ -46,7 +46,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.16",
-    "eslint": "^8.56.0",
+    "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-react": "^7.37.5",
@@ -57,7 +57,7 @@
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.4.0",
+    "typescript": "^5.8.3",
     "vite": "^5.0.0",
     "vite-plugin-copy": "^0.1.6",
     "vitest": "^3.2.4"

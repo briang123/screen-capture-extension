@@ -2,6 +2,8 @@
 // TODO: Add error handling and logging
 // TODO: Implement retry logic for failed operations
 
+import { DEFAULT_SETTINGS } from '../shared/settings';
+
 interface CaptureMessage {
   action: 'captureScreen';
 }
@@ -170,17 +172,11 @@ async function handleSetStorage(
 chrome.runtime.onInstalled.addListener((details) => {
   console.log('Extension installed:', details.reason);
 
-  // Set default settings as a JSON string only if not already present
+  // Set default settings as an object only if not already present
   chrome.storage.sync.get('settings', (result) => {
     if (!result.settings) {
       chrome.storage.sync.set({
-        settings: JSON.stringify({
-          autoSave: false,
-          backgroundType: 'gradient',
-          theme: 'light',
-          quality: 'high',
-          format: 'png',
-        }),
+        settings: DEFAULT_SETTINGS,
       });
     }
   });

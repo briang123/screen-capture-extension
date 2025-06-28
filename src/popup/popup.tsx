@@ -57,9 +57,11 @@ const Popup: React.FC<PopupProps> = () => {
   };
 
   const handleSettingsChange = async (key: string, value: any) => {
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
-    await setStorageData({ settings: newSettings });
+    setSettings((prev) => {
+      const merged = { ...prev, [key]: value };
+      setStorageData({ settings: merged });
+      return merged;
+    });
   };
 
   const handleOpenSidebar = async () => {

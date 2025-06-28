@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import './sidebar.css';
 import SidebarContainer from './components/SidebarContainer';
-import { useTheme } from './hooks/useTheme';
+import { useSettings } from './hooks/useSettings';
 import { useSidebarSide } from './hooks/useSidebarSide';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useSidebarCollapse } from './hooks/useSidebarCollapse';
@@ -28,7 +28,7 @@ const Sidebar: React.FC = () => {
   });
 
   const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
-  const [theme, handleThemeToggleRaw] = useTheme();
+  const [settings, updateSettings] = useSettings();
   const { isCapturing, handleCapture, error, resetError } = useCapture();
 
   const sidebarWidth = 400;
@@ -68,7 +68,11 @@ const Sidebar: React.FC = () => {
   });
 
   // Memoize event handlers
-  const handleThemeToggle = useCallback(() => handleThemeToggleRaw(), [handleThemeToggleRaw]);
+  const handleThemeToggle = useCallback(async () => {
+    const newTheme = settings.theme === 'light' ? 'dark' : 'light';
+    await updateSettings({ theme: newTheme });
+  }, [settings.theme, updateSettings]);
+
   const handleMoveSide = useCallback(() => handleMoveSideRaw(), [handleMoveSideRaw]);
   const handleToggleCollapse = useCallback(
     () => handleToggleCollapseRaw(),
@@ -80,8 +84,8 @@ const Sidebar: React.FC = () => {
   useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed, visible });
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    document.documentElement.classList.toggle('dark', settings.theme === 'dark');
+  }, [settings.theme]);
 
   // Memoize sidebarStyle
   const sidebarStyle = useMemo(
@@ -110,7 +114,7 @@ const Sidebar: React.FC = () => {
         sidebarStyle={sidebarStyle}
         animationVariants={sidebarAnimation.variants}
         animationTransition={sidebarAnimation.transition}
-        theme={theme}
+        theme={settings.theme}
         onThemeToggle={handleThemeToggle}
         onMoveSide={handleMoveSide}
         onToggleCollapse={handleToggleCollapse}
