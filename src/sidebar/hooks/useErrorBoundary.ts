@@ -69,83 +69,6 @@ export function useErrorBoundary(options: UseErrorBoundaryOptions = {}) {
   const recoveryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const degradedModeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const setError = useCallback(
-    (error: Error) => {
-      console.error('useErrorBoundary caught an error:', error);
-
-      const userFacingError = createUserFacingError(error);
-
-      setErrorState((prevState) => ({
-        hasError: true,
-        error,
-        userFacingError,
-        fallbackAttempts: prevState.fallbackAttempts + 1,
-        isInDegradedMode: prevState.isInDegradedMode,
-        lastErrorTime: Date.now(),
-      }));
-
-      // Call the onError callback if provided
-      onError?.(error);
-
-      // Log additional context for debugging
-      logErrorContext(error, errorState.fallbackAttempts + 1, errorState.isInDegradedMode);
-
-      // Attempt automatic recovery if enabled
-      attemptAutoRecovery(errorState.fallbackAttempts + 1);
-
-      // Check if we should enter degraded mode
-      checkDegradedMode(errorState.fallbackAttempts + 1);
-    },
-    [onError, errorState.fallbackAttempts, errorState.isInDegradedMode]
-  );
-
-  const attemptAutoRecovery = useCallback(
-    (attempts: number) => {
-      if (!autoRecoveryEnabled || attempts >= maxFallbackAttempts) {
-        return;
-      }
-
-      // Clear any existing recovery timeout
-      if (recoveryTimeoutRef.current) {
-        clearTimeout(recoveryTimeoutRef.current);
-      }
-
-      // Attempt recovery with exponential backoff
-      const recoveryDelay = Math.min(
-        TIMEOUTS.FALLBACK_RECOVERY * Math.pow(2, attempts),
-        TIMEOUTS.GRACEFUL_DEGRADATION
-      );
-
-      recoveryTimeoutRef.current = setTimeout(() => {
-        console.log(`Attempting auto-recovery (attempt ${attempts + 1}/${maxFallbackAttempts})`);
-        resetError();
-      }, recoveryDelay);
-    },
-    [autoRecoveryEnabled, maxFallbackAttempts]
-  );
-
-  const checkDegradedMode = useCallback(
-    (attempts: number) => {
-      if (!enableGracefulDegradation || attempts < maxFallbackAttempts) {
-        return;
-      }
-
-      // Enter degraded mode after max attempts
-      setErrorState((prev) => ({ ...prev, isInDegradedMode: true }));
-
-      // Clear any existing degraded mode timeout
-      if (degradedModeTimeoutRef.current) {
-        clearTimeout(degradedModeTimeoutRef.current);
-      }
-
-      // Exit degraded mode after timeout
-      degradedModeTimeoutRef.current = setTimeout(() => {
-        setErrorState((prev) => ({ ...prev, isInDegradedMode: false }));
-      }, degradedModeTimeout);
-    },
-    [enableGracefulDegradation, maxFallbackAttempts, degradedModeTimeout]
-  );
-
   const resetError = useCallback(() => {
     // Clear recovery timeout
     if (recoveryTimeoutRef.current) {
@@ -160,6 +83,76 @@ export function useErrorBoundary(options: UseErrorBoundaryOptions = {}) {
       userFacingError: null,
     }));
   }, []);
+
+  const setError = useCallback(
+    (error: Error) => {
+      console.error('useErrorBoundary caught an error:', error);
+
+      const userFacingError = createUserFacingError(error);
+
+      setErrorState((prevState) => {
+        const newFallbackAttempts = prevState.fallbackAttempts + 1;
+
+        // Log additional context for debugging
+        logErrorContext(error, newFallbackAttempts, prevState.isInDegradedMode);
+
+        // Attempt automatic recovery if enabled
+        if (autoRecoveryEnabled && newFallbackAttempts < maxFallbackAttempts) {
+          // Clear any existing recovery timeout
+          if (recoveryTimeoutRef.current) {
+            clearTimeout(recoveryTimeoutRef.current);
+          }
+
+          // Attempt recovery with exponential backoff
+          const recoveryDelay = Math.min(
+            TIMEOUTS.FALLBACK_RECOVERY * Math.pow(2, newFallbackAttempts),
+            TIMEOUTS.GRACEFUL_DEGRADATION
+          );
+
+          recoveryTimeoutRef.current = setTimeout(() => {
+            console.log(
+              `Attempting auto-recovery (attempt ${newFallbackAttempts + 1}/${maxFallbackAttempts})`
+            );
+            resetError();
+          }, recoveryDelay);
+        }
+
+        // Check if we should enter degraded mode
+        if (enableGracefulDegradation && newFallbackAttempts >= maxFallbackAttempts) {
+          // Enter degraded mode after max attempts
+          // Clear any existing degraded mode timeout
+          if (degradedModeTimeoutRef.current) {
+            clearTimeout(degradedModeTimeoutRef.current);
+          }
+
+          // Exit degraded mode after timeout
+          degradedModeTimeoutRef.current = setTimeout(() => {
+            setErrorState((prev) => ({ ...prev, isInDegradedMode: false }));
+          }, degradedModeTimeout);
+        }
+
+        return {
+          hasError: true,
+          error,
+          userFacingError,
+          fallbackAttempts: newFallbackAttempts,
+          isInDegradedMode: enableGracefulDegradation && newFallbackAttempts >= maxFallbackAttempts,
+          lastErrorTime: Date.now(),
+        };
+      });
+
+      // Call the onError callback if provided
+      onError?.(error);
+    },
+    [
+      onError,
+      autoRecoveryEnabled,
+      maxFallbackAttempts,
+      enableGracefulDegradation,
+      degradedModeTimeout,
+      resetError,
+    ]
+  );
 
   const handleRetry = useCallback(async () => {
     resetError();
