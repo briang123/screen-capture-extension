@@ -1,3 +1,64 @@
+/**
+ * useSettings - Settings Management Hook
+ *
+ * This hook provides a comprehensive solution for managing extension settings
+ * with Chrome sync storage integration, proper merging, and cross-tab synchronization.
+ *
+ * WHY USE THIS HOOK:
+ * - Provides a unified interface for all extension settings
+ * - Handles Chrome sync storage with automatic cross-device synchronization
+ * - Ensures proper settings merging to prevent accidental data loss
+ * - Includes comprehensive error handling and fallback mechanisms
+ * - Supports legacy storage format migration automatically
+ * - Provides convenience hooks for common settings patterns
+ *
+ * COMMON USE CASES:
+ * - Extension-wide settings management (theme, quality, format, autoSave)
+ * - User preference persistence across browser sessions
+ * - Cross-device settings synchronization via Chrome sync
+ * - Settings migration during extension updates
+ * - Default settings initialization and fallbacks
+ * - Real-time settings updates across multiple tabs
+ *
+ * KEY FEATURES:
+ * - Chrome sync storage integration with error handling
+ * - Automatic cross-tab synchronization via storage change listeners
+ * - Proper settings merging to prevent overwrites
+ * - Legacy string format migration support
+ * - Type-safe settings interface with full TypeScript support
+ * - Convenience hooks for individual settings (useTheme, useQuality, useFormat)
+ *
+ * STORAGE INTEGRATION:
+ * - Uses Chrome sync storage for cross-device synchronization
+ * - Falls back to default settings when storage is unavailable
+ * - Handles storage quota limits gracefully
+ * - Supports offline mode with local defaults
+ *
+ * SYNCHRONIZATION:
+ * - Real-time settings updates across all extension tabs/windows
+ * - Automatic state synchronization when settings change in other tabs
+ * - Proper cleanup of storage change listeners
+ * - Optimized re-renders with useCallback
+ *
+ * ERROR HANDLING:
+ * - Graceful degradation when Chrome storage is unavailable
+ * - Fallback to default settings on storage errors
+ * - Comprehensive error logging for debugging
+ * - User-friendly error recovery mechanisms
+ *
+ * PERFORMANCE BENEFITS:
+ * - Efficient settings loading with single storage read
+ * - Optimized re-renders with proper dependency arrays
+ * - Memory leak prevention with proper cleanup
+ * - Debounced storage updates to prevent excessive writes
+ *
+ * CONVENIENCE HOOKS:
+ * - useTheme: Theme management with toggle functionality
+ * - useQuality: Quality setting management
+ * - useFormat: Format setting management
+ * - All hooks provide type-safe interfaces and proper error handling
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { Settings, DEFAULT_SETTINGS, mergeSettings, updateSettings } from '../../shared/settings';
 
