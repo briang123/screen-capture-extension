@@ -1,19 +1,23 @@
 import { useState, useCallback } from 'react';
-import { UserFacingError, retryOperation } from '../../shared/error-handling';
+import {
+  UserFacingError,
+  retryOperation,
+  createUserFacingError,
+} from '../../shared/error-handling';
 import { captureTabViewport, captureFullPage } from '../../utils/capture';
 import { copyImageToClipboard } from '../../utils/clipboard';
 import { useSuccessMessage } from './useSuccessMessage';
-import { handleCaptureError } from '../../utils/error';
+import { useErrorMessage } from './useErrorMessage';
 
 interface CaptureState {
   isCapturing: boolean;
-  error: UserFacingError | null;
   lastCaptureTime: number | null;
   showOverlay: boolean;
   capturedImages: string[];
 }
 
 interface UseCaptureReturn extends CaptureState {
+  error: UserFacingError | null;
   successMessage: string | null;
   handleCapture: () => Promise<void>;
   handleAreaCapture: () => void;
@@ -86,13 +90,13 @@ interface UseCaptureReturn extends CaptureState {
 export function useCapture(): UseCaptureReturn {
   const [state, setState] = useState<CaptureState>({
     isCapturing: false,
-    error: null,
     lastCaptureTime: null,
     showOverlay: false,
     capturedImages: [],
   });
 
   const [successMessage, setSuccessMessage] = useSuccessMessage(3000);
+  const [error, setError] = useErrorMessage(5000);
 
   const performCapture = useCallback(async (): Promise<void> => {
     const result = await captureTabViewport();
@@ -107,7 +111,6 @@ export function useCapture(): UseCaptureReturn {
     setState((prev) => ({
       ...prev,
       isCapturing: true,
-      error: null,
     }));
     try {
       await retryOperation(performCapture, 3, 1000, {
@@ -125,15 +128,14 @@ export function useCapture(): UseCaptureReturn {
         lastCaptureTime: Date.now(),
       }));
     } catch (error) {
-      handleCaptureError(error, setState);
+      setError(createUserFacingError(error));
     }
-  }, [state.isCapturing, performCapture]);
+  }, [state.isCapturing, performCapture, setError]);
 
   const handleAreaCapture = useCallback(() => {
     setState((prev) => ({
       ...prev,
       showOverlay: true,
-      error: null,
     }));
   }, []);
 
@@ -155,10 +157,10 @@ export function useCapture(): UseCaptureReturn {
           capturedImages: [imageData, ...prev.capturedImages],
         }));
       } catch (error) {
-        handleCaptureError(error, setState);
+        setError(createUserFacingError(error));
       }
     },
-    [copyImageToClipboard]
+    [copyImageToClipboard, setError]
   );
 
   const hideOverlay = useCallback(() => {
@@ -176,7 +178,6 @@ export function useCapture(): UseCaptureReturn {
     setState((prev) => ({
       ...prev,
       isCapturing: true,
-      error: null,
     }));
 
     try {
@@ -197,16 +198,13 @@ export function useCapture(): UseCaptureReturn {
         lastCaptureTime: Date.now(),
       }));
     } catch (error) {
-      handleCaptureError(error, setState);
+      setError(createUserFacingError(error));
     }
-  }, [state.isCapturing, performCapture]);
+  }, [state.isCapturing, performCapture, setError]);
 
   const resetError = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      error: null,
-    }));
-  }, []);
+    setError(null);
+  }, [setError]);
 
   const clearSuccessMessage = useCallback(() => {
     setSuccessMessage(null);
@@ -217,7 +215,6 @@ export function useCapture(): UseCaptureReturn {
     setState((prev) => ({
       ...prev,
       isCapturing: true,
-      error: null,
     }));
     try {
       const result = await captureFullPage();
@@ -230,9 +227,9 @@ export function useCapture(): UseCaptureReturn {
         capturedImages: [result.imageData, ...prev.capturedImages],
       }));
     } catch (error) {
-      handleCaptureError(error, setState);
+      setError(createUserFacingError(error));
     }
-  }, [state.isCapturing, copyImageToClipboard]);
+  }, [state.isCapturing, copyImageToClipboard, setError]);
 
   const deleteCapturedImage = useCallback((index: number) => {
     setState((prev) => ({
@@ -264,6 +261,7 @@ export function useCapture(): UseCaptureReturn {
 
   return {
     ...state,
+    error,
     successMessage,
     handleCapture,
     handleAreaCapture,
