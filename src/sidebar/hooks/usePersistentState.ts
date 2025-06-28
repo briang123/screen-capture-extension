@@ -146,7 +146,12 @@ class ChromeStorageAdapter implements StorageAdapter {
       }
 
       const result = await chrome.storage[this.storageArea].get(key);
-      return result[key] ?? null;
+      const stored = result[key];
+      if (typeof stored === 'string') {
+        return JSON.parse(stored);
+      }
+      // If it's already an object (legacy), return as is
+      return stored ?? null;
     } catch (error) {
       console.warn(`Failed to get from chrome.storage.${this.storageArea}: ${error}`);
       return null;
@@ -159,8 +164,8 @@ class ChromeStorageAdapter implements StorageAdapter {
         console.warn('Chrome storage API not available');
         return;
       }
-
-      await chrome.storage[this.storageArea].set({ [key]: value });
+      // Always store as a string for consistency
+      await chrome.storage[this.storageArea].set({ [key]: JSON.stringify(value) });
     } catch (error) {
       console.warn(`Failed to set to chrome.storage.${this.storageArea}: ${error}`);
     }
