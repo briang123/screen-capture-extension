@@ -15,13 +15,14 @@ interface CaptureContextType {
   onCapture: () => Promise<void>;
   onAreaCapture: () => void;
   onAreaCaptureComplete: (imageData: string) => void;
-  onFullPageCapture: () => Promise<void>;
+  onFullPageCapture: () => void;
   hideOverlay: () => void;
   onResetError: () => void;
   onClearSuccessMessage: () => void;
-  copyCapturedImage: (index: number) => Promise<void>;
-  openCapturedImageInEditor: (index: number) => Promise<void>;
+  copyCapturedImage: (index: number) => void;
+  openCapturedImageInEditor: (index: number) => void;
   deleteCapturedImage: (index: number) => void;
+  cancelActiveCapture: () => void;
 }
 
 const CaptureContext = createContext<CaptureContextType | undefined>(undefined);
@@ -55,6 +56,7 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     copyCapturedImage,
     openCapturedImageInEditor,
     deleteCapturedImage,
+    cancelActiveCapture,
   } = useCapture();
 
   const onCapture = useCallback(async () => {
@@ -100,6 +102,7 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     copyCapturedImage,
     openCapturedImageInEditor,
     deleteCapturedImage,
+    cancelActiveCapture,
   };
 
   return (

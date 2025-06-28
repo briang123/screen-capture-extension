@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CaptureButton } from '@/sidebar/components/Button';
 import { CaptureOverlay } from '@/sidebar/components/CaptureOverlay';
@@ -27,6 +27,7 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
     copyCapturedImage,
     openCapturedImageInEditor,
     deleteCapturedImage,
+    cancelActiveCapture,
   } = useCaptureContext();
 
   useEffect(() => {
@@ -34,6 +35,56 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
       console.log('SidebarPanelBody capturedImages:', capturedImages);
     }
   }, [capturedImages]);
+
+  // Wrapper functions that cancel area overlay first if active
+  const handleCaptureWithOverlayCancel = useCallback(async () => {
+    if (showOverlay) {
+      hideOverlay();
+      // Small delay to ensure overlay is hidden before starting capture
+      setTimeout(() => onCapture(), 50);
+    } else {
+      await onCapture();
+    }
+  }, [showOverlay, hideOverlay, onCapture]);
+
+  const handleFullPageCaptureWithOverlayCancel = useCallback(async () => {
+    if (showOverlay) {
+      hideOverlay();
+      // Small delay to ensure overlay is hidden before starting capture
+      setTimeout(() => onFullPageCapture(), 50);
+    } else {
+      await onFullPageCapture();
+    }
+  }, [showOverlay, hideOverlay, onFullPageCapture]);
+
+  // Custom escape key handler that prioritizes area capture cancellation
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // If area capture overlay is visible, cancel it first
+        if (showOverlay) {
+          event.preventDefault();
+          event.stopPropagation();
+          hideOverlay();
+          return;
+        }
+
+        // If currently capturing, cancel the capture
+        if (isCapturing) {
+          event.preventDefault();
+          event.stopPropagation();
+          cancelActiveCapture();
+          return;
+        }
+
+        // Only allow sidebar to close if no capture operations are active
+        // This will be handled by the parent component if needed
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [showOverlay, isCapturing, hideOverlay, cancelActiveCapture]);
 
   return (
     <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
@@ -107,7 +158,7 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
       >
         {/* Capture Buttons */}
         <div className="space-y-3">
-          <CaptureButton isCapturing={isCapturing} onCapture={onCapture} />
+          <CaptureButton isCapturing={isCapturing} onCapture={handleCaptureWithOverlayCancel} />
           {!isSwitchingSide && (
             <>
               <button
@@ -120,7 +171,7 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
                 Select Area to Capture
               </button>
               <button
-                onClick={onFullPageCapture}
+                onClick={handleFullPageCaptureWithOverlayCancel}
                 disabled={isCapturing}
                 className="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-xl shadow-soft hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-busy={isCapturing}

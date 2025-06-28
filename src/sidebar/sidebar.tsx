@@ -20,7 +20,7 @@ let reactSidebarRoot: Root | null = null;
 const Sidebar: React.FC = () => {
   const { visible, close, containerRef } = useSidebarVisibility({
     initialVisible: true,
-    closeOnEscape: true,
+    closeOnEscape: false, // Disable default escape handling
     closeOnOutsideClick: false, // Don't close on outside click for sidebar
     enableFocusTrap: true,
     onClose: useCallback(() => {

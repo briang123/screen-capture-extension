@@ -27,6 +27,7 @@ interface UseCaptureReturn extends CaptureState {
   deleteCapturedImage: (index: number) => void;
   copyCapturedImage: (index: number) => Promise<void>;
   openCapturedImageInEditor: (index: number) => Promise<void>;
+  cancelActiveCapture: () => void;
 }
 
 /**
@@ -95,6 +96,21 @@ export function useCapture(): UseCaptureReturn {
   const [successMessage, setSuccessMessage] = useSuccessMessage(TIMEOUTS.SUCCESS_MESSAGE);
   const [error, setError] = useErrorMessage(TIMEOUTS.ERROR_MESSAGE);
 
+  // Helper function to reset capture state
+  const resetCaptureState = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      isCapturing: false,
+      showOverlay: false,
+    }));
+  }, []);
+
+  // Helper function to cancel any active capture
+  const cancelActiveCapture = useCallback(() => {
+    resetCaptureState();
+    setError(null); // Clear any existing errors
+  }, [resetCaptureState, setError]);
+
   const performCapture = useCallback(async (): Promise<void> => {
     const result = await captureTabViewport();
     if ('error' in result) {
@@ -109,20 +125,24 @@ export function useCapture(): UseCaptureReturn {
 
   const handleCapture = useCallback(async () => {
     if (state.isCapturing) return;
+
+    // Cancel any active area capture first
+    if (state.showOverlay) {
+      hideOverlay();
+    }
+
     setState((prev) => ({
       ...prev,
       isCapturing: true,
     }));
+
     try {
       await retryOperation(performCapture, RETRY_CONFIG.MAX_RETRIES, RETRY_CONFIG.BASE_DELAY, {
         operation: OPERATION_NAMES.SCREEN_CAPTURE,
         component: 'useCapture',
         timestamp: Date.now(),
       });
-      // Get the captured image from the background script (already done in performCapture)
-      // Instead, update state with the latest clipboard image if needed
-      // (Or, optionally, re-fetch the image from clipboard or background)
-      // For now, skip this and rely on performCapture to throw on error
+
       setState((prev) => ({
         ...prev,
         isCapturing: false,
@@ -130,15 +150,21 @@ export function useCapture(): UseCaptureReturn {
       }));
     } catch (error) {
       setError(createUserFacingError(error));
+      resetCaptureState(); // Reset state on error
     }
-  }, [state.isCapturing, performCapture, setError]);
+  }, [state.isCapturing, state.showOverlay, performCapture, setError, resetCaptureState]);
 
   const handleAreaCapture = useCallback(() => {
+    // Cancel any active capture first
+    if (state.isCapturing) {
+      resetCaptureState();
+    }
+
     setState((prev) => ({
       ...prev,
       showOverlay: true,
     }));
-  }, []);
+  }, [state.isCapturing, resetCaptureState]);
 
   const handleAreaCaptureComplete = useCallback(
     async (imageData: string) => {
@@ -159,9 +185,10 @@ export function useCapture(): UseCaptureReturn {
         }));
       } catch (error) {
         setError(createUserFacingError(error));
+        resetCaptureState(); // Reset state on error
       }
     },
-    [setError]
+    [setError, resetCaptureState]
   );
 
   const hideOverlay = useCallback(() => {
@@ -200,15 +227,23 @@ export function useCapture(): UseCaptureReturn {
       }));
     } catch (error) {
       setError(createUserFacingError(error));
+      resetCaptureState(); // Reset state on error
     }
-  }, [state.isCapturing, performCapture, setError]);
+  }, [state.isCapturing, performCapture, setError, resetCaptureState]);
 
   const handleFullPageCapture = useCallback(async () => {
     if (state.isCapturing) return;
+
+    // Cancel any active area capture first
+    if (state.showOverlay) {
+      hideOverlay();
+    }
+
     setState((prev) => ({
       ...prev,
       isCapturing: true,
     }));
+
     try {
       const result = await captureFullPage();
       if ('error' in result) throw new Error(result.error.message);
@@ -221,8 +256,9 @@ export function useCapture(): UseCaptureReturn {
       }));
     } catch (error) {
       setError(createUserFacingError(error));
+      resetCaptureState(); // Reset state on error
     }
-  }, [state.isCapturing, setError]);
+  }, [state.isCapturing, state.showOverlay, setError, resetCaptureState, hideOverlay]);
 
   const deleteCapturedImage = useCallback((index: number) => {
     setState((prev) => ({
@@ -267,5 +303,6 @@ export function useCapture(): UseCaptureReturn {
     deleteCapturedImage,
     copyCapturedImage,
     openCapturedImageInEditor,
+    cancelActiveCapture,
   };
 }
