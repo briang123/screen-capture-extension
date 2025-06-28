@@ -459,17 +459,20 @@ export function useAnimationPreset(
 ): UseAnimationReturn {
   const preset = ANIMATION_PRESETS[presetName];
 
+  // Always call useAnimation to avoid conditional hook calls
+  const animation = useAnimation({
+    ...options,
+    variants: preset?.variants || {},
+    transition: preset?.transition || {},
+    config: { ...preset?.config, ...options.config },
+  });
+
+  // Warn if preset not found
   if (!preset) {
     console.warn(`Animation preset "${presetName}" not found`);
-    return useAnimation(options);
   }
 
-  return useAnimation({
-    ...options,
-    variants: preset.variants,
-    transition: preset.transition,
-    config: { ...preset.config, ...options.config },
-  });
+  return animation;
 }
 
 // Hook for coordinating multiple animations

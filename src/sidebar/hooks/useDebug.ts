@@ -52,5 +52,6 @@ export function useDebug(label: string, values: Record<string, unknown>) {
     });
     console.groupEnd();
     // Only log when values change
-  }, Object.values(values));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [label, ...Object.values(values)]);
 }

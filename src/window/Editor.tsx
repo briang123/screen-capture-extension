@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* global navigator, ClipboardItem, HTMLCanvasElement */
+/// <reference lib="dom" />
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fabric } from 'fabric';
 import { HexColorPicker } from 'react-colorful';
 import { useSettings } from '../sidebar/hooks/useSettings';
@@ -13,6 +15,23 @@ const Editor: React.FC = () => {
   >('select');
   const [color, setColor] = useState('#3b82f6');
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+
+  const loadImageData = useCallback(async () => {
+    try {
+      // Get window ID to retrieve image data
+      const windowId = window.location.search.match(/windowId=(\d+)/)?.[1];
+      if (windowId) {
+        const result = await chrome.storage.local.get(`window_${windowId}_imageData`);
+        const data = result[`window_${windowId}_imageData`];
+        if (data) {
+          setImageData(data);
+          loadImageToCanvas(data);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load image data:', error);
+    }
+  }, []);
 
   useEffect(() => {
     // Initialize fabric.js canvas
@@ -32,24 +51,7 @@ const Editor: React.FC = () => {
         fabricCanvasRef.current.dispose();
       }
     };
-  }, []);
-
-  const loadImageData = async () => {
-    try {
-      // Get window ID to retrieve image data
-      const windowId = window.location.search.match(/windowId=(\d+)/)?.[1];
-      if (windowId) {
-        const result = await chrome.storage.local.get(`window_${windowId}_imageData`);
-        const data = result[`window_${windowId}_imageData`];
-        if (data) {
-          setImageData(data);
-          loadImageToCanvas(data);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load image data:', error);
-    }
-  };
+  }, [loadImageData]);
 
   const loadImageToCanvas = (dataUrl: string) => {
     if (!fabricCanvasRef.current) return;
