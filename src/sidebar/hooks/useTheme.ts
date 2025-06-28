@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useChromeLocalStorage } from './usePersistentState';
 
 export type Theme = 'light' | 'dark';
 
@@ -8,7 +9,7 @@ export function useTheme(): [Theme, () => void] {
       ? 'dark'
       : 'light';
 
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useChromeLocalStorage<Theme>('sc_theme', getInitialTheme());
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
