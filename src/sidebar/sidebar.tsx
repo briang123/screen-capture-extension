@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
   const sidebarAnimation = useSidebarAnimation({
     sidebarConfig: {
       side,
-      collapsed,
+      collapsed: collapsed === 'collapsed',
       visible,
       isSwitchingSide,
       slideDuration: 0.3,
@@ -78,7 +78,7 @@ const Sidebar: React.FC = () => {
     const sidebarStyle = {
       touchAction: 'none',
       boxShadow: 'var(--shadow-lg)',
-      background: collapsed ? 'rgba(0, 255, 0, 0.1)' : '#fff',
+      background: collapsed === 'collapsed' ? 'rgba(0, 255, 0, 0.1)' : '#fff',
       borderRadius: 'var(--radius-lg)',
       border: '2px solid #f00',
       zIndex: 99999,
@@ -92,16 +92,12 @@ const Sidebar: React.FC = () => {
       return (
         <div
           ref={containerRef as React.RefObject<HTMLDivElement>}
-          className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
+          className={`sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`}
           style={sidebarStyle}
         >
-          {collapsed ? (
+          {collapsed === 'collapsed' ? (
             <div className="flex flex-col items-center justify-center h-full p-2">
-              <ExpandCollapseButton
-                side={side}
-                collapsed={collapsed}
-                onClick={handleToggleCollapse}
-              />
+              <ExpandCollapseButton side={side} collapsed={true} onClick={handleToggleCollapse} />
             </div>
           ) : (
             <>
@@ -112,7 +108,7 @@ const Sidebar: React.FC = () => {
                 onToggleCollapse={handleToggleCollapse}
                 onClose={close}
                 side={side}
-                collapsed={collapsed}
+                collapsed={false}
               />
               <SidebarPanelBody
                 isSwitchingSide={isSwitchingSide}
@@ -131,20 +127,16 @@ const Sidebar: React.FC = () => {
     return (
       <motion.div
         ref={containerRef as React.RefObject<HTMLDivElement>}
-        className={`sc-sidebar${side}${collapsed ? ' collapsed' : ''}`}
+        className={`sc-sidebar${side}${collapsed === 'collapsed' ? ' collapsed' : ''}`}
         variants={sidebarAnimation.variants}
         initial="visible"
-        animate={collapsed ? 'collapsed' : 'expanded'}
+        animate={collapsed}
         transition={sidebarAnimation.transition}
         style={sidebarStyle}
       >
-        {collapsed ? (
+        {collapsed === 'collapsed' ? (
           <div className="flex flex-col items-center justify-center h-full p-2">
-            <ExpandCollapseButton
-              side={side}
-              collapsed={collapsed}
-              onClick={handleToggleCollapse}
-            />
+            <ExpandCollapseButton side={side} collapsed={true} onClick={handleToggleCollapse} />
           </div>
         ) : (
           <>
@@ -155,7 +147,7 @@ const Sidebar: React.FC = () => {
               onToggleCollapse={handleToggleCollapse}
               onClose={close}
               side={side}
-              collapsed={collapsed}
+              collapsed={false}
             />
             <SidebarPanelBody
               isSwitchingSide={isSwitchingSide}

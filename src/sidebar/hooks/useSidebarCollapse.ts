@@ -12,6 +12,7 @@ import { useState } from 'react';
  * - Simplifies sidebar UI state management
  * - Integrates with sidebar animation and visibility hooks
  * - Ensures consistent collapse behavior across components
+ * - Type-safe state management with explicit collapsed/expanded values
  *
  * COMMON USE CASES:
  * - Sidebar collapse/expand button
@@ -21,11 +22,12 @@ import { useState } from 'react';
  * - UI feedback for collapsed state
  *
  * KEY FEATURES:
- * - Collapsed/expanded state management
+ * - Collapsed/expanded state management with type safety
  * - Toggle handler for collapse/expand
  * - Initial collapsed state support
  * - Integration with sidebar UI components
  * - Minimal API for easy usage
+ * - Explicit state values for better readability
  *
  * PERFORMANCE BENEFITS:
  * - Efficient state updates with useState
@@ -39,8 +41,15 @@ import { useState } from 'react';
  * - Focus management during collapse/expand
  */
 
-export function useSidebarCollapse(initialCollapsed = false): [boolean, () => void] {
-  const [collapsed, setCollapsed] = useState(initialCollapsed);
-  const handleToggleCollapse = () => setCollapsed((prev) => !prev);
+export type CollapsedState = 'collapsed' | 'expanded';
+
+export function useSidebarCollapse(initialCollapsed = false): [CollapsedState, () => void] {
+  const [collapsed, setCollapsed] = useState<CollapsedState>(
+    initialCollapsed ? 'collapsed' : 'expanded'
+  );
+
+  const handleToggleCollapse = () =>
+    setCollapsed((prev) => (prev === 'collapsed' ? 'expanded' : 'collapsed'));
+
   return [collapsed, handleToggleCollapse];
 }
