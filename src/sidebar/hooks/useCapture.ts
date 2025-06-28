@@ -160,7 +160,7 @@ export function useCapture(): UseCaptureReturn {
         setError(createUserFacingError(error));
       }
     },
-    [copyImageToClipboard, setError]
+    [setError]
   );
 
   const hideOverlay = useCallback(() => {
@@ -229,7 +229,7 @@ export function useCapture(): UseCaptureReturn {
     } catch (error) {
       setError(createUserFacingError(error));
     }
-  }, [state.isCapturing, copyImageToClipboard, setError]);
+  }, [state.isCapturing, setError]);
 
   const deleteCapturedImage = useCallback((index: number) => {
     setState((prev) => ({
@@ -246,7 +246,7 @@ export function useCapture(): UseCaptureReturn {
         setSuccessMessage('Image copied to clipboard! 📋');
       }
     },
-    [state.capturedImages, copyImageToClipboard, setSuccessMessage]
+    [state.capturedImages, setSuccessMessage]
   );
 
   const openCapturedImageInEditor = useCallback(
