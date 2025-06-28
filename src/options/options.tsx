@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSettings } from '../sidebar/hooks/useSettings';
 
 const Options: React.FC = () => {
-  const [settings, updateSettings, resetSettings] = useSettings();
+  const { settings, updateSettings, resetSettings } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
 

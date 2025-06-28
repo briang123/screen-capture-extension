@@ -77,7 +77,7 @@ export type Theme = 'light' | 'dark';
  * Uses the centralized settings system for consistent behavior.
  */
 export function useTheme(): [Theme, () => Promise<void>] {
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
   const theme = settings.theme;
 
   // Update DOM classes when theme changes

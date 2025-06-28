@@ -28,7 +28,7 @@ const Sidebar: React.FC = () => {
   });
 
   const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { isCapturing, handleCapture, error, resetError } = useCapture();
 
   const sidebarWidth = 400;

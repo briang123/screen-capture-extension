@@ -7,7 +7,7 @@ const Editor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
-  const [settings] = useSettings();
+  const { settings } = useSettings();
   const [selectedTool, setSelectedTool] = useState<
     'select' | 'text' | 'arrow' | 'shape' | 'highlight'
   >('select');

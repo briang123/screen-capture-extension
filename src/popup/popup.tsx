@@ -5,7 +5,7 @@ import { useSettings } from '../sidebar/hooks/useSettings';
 
 const Popup: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
-  const [settings, updateSettings] = useSettings();
+  const { settings, updateSettings } = useSettings();
 
   const handleCaptureClick = async () => {
     setIsCapturing(true);
