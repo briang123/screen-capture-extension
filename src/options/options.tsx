@@ -1,82 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { getSettings, saveSettings, StorageSettings } from '@utils/storage';
+import React, { useState } from 'react';
+import { useSettings } from '../sidebar/hooks/useSettings';
 
 const Options: React.FC = () => {
-  const [settings, setSettings] = useState<StorageSettings>({
-    autoSave: false,
-    backgroundType: 'gradient',
-    theme: 'light',
-    quality: 'high',
-    format: 'png',
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const [settings, updateSettings, resetSettings] = useSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const handleSettingChange = async (key: string, value: unknown) => {
     try {
-      const savedSettings = await getSettings();
-      setSettings(savedSettings);
+      await updateSettings({ [key]: value });
+      setMessage('Setting updated');
+      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
-      console.error('Failed to load settings:', error);
-      setMessage('Failed to load settings');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSettingChange = (key: keyof StorageSettings, value: unknown) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setMessage('');
-
-    try {
-      await saveSettings(settings);
-      setMessage('Settings saved successfully!');
-
-      // Clear message after 3 seconds
+      console.error('Failed to update setting:', error);
+      setMessage('Failed to update setting');
       setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      setMessage('Failed to save settings');
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const handleReset = async () => {
-    const defaultSettings: StorageSettings = {
-      autoSave: false,
-      backgroundType: 'gradient',
-      theme: 'light',
-      quality: 'high',
-      format: 'png',
-    };
+    setIsSaving(true);
+    setMessage('');
 
-    setSettings(defaultSettings);
-    await saveSettings(defaultSettings);
-    setMessage('Settings reset to defaults');
-
-    setTimeout(() => setMessage(''), 3000);
+    try {
+      await resetSettings();
+      setMessage('Settings reset to defaults');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
+      setMessage('Failed to reset settings');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -95,7 +52,9 @@ const Options: React.FC = () => {
         {message && (
           <div
             className={`mb-6 p-4 rounded-lg ${
-              message.includes('success')
+              message.includes('success') ||
+              message.includes('updated') ||
+              message.includes('reset')
                 ? 'bg-green-100 text-green-700 border border-green-200'
                 : 'bg-red-100 text-red-700 border border-red-200'
             }`}
@@ -135,7 +94,6 @@ const Options: React.FC = () => {
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
-                  <option value="auto">Auto (System)</option>
                 </select>
                 <p className="text-sm text-gray-500 mt-1">
                   Choose the default theme for the editor
@@ -199,8 +157,7 @@ const Options: React.FC = () => {
                 >
                   <option value="gradient">Gradient</option>
                   <option value="solid">Solid Color</option>
-                  <option value="image">Image</option>
-                  <option value="none">None (Transparent)</option>
+                  <option value="transparent">Transparent</option>
                 </select>
                 <p className="text-sm text-gray-500 mt-1">
                   Choose the default background for your captures
@@ -241,9 +198,6 @@ const Options: React.FC = () => {
         <div className="mt-8 flex justify-end space-x-4">
           <button onClick={handleReset} className="btn-secondary" disabled={isSaving}>
             Reset to Defaults
-          </button>
-          <button onClick={handleSave} className="btn-primary" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Settings'}
           </button>
         </div>
 

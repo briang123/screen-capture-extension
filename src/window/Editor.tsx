@@ -1,32 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { fabric } from 'fabric';
 import { HexColorPicker } from 'react-colorful';
-import { getSettings, saveSettings } from '@utils/storage';
+import { useSettings } from '../sidebar/hooks/useSettings';
 
-interface EditorProps {}
-
-interface Annotation {
-  id: string;
-  type: 'text' | 'arrow' | 'shape' | 'highlight';
-  data: unknown;
-}
-
-const Editor: React.FC<EditorProps> = () => {
+const Editor: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
-  const [settings, setSettings] = useState({
-    backgroundType: 'gradient',
-    theme: 'light',
-    quality: 'high',
-    format: 'png',
-  });
+  const [settings] = useSettings();
   const [selectedTool, setSelectedTool] = useState<
     'select' | 'text' | 'arrow' | 'shape' | 'highlight'
   >('select');
   const [color, setColor] = useState('#3b82f6');
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
 
   useEffect(() => {
     // Initialize fabric.js canvas
@@ -36,9 +22,6 @@ const Editor: React.FC<EditorProps> = () => {
         height: 600,
         backgroundColor: '#ffffff',
       });
-
-      // Load settings
-      loadSettings();
 
       // Load image data from storage
       loadImageData();
@@ -50,15 +33,6 @@ const Editor: React.FC<EditorProps> = () => {
       }
     };
   }, []);
-
-  const loadSettings = async () => {
-    try {
-      const savedSettings = await getSettings();
-      setSettings(savedSettings);
-    } catch (error) {
-      console.error('Failed to load settings:', error);
-    }
-  };
 
   const loadImageData = async () => {
     try {

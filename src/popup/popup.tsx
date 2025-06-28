@@ -1,28 +1,11 @@
 import './popup.css';
-import React, { useState, useEffect } from 'react';
-import { captureScreen, openWindow } from '@background/background';
-import { getStorageData, setStorageData } from '@utils/storage';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import Popup from './Popup';
+import { useSettings } from '../sidebar/hooks/useSettings';
 
-interface PopupProps {}
-
-const Popup: React.FC<PopupProps> = () => {
+const Popup: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
-  const [settings, setSettings] = useState({
-    autoSave: false,
-    backgroundType: 'gradient',
-    theme: 'light',
-  });
-
-  useEffect(() => {
-    // Load settings from storage
-    getStorageData(['settings']).then((result) => {
-      if (result.settings) {
-        setSettings(result.settings);
-      }
-    });
-  }, []);
+  const [settings, updateSettings] = useSettings();
 
   const handleCaptureClick = async () => {
     setIsCapturing(true);
@@ -56,12 +39,8 @@ const Popup: React.FC<PopupProps> = () => {
     }
   };
 
-  const handleSettingsChange = async (key: string, value: any) => {
-    setSettings((prev) => {
-      const merged = { ...prev, [key]: value };
-      setStorageData({ settings: merged });
-      return merged;
-    });
+  const handleSettingsChange = async (key: string, value: unknown) => {
+    await updateSettings({ [key]: value });
   };
 
   const handleOpenSidebar = async () => {
@@ -69,7 +48,7 @@ const Popup: React.FC<PopupProps> = () => {
     if (tab.id) {
       try {
         await chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' });
-      } catch (err) {
+      } catch {
         // Fallback: force-inject content script, then try again
         if (chrome.scripting) {
           await chrome.scripting.executeScript({
@@ -166,8 +145,7 @@ const Popup: React.FC<PopupProps> = () => {
               >
                 <option value="gradient">Gradient</option>
                 <option value="solid">Solid Color</option>
-                <option value="image">Image</option>
-                <option value="none">None</option>
+                <option value="transparent">Transparent</option>
               </select>
             </div>
 
@@ -180,7 +158,32 @@ const Popup: React.FC<PopupProps> = () => {
               >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
-                <option value="auto">Auto</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-blue-100 text-sm block mb-2">Quality</label>
+              <select
+                value={settings.quality}
+                onChange={(e) => handleSettingsChange('quality', e.target.value)}
+                className="w-full bg-white/20 text-white rounded-lg px-3 py-2 text-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-blue-100 text-sm block mb-2">Format</label>
+              <select
+                value={settings.format}
+                onChange={(e) => handleSettingsChange('format', e.target.value)}
+                className="w-full bg-white/20 text-white rounded-lg px-3 py-2 text-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                <option value="png">PNG</option>
+                <option value="jpg">JPG</option>
+                <option value="webp">WebP</option>
               </select>
             </div>
           </div>
