@@ -17,11 +17,11 @@ interface UseCaptureReturn extends CaptureState {
   successMessage: string | null;
   handleCapture: () => Promise<void>;
   handleAreaCapture: () => void;
-  resetError: () => void;
   retryCapture: () => Promise<void>;
   hideOverlay: () => void;
-  clearSuccessMessage: () => void;
-  onAreaCaptureComplete: (imageData: string) => Promise<void>;
+  setSuccessMessage: (message: string | null) => void;
+  setError: (error: UserFacingError | null) => void;
+  onAreaCaptureComplete: (imageData: string) => void;
   handleFullPageCapture: () => Promise<void>;
   deleteCapturedImage: (index: number) => void;
   copyCapturedImage: (index: number) => Promise<void>;
@@ -202,14 +202,6 @@ export function useCapture(): UseCaptureReturn {
     }
   }, [state.isCapturing, performCapture, setError]);
 
-  const resetError = useCallback(() => {
-    setError(null);
-  }, [setError]);
-
-  const clearSuccessMessage = useCallback(() => {
-    setSuccessMessage(null);
-  }, [setSuccessMessage]);
-
   const handleFullPageCapture = useCallback(async () => {
     if (state.isCapturing) return;
     setState((prev) => ({
@@ -265,10 +257,10 @@ export function useCapture(): UseCaptureReturn {
     successMessage,
     handleCapture,
     handleAreaCapture,
-    resetError,
     retryCapture,
     hideOverlay,
-    clearSuccessMessage,
+    setSuccessMessage,
+    setError,
     onAreaCaptureComplete: handleAreaCaptureComplete,
     handleFullPageCapture,
     deleteCapturedImage,
