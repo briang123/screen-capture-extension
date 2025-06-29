@@ -13,7 +13,7 @@ import { useSidebarPosition } from './hooks/useSidebarPosition';
 import { useDebug } from './hooks/useDebug';
 import { CaptureProvider, useCaptureContext } from './contexts/CaptureContext';
 import { ANIMATION_DURATIONS, FALLBACK_CONFIG, TIMEOUTS } from '@/shared/constants';
-import { OverlayProvider } from './components/OverlayProvider';
+import { OverlayProvider, useOverlay } from './components/OverlayProvider';
 
 const SIDEBAR_ROOT_ID = 'sc-sidebar-root';
 let reactSidebarRoot: Root | null = null;
@@ -29,6 +29,9 @@ const Sidebar: React.FC = () => {
       console.log('Sidebar closed');
     }, []),
   });
+
+  const { cancelActiveCapture } = useCaptureContext();
+  const { hide: hideOverlay } = useOverlay();
 
   const [collapsed, handleToggleCollapseRaw] = useSidebarCollapse();
   const { settings, updateSettings } = useSettings();
@@ -83,7 +86,12 @@ const Sidebar: React.FC = () => {
     () => handleToggleCollapseRaw(),
     [handleToggleCollapseRaw]
   );
-  const handleClose = useCallback(() => close(), [close]);
+  const handleClose = useCallback(() => {
+    cancelActiveCapture();
+    hideOverlay();
+    close();
+    unmountSidebar();
+  }, [cancelActiveCapture, hideOverlay, close]);
 
   // Move useDebug outside conditional block to follow Rules of Hooks
   useDebug('Sidebar Render', { x: position.x, y: position.y, side, collapsed, visible });
