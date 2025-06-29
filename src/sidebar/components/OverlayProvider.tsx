@@ -455,6 +455,25 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.1 }}
                 >
+                  {/* Size indicator */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: -2,
+                      top: -32,
+                      background: 'rgba(0,0,0,0.85)',
+                      color: '#fff',
+                      fontSize: 13,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                      pointerEvents: 'none',
+                      zIndex: 10120,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {Math.round(selection.width)} × {Math.round(selection.height)}
+                  </div>
                   {/* Corner handles */}
                   <div
                     className="absolute -top-2 -left-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
@@ -529,6 +548,25 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
               return (
                 <>
+                  {/* Size indicator (after selection complete) */}
+                  <div
+                    style={{
+                      position: 'fixed',
+                      left: viewportX - 2,
+                      top: viewportY - 32,
+                      background: 'rgba(0,0,0,0.85)',
+                      color: '#fff',
+                      fontSize: 13,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                      pointerEvents: 'none',
+                      zIndex: 10120,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {Math.round(selection.width)} × {Math.round(selection.height)}
+                  </div>
                   <div
                     className="absolute pointer-events-auto"
                     style={{
