@@ -159,49 +159,158 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     );
   };
 
-  // Helper to render drag handles
+  // Refine renderHandles to use L-shaped white lines at corners and straight white lines at sides
   const renderHandles = (
     width: number,
     height: number,
     onHandleMouseDown: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, handleKey: string) => void
   ) => {
-    // Handle positions (centered on corners/sides)
-    const size = 16;
-    const offset = size / 2;
+    const length = 20;
+    const thickness = 4;
+    const offset = length / 2;
+    const color = '#fff';
     const positions = [
-      { x: 0, y: 0, cursor: 'nwse-resize', key: 'nw' },
-      { x: width / 2, y: 0, cursor: 'ns-resize', key: 'n' },
-      { x: width, y: 0, cursor: 'nesw-resize', key: 'ne' },
-      { x: 0, y: height / 2, cursor: 'ew-resize', key: 'w' },
-      { x: width, y: height / 2, cursor: 'ew-resize', key: 'e' },
-      { x: 0, y: height, cursor: 'nesw-resize', key: 'sw' },
-      { x: width / 2, y: height, cursor: 'ns-resize', key: 's' },
-      { x: width, y: height, cursor: 'nwse-resize', key: 'se' },
+      { x: 0, y: 0, cursor: 'nwse-resize', key: 'nw', orientation: 'corner', corner: 'tl' },
+      { x: width / 2, y: 0, cursor: 'ns-resize', key: 'n', orientation: 'horizontal' },
+      { x: width, y: 0, cursor: 'nesw-resize', key: 'ne', orientation: 'corner', corner: 'tr' },
+      { x: 0, y: height / 2, cursor: 'ew-resize', key: 'w', orientation: 'vertical' },
+      { x: width, y: height / 2, cursor: 'ew-resize', key: 'e', orientation: 'vertical' },
+      { x: 0, y: height, cursor: 'nesw-resize', key: 'sw', orientation: 'corner', corner: 'bl' },
+      { x: width / 2, y: height, cursor: 'ns-resize', key: 's', orientation: 'horizontal' },
+      {
+        x: width,
+        y: height,
+        cursor: 'nwse-resize',
+        key: 'se',
+        orientation: 'corner',
+        corner: 'br',
+      },
     ];
     return (
       <>
-        {positions.map((handle) => (
-          <div
-            key={handle.key}
-            style={{
-              position: 'absolute',
-              left: handle.x - offset,
-              top: handle.y - offset,
-              width: size,
-              height: size,
-              background: '#fff',
-              border: '2px solid #22d3ee',
-              borderRadius: '50%',
-              cursor: handle.cursor,
-              zIndex: 10101,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-              transition: 'box-shadow 0.15s, border-color 0.15s',
-            }}
-            onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#a21caf')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#22d3ee')}
-          />
-        ))}
+        {positions.map((handle) => {
+          if (handle.orientation === 'corner') {
+            // L-shaped handles at corners
+            let horzStyle = {};
+            let vertStyle = {};
+            if (handle.corner === 'tl') {
+              horzStyle = {
+                left: handle.x,
+                top: handle.y - thickness / 2,
+                width: length,
+                height: thickness,
+              };
+              vertStyle = {
+                left: handle.x - thickness / 2,
+                top: handle.y,
+                width: thickness,
+                height: length,
+              };
+            } else if (handle.corner === 'tr') {
+              horzStyle = {
+                left: handle.x - length,
+                top: handle.y - thickness / 2,
+                width: length,
+                height: thickness,
+              };
+              vertStyle = {
+                left: handle.x - thickness / 2,
+                top: handle.y,
+                width: thickness,
+                height: length,
+              };
+            } else if (handle.corner === 'bl') {
+              horzStyle = {
+                left: handle.x,
+                top: handle.y - thickness / 2,
+                width: length,
+                height: thickness,
+              };
+              vertStyle = {
+                left: handle.x - thickness / 2,
+                top: handle.y - length,
+                width: thickness,
+                height: length,
+              };
+            } else if (handle.corner === 'br') {
+              horzStyle = {
+                left: handle.x - length,
+                top: handle.y - thickness / 2,
+                width: length,
+                height: thickness,
+              };
+              vertStyle = {
+                left: handle.x - thickness / 2,
+                top: handle.y - length,
+                width: thickness,
+                height: length,
+              };
+            }
+            return (
+              <React.Fragment key={handle.key}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    background: color,
+                    borderRadius: thickness,
+                    cursor: handle.cursor,
+                    zIndex: 10101,
+                    ...horzStyle,
+                  }}
+                  onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    background: color,
+                    borderRadius: thickness,
+                    cursor: handle.cursor,
+                    zIndex: 10101,
+                    ...vertStyle,
+                  }}
+                  onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
+                />
+              </React.Fragment>
+            );
+          } else if (handle.orientation === 'horizontal') {
+            return (
+              <div
+                key={handle.key}
+                style={{
+                  position: 'absolute',
+                  left: handle.x - offset,
+                  top: handle.y - thickness / 2,
+                  width: length,
+                  height: thickness,
+                  background: color,
+                  borderRadius: thickness,
+                  cursor: handle.cursor,
+                  zIndex: 10101,
+                }}
+                onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
+              />
+            );
+          } else if (handle.orientation === 'vertical') {
+            return (
+              <div
+                key={handle.key}
+                style={{
+                  position: 'absolute',
+                  left: handle.x - thickness / 2,
+                  top: handle.y - offset,
+                  width: thickness,
+                  height: length,
+                  background: color,
+                  borderRadius: thickness,
+                  cursor: handle.cursor,
+                  zIndex: 10101,
+                }}
+                onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
+              />
+            );
+          }
+          return null;
+        })}
       </>
     );
   };
@@ -428,8 +537,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                       width: selection.width,
                       height: selection.height,
                       position: 'fixed',
-                      border: '2px dashed #22d3ee',
-                      boxShadow: '0 0 0 2px #a21caf',
+                      border: '2px dotted #fff',
                       zIndex: 10100,
                       background: 'transparent',
                     }}
