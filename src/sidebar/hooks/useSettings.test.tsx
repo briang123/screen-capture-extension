@@ -170,7 +170,9 @@ describe('useSettings', () => {
       mockChromeStorage.sync.get({ settings: initialSettings });
 
       // Capture the storage change listener
-      let storageChangeListener: ((changes: any, areaName: string) => void) | null = null;
+      let storageChangeListener:
+        | ((changes: Record<string, unknown>, areaName: string) => void)
+        | null = null;
       global.chrome.storage.onChanged.addListener = vi.fn().mockImplementation((listener) => {
         storageChangeListener = listener;
       });
@@ -252,7 +254,9 @@ describe('useSettings', () => {
       mockChromeStorage.sync.get({ settings: initialSettings });
 
       // Capture the storage change listener
-      let storageChangeListener: ((changes: any, areaName: string) => void) | null = null;
+      let storageChangeListener:
+        | ((changes: Record<string, unknown>, areaName: string) => void)
+        | null = null;
       global.chrome.storage.onChanged.addListener = vi.fn().mockImplementation((listener) => {
         storageChangeListener = listener;
       });

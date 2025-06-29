@@ -305,13 +305,13 @@ describe('Availability Checks', () => {
           sync: {},
           local: {},
         },
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeStorageAvailable()).toBe(true);
     });
 
     it('should return false when Chrome is not available', () => {
-      global.chrome = undefined as any;
+      global.chrome = undefined as unknown as typeof chrome;
 
       expect(isChromeStorageAvailable()).toBe(false);
     });
@@ -319,7 +319,7 @@ describe('Availability Checks', () => {
     it('should return false when Chrome storage is not available', () => {
       global.chrome = {
         runtime: {},
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeStorageAvailable()).toBe(false);
     });
@@ -329,7 +329,7 @@ describe('Availability Checks', () => {
         storage: {
           local: {},
         },
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeStorageAvailable()).toBe(false);
     });
@@ -341,13 +341,13 @@ describe('Availability Checks', () => {
         runtime: {
           id: 'test-extension',
         },
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeExtensionAvailable()).toBe(true);
     });
 
     it('should return false when Chrome is not available', () => {
-      global.chrome = undefined as any;
+      global.chrome = undefined as unknown as typeof chrome;
 
       expect(isChromeExtensionAvailable()).toBe(false);
     });
@@ -355,7 +355,7 @@ describe('Availability Checks', () => {
     it('should return false when Chrome runtime is not available', () => {
       global.chrome = {
         storage: {},
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeExtensionAvailable()).toBe(false);
     });
@@ -363,7 +363,7 @@ describe('Availability Checks', () => {
     it('should return false when Chrome runtime id is not available', () => {
       global.chrome = {
         runtime: {},
-      } as any;
+      } as unknown as typeof chrome;
 
       expect(isChromeExtensionAvailable()).toBe(false);
     });
