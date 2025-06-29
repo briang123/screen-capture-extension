@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CHROME_ACTIONS } from '@/shared/constants';
 
-interface SelectionRect {
+export interface SelectionRect {
   x: number;
   y: number;
   width: number;
@@ -22,6 +22,8 @@ interface UseAreaCaptureReturn {
   updateSelection: (x: number, y: number) => void;
   completeSelection: () => void;
   cancelSelection: () => void;
+  setSelection: (sel: SelectionRect | null) => void;
+  captureNow: () => Promise<void>;
 }
 
 function isSelectionInViewport(sel: SelectionRect) {
@@ -74,6 +76,11 @@ export function useAreaCapture({
         });
         if (response.success && response.imageData) {
           onCapture(response.imageData);
+          // Reset selection state after capture
+          setSelection(null);
+          setIsSelecting(false);
+          setStartPos(null);
+          setShowWarning(false);
         } else {
           throw new Error(response.error || 'Capture failed');
         }
@@ -113,16 +120,9 @@ export function useAreaCapture({
     setIsSelecting(false);
     setStartPos(null);
 
-    if (selection.width > 10 && selection.height > 10) {
-      if (!isSelectionInViewport(selection)) {
-        setShowWarning(true);
-        return;
-      }
-      captureSelectedArea(selection);
-    } else {
-      setSelection(null);
-    }
-  }, [selection, captureSelectedArea]);
+    // Only mark as complete, do not trigger capture
+    // The capture will be triggered by captureNow (button click)
+  }, [selection]);
 
   // Cancel selection
   const cancelSelection = useCallback(() => {
@@ -211,6 +211,27 @@ export function useAreaCapture({
     }
   }, [isVisible]);
 
+  // Reset selection state on new area capture
+  useEffect(() => {
+    if (isVisible) {
+      setSelection(null);
+      setStartPos(null);
+      setIsSelecting(false);
+      setShowWarning(false);
+    }
+  }, [isVisible]);
+
+  // Add this to the return value of useAreaCapture
+  const captureNow = useCallback(async () => {
+    // Hide overlay (handled by parent)
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))
+    );
+    if (selection && selection.width > 10 && selection.height > 10) {
+      await captureSelectedArea(selection);
+    }
+  }, [selection, captureSelectedArea]);
+
   return {
     isSelecting,
     selection,
@@ -219,5 +240,7 @@ export function useAreaCapture({
     updateSelection,
     completeSelection,
     cancelSelection,
+    setSelection,
+    captureNow,
   };
 }

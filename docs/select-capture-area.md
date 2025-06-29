@@ -15,11 +15,13 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 ## Selection Rectangle
 
 - [x] Draw a visible selection rectangle as the user drags
-- [ ] Rectangle is clearly visible (border, corner handles, etc.)
-- [ ] Area inside the rectangle is less dark/more see-through than the rest of the overlay
+- [x] Rectangle is clearly visible (border, corner handles, etc.)
+- [x] Area inside the rectangle is a clear cutout than the rest of the overlay
 - [x] Rectangle updates in real time as the user drags
-- [x] Show size (width × height) indicator near the rectangle
+- [ ] Show size (width × height) indicator near the rectangle
 - [ ] Rectangle should not appear in same place as it was before when tapping the "select a capture area" button again. Should reset
+- [ ] On selection complete, show a capture image button
+- [ ] Allow user to adjust selection by using any of the drag handles. It should not start the selection process over.
 
 ## User Interaction
 
@@ -30,7 +32,7 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 
 ## Capture Logic
 
-- [ ] On selection complete, capture the selected area as an image
+- [ ] When tapping on capture image button, capture the selected area as an image (e.g., the drag and drop handles, selection borders/lines should not be part of the image capture)
 - [ ] Add the captured image to the sidebar panel
 - [ ] Handle errors gracefully (e.g., selection too small, capture failed)
 

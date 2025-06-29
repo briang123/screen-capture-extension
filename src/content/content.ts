@@ -557,8 +557,18 @@ async function captureArea(area: { x: number; y: number; width: number; height: 
       throw new Error('Failed to capture screen');
     }
 
+    // Convert page coordinates to viewport-relative coordinates for cropping
+    const cropX = area.x - window.scrollX;
+    const cropY = area.y - window.scrollY;
+    console.log('[captureArea] Cropping image at viewport coords:', {
+      cropX,
+      cropY,
+      width: area.width,
+      height: area.height,
+    });
+
     // Crop the image to the selected area
-    const cropped = await cropImage(response.imageData, area.x, area.y, area.width, area.height);
+    const cropped = await cropImage(response.imageData, cropX, cropY, area.width, area.height);
     return { success: true, imageData: cropped };
   } catch (error) {
     console.error('Area capture failed:', error);

@@ -182,7 +182,13 @@ export function useCapture(): UseCaptureReturn {
           isCapturing: false,
           lastCaptureTime: Date.now(),
           capturedImages: [imageData, ...prev.capturedImages],
+          showOverlay: false, // ensure overlay is hidden
         }));
+        if (typeof window !== 'undefined') {
+          console.log(
+            '[useCapture] State reset after area capture: showOverlay=false, isCapturing=false'
+          );
+        }
       } catch (error) {
         setError(createUserFacingError(error));
         resetCaptureState(); // Reset state on error

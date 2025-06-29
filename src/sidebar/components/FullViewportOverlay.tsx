@@ -17,9 +17,8 @@ const FullViewportOverlay: React.FC<FullViewportOverlayProps> = ({ visible, chil
         width: '100vw',
         height: '100vh',
         zIndex: 9999,
-        background: 'rgba(0,0,0,0.3)',
-        backdropFilter: 'blur(8px)',
         pointerEvents: 'auto',
+        background: 'transparent',
       }}
     >
       {children}
