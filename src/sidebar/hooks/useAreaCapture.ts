@@ -51,7 +51,7 @@ export function useAreaCapture({
   const [showWarning, setShowWarning] = useState(false);
   const isSelectingRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
-// Persist the last valid selection
+  // Persist the last valid selection
   const lastValidSelectionRef = useRef<SelectionRect | null>(null);
 
   // Keep refs in sync with state
@@ -140,6 +140,13 @@ export function useAreaCapture({
     console.log('[useAreaCapture] completeSelection called with selection:', selection);
     setIsSelecting(false);
     setStartPos(null);
+
+    // If the selection is 0x0 (just a tap without drag), clear it
+    if (selection.width === 0 || selection.height === 0) {
+      console.log('[useAreaCapture] Clearing invalid 0x0 selection');
+      setSelection(null);
+      return;
+    }
 
     // Only mark as complete, do not trigger capture
     // The capture will be triggered by captureNow (button click)

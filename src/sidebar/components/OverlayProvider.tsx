@@ -68,9 +68,12 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
   // Track selection complete state
   React.useEffect(() => {
-    if (!isSelecting && selection) {
+    if (!isSelecting && selection && selection.width > 0 && selection.height > 0) {
       setSelectionComplete(true);
     } else if (isSelecting) {
+      setSelectionComplete(false);
+    } else if (!isSelecting && selection && (selection.width === 0 || selection.height === 0)) {
+      // If selection is 0x0, don't mark as complete
       setSelectionComplete(false);
     }
   }, [isSelecting, selection]);
@@ -390,7 +393,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
       {showOverlay && (
         <FullViewportOverlay visible={showOverlay}>
           {/* Overlay mask with cutout (z-index: 10001) */}
-          {selection && renderOverlayMask()}
+          {selection && selection.width > 0 && selection.height > 0 && renderOverlayMask()}
 
           {/* Instructions (only show while dragging or before selection) */}
           {!selectionComplete && (
@@ -431,6 +434,8 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           {/* Selection rectangle with handles and shadow (z-index: 10100) */}
           {selection &&
             isSelecting &&
+            selection.width > 0 &&
+            selection.height > 0 &&
             (() => {
               // Convert page coordinates to viewport coordinates for fixed positioning
               const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
@@ -498,6 +503,8 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           {/* Start Capture button (only after selection is complete) */}
           {selection &&
             selectionComplete &&
+            selection.width > 0 &&
+            selection.height > 0 &&
             (() => {
               // Convert page coordinates to viewport coordinates for fixed positioning
               const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
@@ -541,6 +548,8 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
           {/* Selection rectangle always visible after selection, with handles if complete or resizing */}
           {selection &&
+            selection.width > 0 &&
+            selection.height > 0 &&
             (() => {
               const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
               const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
