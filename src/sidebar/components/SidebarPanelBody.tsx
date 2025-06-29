@@ -5,6 +5,7 @@ import { useOverlay } from '@/sidebar/components/OverlayProvider';
 import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
 import LoadingSpinner from '@/shared/components/LoadingSpinner';
 import { ICON_SIZES } from '@/shared/constants';
+import Confetti from 'react-confetti';
 
 interface SidebarPanelBodyProps {
   isSwitchingSide: boolean;
@@ -26,6 +27,7 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
     openCapturedImageInEditor,
     deleteCapturedImage,
     cancelActiveCapture,
+    showConfetti,
   } = useCaptureContext();
 
   const { show: showOverlayFunc } = useOverlay();
@@ -93,6 +95,27 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
 
   return (
     <div className="sc-sidebar-content flex flex-col gap-6 px-6 py-6">
+      {/* Confetti animation when image is added */}
+      {showConfetti && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            pointerEvents: 'none',
+            zIndex: 9999,
+          }}
+        >
+          <Confetti
+            numberOfPieces={120}
+            recycle={false}
+            width={window.innerWidth / 3}
+            height={180}
+          />
+        </div>
+      )}
+
       {/* Thumbnails at the top */}
       {Array.isArray(capturedImages) && capturedImages.length > 0 && (
         <div className="flex flex-row flex-wrap gap-3 mb-4" style={{ background: '#eee' }}>

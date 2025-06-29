@@ -28,6 +28,7 @@ interface UseCaptureReturn extends CaptureState {
   copyCapturedImage: (index: number) => Promise<void>;
   openCapturedImageInEditor: (index: number) => Promise<void>;
   cancelActiveCapture: () => void;
+  showConfetti: boolean;
 }
 
 /**
@@ -95,6 +96,7 @@ export function useCapture(): UseCaptureReturn {
 
   const [successMessage, setSuccessMessage] = useSuccessMessage(TIMEOUTS.SUCCESS_MESSAGE);
   const [error, setError] = useErrorMessage(TIMEOUTS.ERROR_MESSAGE);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Helper function to reset capture state
   const resetCaptureState = useCallback(() => {
@@ -184,6 +186,8 @@ export function useCapture(): UseCaptureReturn {
           capturedImages: [imageData, ...prev.capturedImages],
           showOverlay: false, // ensure overlay is hidden
         }));
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 1200);
         if (typeof window !== 'undefined') {
           console.log(
             '[useCapture] State reset after area capture: showOverlay=false, isCapturing=false'
@@ -310,5 +314,6 @@ export function useCapture(): UseCaptureReturn {
     copyCapturedImage,
     openCapturedImageInEditor,
     cancelActiveCapture,
+    showConfetti,
   };
 }

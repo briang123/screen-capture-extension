@@ -51,6 +51,8 @@ export function useAreaCapture({
   const [showWarning, setShowWarning] = useState(false);
   const isSelectingRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
+// Persist the last valid selection
+  const lastValidSelectionRef = useRef<SelectionRect | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -74,6 +76,7 @@ export function useAreaCapture({
             height: sel.height,
           },
         });
+        console.log('[useAreaCapture] captureSelectedArea response:', response);
         if (response.success && response.imageData) {
           onCapture(response.imageData);
           // Reset selection state after capture
@@ -94,6 +97,7 @@ export function useAreaCapture({
 
   // Start selection
   const startSelection = useCallback((x: number, y: number) => {
+    console.log('[useAreaCapture] startSelection called with:', { x, y });
     setStartPos({ x, y });
     setIsSelecting(true);
     setSelection({ x, y, width: 0, height: 0 });
@@ -102,21 +106,38 @@ export function useAreaCapture({
 
   // Update selection
   const updateSelection = useCallback((currentX: number, currentY: number) => {
-    if (!isSelectingRef.current || !startPosRef.current) return;
+    if (!isSelectingRef.current || !startPosRef.current) {
+      console.log('[useAreaCapture] updateSelection skipped - not selecting or no start pos');
+      return;
+    }
 
     const x = Math.min(startPosRef.current.x, currentX);
     const y = Math.min(startPosRef.current.y, currentY);
     const width = Math.abs(currentX - startPosRef.current.x);
     const height = Math.abs(currentY - startPosRef.current.y);
     const sel = { x, y, width, height };
+    console.log('[useAreaCapture] updateSelection:', {
+      currentX,
+      currentY,
+      startPos: startPosRef.current,
+      selection: sel,
+    });
     setSelection(sel);
     setShowWarning(!isSelectionInViewport(sel));
+    // Store as last valid selection if valid
+    if (width > 0 && height > 0) {
+      lastValidSelectionRef.current = sel;
+    }
   }, []);
 
   // Complete selection
   const completeSelection = useCallback(() => {
-    if (!isSelectingRef.current || !selection) return;
+    if (!isSelectingRef.current || !selection) {
+      console.log('[useAreaCapture] completeSelection skipped - not selecting or no selection');
+      return;
+    }
 
+    console.log('[useAreaCapture] completeSelection called with selection:', selection);
     setIsSelecting(false);
     setStartPos(null);
 
@@ -135,9 +156,19 @@ export function useAreaCapture({
 
   // Global mouse event handlers
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      console.log('[useAreaCapture] Overlay not visible, skipping event listener setup');
+      return;
+    }
+
+    console.log('[useAreaCapture] Setting up global mouse event listeners');
 
     const handleGlobalMouseDown = (e: MouseEvent) => {
+      console.log('[useAreaCapture] Global mousedown event:', {
+        pageX: e.pageX,
+        pageY: e.pageY,
+        isSelecting: isSelectingRef.current,
+      });
       if (isSelectingRef.current) return; // Already selecting
 
       // Prevent default to avoid text selection
@@ -150,6 +181,7 @@ export function useAreaCapture({
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (!isSelectingRef.current) return;
 
+      console.log('[useAreaCapture] Global mousemove event:', { pageX: e.pageX, pageY: e.pageY });
       // Prevent default to avoid text selection
       e.preventDefault();
       e.stopPropagation();
@@ -158,6 +190,11 @@ export function useAreaCapture({
     };
 
     const handleGlobalMouseUp = (e: MouseEvent) => {
+      console.log('[useAreaCapture] Global mouseup event:', {
+        pageX: e.pageX,
+        pageY: e.pageY,
+        isSelecting: isSelectingRef.current,
+      });
       if (!isSelectingRef.current) return;
 
       // Prevent default to avoid text selection
@@ -176,6 +213,7 @@ export function useAreaCapture({
     document.body.style.userSelect = 'none';
 
     return () => {
+      console.log('[useAreaCapture] Cleaning up global mouse event listeners');
       document.removeEventListener('mousedown', handleGlobalMouseDown, true);
       document.removeEventListener('mousemove', handleGlobalMouseMove, true);
       document.removeEventListener('mouseup', handleGlobalMouseUp, true);
@@ -223,6 +261,7 @@ export function useAreaCapture({
 
   // Add this to the return value of useAreaCapture
   const captureNow = useCallback(async () => {
+    console.log('[useAreaCapture] captureNow called');
     // Hide overlay (handled by parent)
     await new Promise((r) =>
       requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))

@@ -11,6 +11,7 @@ interface CaptureContextType {
   capturedImages: string[];
   showOverlay: boolean;
   setShowOverlay: (visible: boolean) => void;
+  showConfetti: boolean;
 
   // Actions
   onCapture: () => Promise<void>;
@@ -57,6 +58,7 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     openCapturedImageInEditor,
     deleteCapturedImage,
     cancelActiveCapture,
+    showConfetti,
   } = useCapture();
 
   const onCapture = useCallback(async () => {
@@ -91,6 +93,7 @@ export const CaptureProvider: React.FC<CaptureProviderProps> = ({ children }) =>
     capturedImages,
     showOverlay: false, // This will be managed by OverlayProvider
     setShowOverlay: () => {}, // Placeholder, not used
+    showConfetti,
     // Actions
     onCapture,
     onAreaCapture,
