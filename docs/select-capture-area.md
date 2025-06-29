@@ -21,9 +21,10 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 - [x] The drag handles should be thicker lines instead of circles
 - [ ] The drag handles and selection border should be a color other than white so that we can have contrast and see the drag handles
 - [x] Show size (width × height) indicator near the rectangle, should be in top left on the outside of the selected area.
-- [ ] Rectangle should not appear in same place as it was before when tapping the "select a capture area" button again. Should reset
-- [ ] On selection complete, show a capture image button
+- [x] Rectangle should not appear in same place as it was before when tapping the "select a capture area" button again. Should reset
+- [x] On selection complete, show a capture image button
 - [ ] Allow user to adjust selection by using any of the drag handles. It should not start the selection process over.
+- [ ] If the user taps on the screen, there is a 0 x 0 selection with the capture image button below it. If the selection is 0 x 0, that means nothing is selected and we should not see anything reflecting a selection, so we shouldn't see the capture image button either. Basically, if user taps on screen, it's thinking that something is selected, when nothing is really selected.
 
 ## User Interaction
 
