@@ -27,7 +27,7 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 
 ## User Interaction
 
-- [ ] Tapping close button on sidebar panel should reset the process and overlay so that when user opens extension again, they'll start a new process
+- [x] Tapping close button on sidebar panel should reset the process and overlay so that when user opens extension again, they should see the sidebar panel again and be able to start a new process. Should also unmount the sidebar component so we leave no trace.
 - [ ] Cancel selection with ESC key or Cancel button
 - [ ] Prevent text selection and scrolling while overlay is active
 - [ ] Support both mouse and touch input for selection
