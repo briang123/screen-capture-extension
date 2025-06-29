@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { ANIMATION_DURATIONS } from '@/shared/constants';
 
 export type SidebarSide = 'left' | 'right';

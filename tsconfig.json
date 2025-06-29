@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": [
-      "DOM",
-      "ES2020"
-    ],
+    "lib": ["DOM", "ES2020"],
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
@@ -16,38 +13,16 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@popup/*": [
-        "src/popup/*"
-      ],
-      "@window/*": [
-        "src/window/*"
-      ],
-      "@options/*": [
-        "src/options/*"
-      ],
-      "@background/*": [
-        "src/background/*"
-      ],
-      "@content/*": [
-        "src/content/*"
-      ]
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@utils/*": ["src/utils/*"],
+      "@popup/*": ["src/popup/*"],
+      "@window/*": ["src/window/*"],
+      "@options/*": ["src/options/*"],
+      "@background/*": ["src/background/*"],
+      "@content/*": ["src/content/*"]
     }
   },
-  "include": [
-    "src",
-    "scripts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src", "scripts"],
+  "exclude": ["node_modules", "dist"]
 }
