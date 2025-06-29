@@ -1,0 +1,5 @@
+# Clean Lint Report Rule
+
+The user always wishes to have a 100% clean lint report (no errors or warnings). The AI agent must proactively help fix all issues from the problems tab, including warnings, whenever they appear. This includes fixing TypeScript type warnings, React hook dependency warnings, and any other linter or formatting issues, not just errors.
+
+If a warning or error appears in the problems tab or lint output, the agent should offer to fix it and proceed unless the user explicitly says otherwise.
