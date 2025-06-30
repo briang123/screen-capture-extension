@@ -45,16 +45,15 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   const hide = useCallback(() => setShowOverlay(false), []);
 
   // Use the area capture hook
-  const { selection, showWarning, isSelecting, completeSelection, setSelection, captureNow } =
-    useAreaCapture({
-      onCapture: async (imageData: string) => {
-        // Hide overlay before capture
-        // setShowOverlay(false); // no longer needed here
-        pendingImageDataRef.current = imageData;
-      },
-      onCancel: hide,
-      isVisible: showOverlay,
-    });
+  const { selection, showWarning, isSelecting, setSelection, captureNow } = useAreaCapture({
+    onCapture: async (imageData: string) => {
+      // Hide overlay before capture
+      // setShowOverlay(false); // no longer needed here
+      pendingImageDataRef.current = imageData;
+    },
+    onCancel: hide,
+    isVisible: showOverlay,
+  });
 
   // Call onAreaCaptureComplete only after overlay is unmounted
   useEffect(() => {
@@ -258,29 +257,6 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   showSizeIndicator={isSelecting}
                   onHandleMouseDown={handleHandleMouseDown}
                 />
-              );
-            })()}
-
-          {/* Start Capture button (only after selection is complete) */}
-          {hasValidSelection &&
-            selectionComplete &&
-            (() => {
-              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
-              return (
-                <button
-                  onClick={completeSelection}
-                  style={{
-                    position: 'fixed',
-                    top: viewportY + selection.height + 24,
-                    left: `calc(${viewportX + selection.width / 2}px)`,
-                    transform: 'translateX(-50%)',
-                    zIndex: Z_INDEX.START_CAPTURE,
-                    pointerEvents: 'auto',
-                  }}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-base hover:bg-blue-700 transition-colors border-2 border-white"
-                >
-                  Start Capture
-                </button>
               );
             })()}
 
