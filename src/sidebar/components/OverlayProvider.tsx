@@ -5,8 +5,10 @@ import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
 import ReactDOM from 'react-dom';
-import { Z_INDEX } from '../../shared/constants';
-import { ANIMATION_DURATIONS } from '../../shared/constants';
+import { Z_INDEX } from '@/shared/constants';
+import { ANIMATION_DURATIONS } from '@/shared/constants';
+import OverlayMask from '@/sidebar/components/OverlayMask';
+import SelectionHandles from '@/sidebar/components/SelectionHandles';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -97,229 +99,6 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     windowInnerHeight: typeof window !== 'undefined' ? window.innerHeight : undefined,
     documentBodyExists: typeof document !== 'undefined' && !!document.body,
   });
-
-  // Four-div overlay mask for a true clear cutout (no blur, just gray overlay)
-  const renderOverlayMask = () => {
-    if (!selection) return null;
-    const { x, y, width, height } = selection;
-    // Convert page coordinates to viewport coordinates for fixed positioning
-    const viewportX = x - (typeof window !== 'undefined' ? window.scrollX : 0);
-    const viewportY = y - (typeof window !== 'undefined' ? window.scrollY : 0);
-    const right = viewportX + width;
-    const bottom = viewportY + height;
-    return (
-      <>
-        {/* Top */}
-        <div
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            width: '100vw',
-            height: viewportY,
-            background: 'rgba(40,40,40,0.35)',
-            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Bottom */}
-        <div
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: bottom,
-            width: '100vw',
-            height: `calc(100vh - ${bottom}px)`,
-            background: 'rgba(40,40,40,0.35)',
-            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Left */}
-        <div
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: viewportY,
-            width: viewportX,
-            height: height,
-            background: 'rgba(40,40,40,0.35)',
-            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Right */}
-        <div
-          style={{
-            position: 'fixed',
-            left: right,
-            top: viewportY,
-            width: `calc(100vw - ${right}px)`,
-            height: height,
-            background: 'rgba(40,40,40,0.35)',
-            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-            pointerEvents: 'none',
-          }}
-        />
-      </>
-    );
-  };
-
-  // Refine renderHandles to use L-shaped white lines at corners and straight white lines at sides
-  const renderHandles = (
-    width: number,
-    height: number,
-    onHandleMouseDown: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, handleKey: string) => void
-  ) => {
-    const length = 20;
-    const thickness = 4;
-    const offset = length / 2;
-    const color = '#fff';
-    const positions = [
-      { x: 0, y: 0, cursor: 'nwse-resize', key: 'nw', orientation: 'corner', corner: 'tl' },
-      { x: width / 2, y: 0, cursor: 'ns-resize', key: 'n', orientation: 'horizontal' },
-      { x: width, y: 0, cursor: 'nesw-resize', key: 'ne', orientation: 'corner', corner: 'tr' },
-      { x: 0, y: height / 2, cursor: 'ew-resize', key: 'w', orientation: 'vertical' },
-      { x: width, y: height / 2, cursor: 'ew-resize', key: 'e', orientation: 'vertical' },
-      { x: 0, y: height, cursor: 'nesw-resize', key: 'sw', orientation: 'corner', corner: 'bl' },
-      { x: width / 2, y: height, cursor: 'ns-resize', key: 's', orientation: 'horizontal' },
-      {
-        x: width,
-        y: height,
-        cursor: 'nwse-resize',
-        key: 'se',
-        orientation: 'corner',
-        corner: 'br',
-      },
-    ];
-    return (
-      <>
-        {positions.map((handle) => {
-          if (handle.orientation === 'corner') {
-            // L-shaped handles at corners
-            let horzStyle = {};
-            let vertStyle = {};
-            if (handle.corner === 'tl') {
-              horzStyle = {
-                left: handle.x,
-                top: handle.y - thickness / 2,
-                width: length,
-                height: thickness,
-              };
-              vertStyle = {
-                left: handle.x - thickness / 2,
-                top: handle.y,
-                width: thickness,
-                height: length,
-              };
-            } else if (handle.corner === 'tr') {
-              horzStyle = {
-                left: handle.x - length,
-                top: handle.y - thickness / 2,
-                width: length,
-                height: thickness,
-              };
-              vertStyle = {
-                left: handle.x - thickness / 2,
-                top: handle.y,
-                width: thickness,
-                height: length,
-              };
-            } else if (handle.corner === 'bl') {
-              horzStyle = {
-                left: handle.x,
-                top: handle.y - thickness / 2,
-                width: length,
-                height: thickness,
-              };
-              vertStyle = {
-                left: handle.x - thickness / 2,
-                top: handle.y - length,
-                width: thickness,
-                height: length,
-              };
-            } else if (handle.corner === 'br') {
-              horzStyle = {
-                left: handle.x - length,
-                top: handle.y - thickness / 2,
-                width: length,
-                height: thickness,
-              };
-              vertStyle = {
-                left: handle.x - thickness / 2,
-                top: handle.y - length,
-                width: thickness,
-                height: length,
-              };
-            }
-            return (
-              <React.Fragment key={handle.key}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    background: color,
-                    borderRadius: thickness,
-                    cursor: handle.cursor,
-                    zIndex: Z_INDEX.SELECTION_HANDLE,
-                    ...horzStyle,
-                  }}
-                  onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    background: color,
-                    borderRadius: thickness,
-                    cursor: handle.cursor,
-                    zIndex: Z_INDEX.SELECTION_HANDLE,
-                    ...vertStyle,
-                  }}
-                  onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
-                />
-              </React.Fragment>
-            );
-          } else if (handle.orientation === 'horizontal') {
-            return (
-              <div
-                key={handle.key}
-                style={{
-                  position: 'absolute',
-                  left: handle.x - offset,
-                  top: handle.y - thickness / 2,
-                  width: length,
-                  height: thickness,
-                  background: color,
-                  borderRadius: thickness,
-                  cursor: handle.cursor,
-                  zIndex: Z_INDEX.SELECTION_HANDLE,
-                }}
-                onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
-              />
-            );
-          } else if (handle.orientation === 'vertical') {
-            return (
-              <div
-                key={handle.key}
-                style={{
-                  position: 'absolute',
-                  left: handle.x - thickness / 2,
-                  top: handle.y - offset,
-                  width: thickness,
-                  height: length,
-                  background: color,
-                  borderRadius: thickness,
-                  cursor: handle.cursor,
-                  zIndex: Z_INDEX.SELECTION_HANDLE,
-                }}
-                onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
-              />
-            );
-          }
-          return null;
-        })}
-      </>
-    );
-  };
 
   // Add handler for resizing
   const handleHandleMouseDown = (
@@ -442,7 +221,9 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
       {showOverlay && (
         <FullViewportOverlay visible={showOverlay}>
           {/* Overlay mask with cutout (z-index: 10001) */}
-          {selection && selection.width > 0 && selection.height > 0 && renderOverlayMask()}
+          {selection && selection.width > 0 && selection.height > 0 && (
+            <OverlayMask selection={selection} />
+          )}
 
           {/* Instructions (only show while dragging or before selection) */}
           {!selectionComplete && (
@@ -638,8 +419,13 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                       background: 'transparent',
                     }}
                   >
-                    {showHandles &&
-                      renderHandles(selection.width, selection.height, handleHandleMouseDown)}
+                    {showHandles && (
+                      <SelectionHandles
+                        width={selection.width}
+                        height={selection.height}
+                        onHandleMouseDown={handleHandleMouseDown}
+                      />
+                    )}
                   </div>
                 </>
               );

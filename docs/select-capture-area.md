@@ -71,3 +71,75 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 Feel free to add your own ideas below!
 
 - [ ]
+
+## Refactoring
+
+### OverlayProvider.tsx
+
+1. Component Decomposition
+
+- [ ] The file is quite large and contains multiple responsibilities (context, overlay rendering, handle rendering, event logic, etc.). Breaking it into smaller components and utility functions will improve readability and testability.
+
+Suggestions:
+
+- [x] Move renderOverlayMask and renderHandles into their own components or utility files.
+- [ ] Extract the selection rectangle and handles into a SelectionRectangle component.
+- [ ] Extract the capture/cancel buttons into their own components.
+
+2. Reduce Inline Styles
+
+- [ ] There are many inline style objects, which can be hard to maintain and may cause unnecessary re-renders.
+
+Consider:
+
+- [ ] Moving repeated style objects to constants outside the component.
+- [ ] Using CSS classes (possibly with Tailwind, as you already use it) for static styles.
+
+3. Z-Index Management
+
+- [ ] There are many hardcoded z-index values.
+
+Consider:
+
+- [ ] Defining a z-index scale in a constants file or in your CSS/Tailwind config.
+- [ ] Using named constants (e.g., Z_INDEX_SELECTION_RECT = 10100) for clarity.
+
+4. Portal Button Logic
+
+- [ ] You have two different "capture" buttons: one rendered via a portal (captureButtonPortal) and one as part of the overlay. This could be confusing.
+
+Consider:
+
+- [ ] Unifying the logic so only one "capture" button is rendered, and its placement is consistent.
+      If both are needed, document why.
+
+5. Event Handler Extraction
+
+- [ ] Handlers like handleHandleMouseDown are large and could be moved outside the main component for clarity, or at least split into smaller functions.
+
+6. Selection State Management
+
+- [ ] The logic for determining when a selection is "complete" is spread across multiple effects and conditions.
+
+Consider:
+
+- [ ] Creating a utility function like isSelectionComplete(selection, isSelecting) to centralize this logic.
+
+7. Type Safety and Defaults
+
+- [ ] Ensure all optional values (like selection) are handled safely.
+- [ ] Consider using default values or guards to avoid repeated nullish checks.
+
+8. Comments and Documentation
+
+- [ ] Add JSDoc comments to exported functions and complex logic blocks.
+- [ ] Briefly document the overlay flow at the top of the file for future maintainers.
+
+9. Performance: useMemo/useCallback
+
+- [ ] Use useMemo for expensive calculations (like style objects or derived values) if they depend on props/state.
+- [ ] Use useCallback for handlers passed to child components.
+
+10. Testing
+
+- [ ] If not already done, ensure that the extracted components and hooks are covered by unit tests.
