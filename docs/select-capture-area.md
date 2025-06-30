@@ -143,3 +143,12 @@ Consider:
 10. Testing
 
 - [ ] If not already done, ensure that the extracted components and hooks are covered by unit tests.
+
+11. Hooks
+
+- [ ] useAreaCaptureWithDebug - Area capture and debug state
+- [x] useCaptureButtonPortal - Portal button visibility, position, and rendering
+- [ ] useSelectionRectanglePosition - Viewport coordinate calculation for rectangle
+- [ ] useOverlayMaskVisibility - Overlay mask visibility logic
+- [ ] useHandleResize - Handle-based resizing logic
+- [ ] useKeyboardShortcuts - Keyboard event handling for overlay/selection

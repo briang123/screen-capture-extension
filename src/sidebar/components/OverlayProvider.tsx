@@ -6,12 +6,11 @@ import { useDebug } from '../hooks/useDebug';
 import { Z_INDEX } from '@/shared/constants';
 import OverlayMask from '@/sidebar/components/OverlayMask';
 import SelectionRectangle from '@/sidebar/components/SelectionRectangle';
-import CaptureButton from '@/sidebar/components/CaptureButton';
-import Portal from '@/shared/components/Portal';
-import { pageToViewportCoords } from '@/shared/utils/position';
 import CancelButton from '@/sidebar/components/CancelButton';
 import { useSelectionState } from '@/sidebar/hooks/useSelectionState';
 import { isSelectionComplete } from '@/shared/utils/selection';
+import { useCaptureButtonPortal } from '@/sidebar/hooks/useCaptureButtonPortal';
+import { pageToViewportCoords } from '@/shared/utils/position';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -172,44 +171,15 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
   const hasValidSelection = selection && selection.width > 0 && selection.height > 0;
 
-  let captureButtonPortal = null;
-  if (hasValidSelection && selectionComplete) {
-    // Center the button horizontally below the selected area
-    const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
-    captureButtonPortal = (
-      <Portal>
-        <CaptureButton
-          style={{
-            position: 'fixed',
-            top: viewportY + selection.height + 24,
-            left: `calc(${viewportX + selection.width / 2}px)`,
-            transform: 'translateX(-50%)',
-            width: 120,
-            zIndex: Z_INDEX.CAPTURE_BUTTON, // extremely high z-index
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 8,
-            padding: '8px 16px',
-            fontWeight: 500,
-            fontSize: 16,
-            color: '#1e293b',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            textAlign: 'center',
-            pointerEvents: 'auto',
-          }}
-          onClick={async () => {
-            await captureNow();
-            setTimeout(() => {
-              setShowOverlay(false);
-            }, 0);
-          }}
-        >
-          Capture Image
-        </CaptureButton>
-      </Portal>
-    );
-  }
+  const captureButtonPortal = useCaptureButtonPortal({
+    selection,
+    selectionComplete,
+    onCapture: async () => {
+      await captureNow();
+      setTimeout(() => setShowOverlay(false), 0);
+    },
+    show: !!(hasValidSelection && selectionComplete),
+  });
 
   return (
     <OverlayContext.Provider value={{ showOverlay, show, hide }}>
