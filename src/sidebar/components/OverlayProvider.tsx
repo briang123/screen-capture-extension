@@ -5,6 +5,8 @@ import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
 import ReactDOM from 'react-dom';
+import { Z_INDEX } from '../../shared/constants';
+import { ANIMATION_DURATIONS } from '../../shared/constants';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -116,7 +118,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             width: '100vw',
             height: viewportY,
             background: 'rgba(40,40,40,0.35)',
-            zIndex: 10001,
+            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
             pointerEvents: 'none',
           }}
         />
@@ -129,7 +131,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             width: '100vw',
             height: `calc(100vh - ${bottom}px)`,
             background: 'rgba(40,40,40,0.35)',
-            zIndex: 10001,
+            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
             pointerEvents: 'none',
           }}
         />
@@ -142,7 +144,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             width: viewportX,
             height: height,
             background: 'rgba(40,40,40,0.35)',
-            zIndex: 10001,
+            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
             pointerEvents: 'none',
           }}
         />
@@ -155,7 +157,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             width: `calc(100vw - ${right}px)`,
             height: height,
             background: 'rgba(40,40,40,0.35)',
-            zIndex: 10001,
+            zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
             pointerEvents: 'none',
           }}
         />
@@ -258,7 +260,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     background: color,
                     borderRadius: thickness,
                     cursor: handle.cursor,
-                    zIndex: 10101,
+                    zIndex: Z_INDEX.SELECTION_HANDLE,
                     ...horzStyle,
                   }}
                   onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
@@ -269,7 +271,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     background: color,
                     borderRadius: thickness,
                     cursor: handle.cursor,
-                    zIndex: 10101,
+                    zIndex: Z_INDEX.SELECTION_HANDLE,
                     ...vertStyle,
                   }}
                   onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
@@ -289,7 +291,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   background: color,
                   borderRadius: thickness,
                   cursor: handle.cursor,
-                  zIndex: 10101,
+                  zIndex: Z_INDEX.SELECTION_HANDLE,
                 }}
                 onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
               />
@@ -307,7 +309,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   background: color,
                   borderRadius: thickness,
                   cursor: handle.cursor,
-                  zIndex: 10101,
+                  zIndex: Z_INDEX.SELECTION_HANDLE,
                 }}
                 onMouseDown={(e) => onHandleMouseDown(e, handle.key)}
               />
@@ -402,7 +404,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           left: `calc(${viewportX + selection.width / 2}px)`,
           transform: 'translateX(-50%)',
           width: 120,
-          zIndex: 99999, // extremely high z-index
+          zIndex: Z_INDEX.CAPTURE_BUTTON, // extremely high z-index
           background: '#fff',
           border: '1px solid #e5e7eb',
           borderRadius: 8,
@@ -450,7 +452,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                 top: 16,
                 left: 0,
                 width: '100vw',
-                zIndex: 10010,
+                zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
                 textAlign: 'center',
                 pointerEvents: 'none',
               }}
@@ -470,7 +472,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
               position: 'fixed',
               top: 16,
               left: 16,
-              zIndex: 10010,
+              zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
               pointerEvents: 'auto',
             }}
             className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow border border-gray-200"
@@ -500,12 +502,12 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     border: '2px dashed #00ff00',
                     borderRadius: 8,
                     boxShadow: '0 0 0 2px #ff00ff, 0 4px 24px 0 rgba(0,0,0,0.18)',
-                    zIndex: 10100,
+                    zIndex: Z_INDEX.SELECTION_OVERLAY,
                     background: 'transparent',
                   }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.1 }}
+                  transition={{ duration: ANIMATION_DURATIONS.OVERLAY_FADE / 1000 }}
                 >
                   {/* Size indicator */}
                   <div
@@ -520,7 +522,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                       borderRadius: 6,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
                       pointerEvents: 'none',
-                      zIndex: 10120,
+                      zIndex: Z_INDEX.SIZE_INDICATOR,
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -529,19 +531,19 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   {/* Corner handles */}
                   <div
                     className="absolute -top-2 -left-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: 10110 }}
+                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
                   />
                   <div
                     className="absolute -top-2 -right-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: 10110 }}
+                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
                   />
                   <div
                     className="absolute -bottom-2 -left-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: 10110 }}
+                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
                   />
                   <div
                     className="absolute -bottom-2 -right-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: 10110 }}
+                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
                   />
                 </motion.div>
               );
@@ -565,7 +567,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     top: viewportY + selection.height + 24,
                     left: `calc(${viewportX + selection.width / 2}px)`,
                     transform: 'translateX(-50%)',
-                    zIndex: 10030,
+                    zIndex: Z_INDEX.START_CAPTURE,
                     pointerEvents: 'auto',
                   }}
                   className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-base hover:bg-blue-700 transition-colors border-2 border-white"
@@ -583,7 +585,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                 bottom: 16,
                 left: '50%',
                 transform: 'translateX(-50%)',
-                zIndex: 10040,
+                zIndex: Z_INDEX.WARNING,
                 pointerEvents: 'none',
               }}
             >
@@ -617,7 +619,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                       borderRadius: 6,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
                       pointerEvents: 'none',
-                      zIndex: 10120,
+                      zIndex: Z_INDEX.SIZE_INDICATOR,
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -632,7 +634,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                       height: selection.height,
                       position: 'fixed',
                       border: '2px dotted #fff',
-                      zIndex: 10100,
+                      zIndex: Z_INDEX.SELECTION_OVERLAY,
                       background: 'transparent',
                     }}
                   >
