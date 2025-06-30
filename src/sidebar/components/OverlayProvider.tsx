@@ -1,14 +1,12 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useAreaCapture } from '../hooks/useAreaCapture';
 import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
 import ReactDOM from 'react-dom';
 import { Z_INDEX } from '@/shared/constants';
-import { ANIMATION_DURATIONS } from '@/shared/constants';
 import OverlayMask from '@/sidebar/components/OverlayMask';
-import SelectionHandles from '@/sidebar/components/SelectionHandles';
+import SelectionRectangle from '@/sidebar/components/SelectionRectangle';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -272,61 +270,15 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
               const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
 
               return (
-                <motion.div
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: viewportX,
-                    top: viewportY,
-                    width: selection.width,
-                    height: selection.height,
-                    position: 'fixed',
-                    border: '2px dashed #00ff00',
-                    borderRadius: 8,
-                    boxShadow: '0 0 0 2px #ff00ff, 0 4px 24px 0 rgba(0,0,0,0.18)',
-                    zIndex: Z_INDEX.SELECTION_OVERLAY,
-                    background: 'transparent',
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: ANIMATION_DURATIONS.OVERLAY_FADE / 1000 }}
-                >
-                  {/* Size indicator */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: -2,
-                      top: -32,
-                      background: 'rgba(0,0,0,0.85)',
-                      color: '#fff',
-                      fontSize: 13,
-                      padding: '2px 8px',
-                      borderRadius: 6,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                      pointerEvents: 'none',
-                      zIndex: Z_INDEX.SIZE_INDICATOR,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {Math.round(selection.width)} × {Math.round(selection.height)}
-                  </div>
-                  {/* Corner handles */}
-                  <div
-                    className="absolute -top-2 -left-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
-                  />
-                  <div
-                    className="absolute -top-2 -right-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
-                  />
-                  <div
-                    className="absolute -bottom-2 -left-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
-                  />
-                  <div
-                    className="absolute -bottom-2 -right-2 w-3 h-3 bg-white border-2 border-blue-500 rounded-full shadow"
-                    style={{ zIndex: Z_INDEX.CORNER_HANDLE }}
-                  />
-                </motion.div>
+                <SelectionRectangle
+                  x={viewportX}
+                  y={viewportY}
+                  width={selection.width}
+                  height={selection.height}
+                  showHandles={isSelecting}
+                  showSizeIndicator={isSelecting}
+                  onHandleMouseDown={handleHandleMouseDown}
+                />
               );
             })()}
 
@@ -420,9 +372,13 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     }}
                   >
                     {showHandles && (
-                      <SelectionHandles
+                      <SelectionRectangle
+                        x={viewportX}
+                        y={viewportY}
                         width={selection.width}
                         height={selection.height}
+                        showHandles={showHandles}
+                        showSizeIndicator={showHandles}
                         onHandleMouseDown={handleHandleMouseDown}
                       />
                     )}
