@@ -75,6 +75,7 @@ const CornerHandle: React.FC<{
   return (
     <>
       <div
+        data-selection-handle
         style={{
           position: 'absolute',
           background: HANDLE_COLOR,
@@ -86,6 +87,7 @@ const CornerHandle: React.FC<{
         onMouseDown={(e) => onMouseDown(e, handle.key)}
       />
       <div
+        data-selection-handle
         style={{
           position: 'absolute',
           background: HANDLE_COLOR,
@@ -115,6 +117,7 @@ const SelectionHandles: React.FC<SelectionHandlesProps> = ({
           return (
             <div
               key={handle.key}
+              data-selection-handle
               style={{
                 position: 'absolute',
                 left: handle.x - HANDLE_OFFSET,
@@ -133,6 +136,7 @@ const SelectionHandles: React.FC<SelectionHandlesProps> = ({
           return (
             <div
               key={handle.key}
+              data-selection-handle
               style={{
                 position: 'absolute',
                 left: handle.x - HANDLE_THICKNESS / 2,

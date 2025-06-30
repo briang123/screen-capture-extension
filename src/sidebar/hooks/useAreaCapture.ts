@@ -160,6 +160,9 @@ export function useAreaCapture({
       if (e.target instanceof HTMLElement && e.target.closest('#portal-capture-btn')) return;
       if (isSelectingRef.current) return; // Already selecting
 
+      // Ignore if clicking on selection handles (they have their own handlers)
+      if (e.target instanceof HTMLElement && e.target.closest('[data-selection-handle]')) return;
+
       // Prevent default to avoid text selection
       e.preventDefault();
       e.stopPropagation();

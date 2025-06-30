@@ -168,14 +168,14 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             <CancelButton onClick={hide} />
 
             {/* Selection rectangle with handles and shadow (z-index: 10100) */}
-            {hasValidSelection && isSelecting && (
+            {hasValidSelection && (
               <SelectionRectangle
                 x={pageToViewportCoords(selection.x, selection.y).x}
                 y={pageToViewportCoords(selection.x, selection.y).y}
                 width={selection.width}
                 height={selection.height}
-                showHandles={isSelecting}
-                showSizeIndicator={isSelecting}
+                showHandles={true}
+                showSizeIndicator={true}
                 onHandleMouseDown={handleHandleMouseDown}
               />
             )}
@@ -196,43 +196,6 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   ⚠️ Selection is outside viewport
                 </span>
               </div>
-            )}
-
-            {/* Selection rectangle always visible after selection, with handles if complete or resizing */}
-            {hasValidSelection && (
-              <>
-                {/* Size indicator (after selection complete) */}
-                <div
-                  style={{
-                    position: 'fixed',
-                    left: pageToViewportCoords(selection.x, selection.y).x - 2,
-                    top: pageToViewportCoords(selection.x, selection.y).y - 32,
-                    background: 'rgba(0,0,0,0.85)',
-                    color: '#fff',
-                    fontSize: 13,
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                    pointerEvents: 'none',
-                    zIndex: Z_INDEX.SIZE_INDICATOR,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {Math.round(selection.width)} × {Math.round(selection.height)}
-                </div>
-                {/* Handles if complete or resizing */}
-                {(selectionComplete || isSelecting) && (
-                  <SelectionRectangle
-                    x={pageToViewportCoords(selection.x, selection.y).x}
-                    y={pageToViewportCoords(selection.x, selection.y).y}
-                    width={selection.width}
-                    height={selection.height}
-                    showHandles={selectionComplete || isSelecting}
-                    showSizeIndicator={false}
-                    onHandleMouseDown={handleHandleMouseDown}
-                  />
-                )}
-              </>
             )}
           </FullViewportOverlay>
         </div>
