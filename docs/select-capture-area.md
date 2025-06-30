@@ -84,7 +84,7 @@ Suggestions:
 
 - [x] Move renderOverlayMask and renderHandles into their own components or utility files.
 - [x] Extract the selection rectangle and handles into a SelectionRectangle component.
-- [ ] Extract the capture/cancel buttons into their own components.
+- [x] Extract the capture/cancel buttons into their own components.
 
 2. Reduce Inline Styles
 

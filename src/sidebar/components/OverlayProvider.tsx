@@ -3,10 +3,13 @@ import { useAreaCapture } from '../hooks/useAreaCapture';
 import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
-import ReactDOM from 'react-dom';
 import { Z_INDEX } from '@/shared/constants';
 import OverlayMask from '@/sidebar/components/OverlayMask';
 import SelectionRectangle from '@/sidebar/components/SelectionRectangle';
+import CaptureButton from '@/sidebar/components/CaptureButton';
+import Portal from '@/shared/components/Portal';
+import { pageToViewportCoords } from '@/shared/utils/position';
+import CancelButton from '@/sidebar/components/CancelButton';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -167,49 +170,44 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  const hasValidSelection = selection && selection.width > 0 && selection.height > 0;
+
   let captureButtonPortal = null;
-  if (selection && selectionComplete && selection.width > 0 && selection.height > 0) {
+  if (hasValidSelection && selectionComplete) {
     // Center the button horizontally below the selected area
-    const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
-    const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
-    captureButtonPortal = ReactDOM.createPortal(
-      <button
-        id="portal-capture-btn"
-        style={{
-          position: 'fixed',
-          top: viewportY + selection.height + 24,
-          left: `calc(${viewportX + selection.width / 2}px)`,
-          transform: 'translateX(-50%)',
-          width: 120,
-          zIndex: Z_INDEX.CAPTURE_BUTTON, // extremely high z-index
-          background: '#fff',
-          border: '1px solid #e5e7eb',
-          borderRadius: 8,
-          padding: '8px 16px',
-          fontWeight: 500,
-          fontSize: 16,
-          color: '#1e293b',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          cursor: 'pointer',
-          textAlign: 'center',
-          pointerEvents: 'auto',
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-        }}
-        onMouseUp={(e) => {
-          e.stopPropagation();
-        }}
-        onClick={async () => {
-          await captureNow();
-          setTimeout(() => {
-            setShowOverlay(false);
-          }, 0);
-        }}
-      >
-        Capture Image
-      </button>,
-      document.body
+    const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
+    captureButtonPortal = (
+      <Portal>
+        <CaptureButton
+          style={{
+            position: 'fixed',
+            top: viewportY + selection.height + 24,
+            left: `calc(${viewportX + selection.width / 2}px)`,
+            transform: 'translateX(-50%)',
+            width: 120,
+            zIndex: Z_INDEX.CAPTURE_BUTTON, // extremely high z-index
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: 8,
+            padding: '8px 16px',
+            fontWeight: 500,
+            fontSize: 16,
+            color: '#1e293b',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            cursor: 'pointer',
+            textAlign: 'center',
+            pointerEvents: 'auto',
+          }}
+          onClick={async () => {
+            await captureNow();
+            setTimeout(() => {
+              setShowOverlay(false);
+            }, 0);
+          }}
+        >
+          Capture Image
+        </CaptureButton>
+      </Portal>
     );
   }
 
@@ -219,9 +217,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
       {showOverlay && (
         <FullViewportOverlay visible={showOverlay}>
           {/* Overlay mask with cutout (z-index: 10001) */}
-          {selection && selection.width > 0 && selection.height > 0 && (
-            <OverlayMask selection={selection} />
-          )}
+          {hasValidSelection && <OverlayMask selection={selection} />}
 
           {/* Instructions (only show while dragging or before selection) */}
           {!selectionComplete && (
@@ -245,30 +241,13 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           )}
 
           {/* Cancel button (always visible) */}
-          <button
-            onClick={hide}
-            style={{
-              position: 'fixed',
-              top: 16,
-              left: 16,
-              zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-              pointerEvents: 'auto',
-            }}
-            className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow border border-gray-200"
-          >
-            Cancel
-          </button>
+          <CancelButton onClick={hide} />
 
           {/* Selection rectangle with handles and shadow (z-index: 10100) */}
-          {selection &&
+          {hasValidSelection &&
             isSelecting &&
-            selection.width > 0 &&
-            selection.height > 0 &&
             (() => {
-              // Convert page coordinates to viewport coordinates for fixed positioning
-              const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
-              const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
-
+              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
               return (
                 <SelectionRectangle
                   x={viewportX}
@@ -283,15 +262,10 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             })()}
 
           {/* Start Capture button (only after selection is complete) */}
-          {selection &&
+          {hasValidSelection &&
             selectionComplete &&
-            selection.width > 0 &&
-            selection.height > 0 &&
             (() => {
-              // Convert page coordinates to viewport coordinates for fixed positioning
-              const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
-              const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
-
+              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
               return (
                 <button
                   onClick={completeSelection}
@@ -329,14 +303,10 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
           )}
 
           {/* Selection rectangle always visible after selection, with handles if complete or resizing */}
-          {selection &&
-            selection.width > 0 &&
-            selection.height > 0 &&
+          {hasValidSelection &&
             (() => {
-              const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
-              const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
+              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
               const showHandles = selectionComplete || isSelecting;
-
               return (
                 <>
                   {/* Size indicator (after selection complete) */}
