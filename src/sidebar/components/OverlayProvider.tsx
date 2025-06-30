@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useAreaCapture } from '../hooks/useAreaCapture';
 import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
@@ -10,6 +10,7 @@ import CaptureButton from '@/sidebar/components/CaptureButton';
 import Portal from '@/shared/components/Portal';
 import { pageToViewportCoords } from '@/shared/utils/position';
 import CancelButton from '@/sidebar/components/CancelButton';
+import { useSelectionState } from '@/sidebar/hooks/useSelectionState';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -34,15 +35,15 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   children,
   onAreaCaptureComplete,
 }) => {
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [selectionComplete, setSelectionComplete] = useState(false);
-  const pendingImageDataRef = useRef<string | null>(null);
-
-  const show = useCallback(() => {
-    setShowOverlay(true);
-    setSelectionComplete(false);
-  }, []);
-  const hide = useCallback(() => setShowOverlay(false), []);
+  const {
+    showOverlay,
+    setShowOverlay,
+    selectionComplete,
+    setSelectionComplete,
+    pendingImageDataRef,
+    show,
+    hide,
+  } = useSelectionState(onAreaCaptureComplete);
 
   // Use the area capture hook
   const { selection, showWarning, isSelecting, setSelection, captureNow } = useAreaCapture({
@@ -69,7 +70,13 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
         );
       }
     }
-  }, [showOverlay, onAreaCaptureComplete]);
+  }, [
+    showOverlay,
+    onAreaCaptureComplete,
+    pendingImageDataRef,
+    setShowOverlay,
+    setSelectionComplete,
+  ]);
 
   // Track selection complete state
   React.useEffect(() => {
@@ -81,7 +88,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
       // If selection is 0x0, don't mark as complete
       setSelectionComplete(false);
     }
-  }, [isSelecting, selection]);
+  }, [isSelecting, selection, setSelectionComplete]);
 
   // Debug: log overlay and selection state
   useDebug('OverlayProvider', {

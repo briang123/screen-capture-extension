@@ -97,20 +97,20 @@ Consider:
 
 3. Z-Index Management
 
-- [ ] There are many hardcoded z-index values.
+- [x] There are many hardcoded z-index values.
 
 Consider:
 
-- [ ] Defining a z-index scale in a constants file or in your CSS/Tailwind config.
-- [ ] Using named constants (e.g., Z_INDEX_SELECTION_RECT = 10100) for clarity.
+- [x] Defining a z-index scale in a constants file or in your CSS/Tailwind config.
+- [x] Using named constants (e.g., Z_INDEX_SELECTION_RECT = 10100) for clarity.
 
 4. Portal Button Logic
 
-- [ ] You have two different "capture" buttons: one rendered via a portal (captureButtonPortal) and one as part of the overlay. This could be confusing.
+- [x] You have two different "capture" buttons: one rendered via a portal (captureButtonPortal) and one as part of the overlay. This could be confusing.
 
 Consider:
 
-- [ ] Unifying the logic so only one "capture" button is rendered, and its placement is consistent.
+- [x] Unifying the logic so only one "capture" button is rendered, and its placement is consistent.
       If both are needed, document why.
 
 5. Event Handler Extraction
