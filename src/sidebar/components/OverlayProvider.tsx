@@ -11,6 +11,7 @@ import Portal from '@/shared/components/Portal';
 import { pageToViewportCoords } from '@/shared/utils/position';
 import CancelButton from '@/sidebar/components/CancelButton';
 import { useSelectionState } from '@/sidebar/hooks/useSelectionState';
+import { isSelectionComplete } from '@/shared/utils/selection';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -80,14 +81,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
   // Track selection complete state
   React.useEffect(() => {
-    if (!isSelecting && selection && selection.width > 0 && selection.height > 0) {
-      setSelectionComplete(true);
-    } else if (isSelecting) {
-      setSelectionComplete(false);
-    } else if (!isSelecting && selection && (selection.width === 0 || selection.height === 0)) {
-      // If selection is 0x0, don't mark as complete
-      setSelectionComplete(false);
-    }
+    setSelectionComplete(isSelectionComplete(selection, isSelecting));
   }, [isSelecting, selection, setSelectionComplete]);
 
   // Debug: log overlay and selection state
