@@ -4,6 +4,7 @@ import { useAreaCapture } from '../hooks/useAreaCapture';
 import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
+import ReactDOM from 'react-dom';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -387,6 +388,52 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  let captureButtonPortal = null;
+  if (selection && selectionComplete && selection.width > 0 && selection.height > 0) {
+    // Center the button horizontally below the selected area
+    const viewportX = selection.x - (typeof window !== 'undefined' ? window.scrollX : 0);
+    const viewportY = selection.y - (typeof window !== 'undefined' ? window.scrollY : 0);
+    captureButtonPortal = ReactDOM.createPortal(
+      <button
+        id="portal-capture-btn"
+        style={{
+          position: 'fixed',
+          top: viewportY + selection.height + 24,
+          left: `calc(${viewportX + selection.width / 2}px)`,
+          transform: 'translateX(-50%)',
+          width: 120,
+          zIndex: 99999, // extremely high z-index
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 8,
+          padding: '8px 16px',
+          fontWeight: 500,
+          fontSize: 16,
+          color: '#1e293b',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          cursor: 'pointer',
+          textAlign: 'center',
+          pointerEvents: 'auto',
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
+        onMouseUp={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={async () => {
+          await captureNow();
+          setTimeout(() => {
+            setShowOverlay(false);
+          }, 0);
+        }}
+      >
+        Capture Image
+      </button>,
+      document.body
+    );
+  }
+
   return (
     <OverlayContext.Provider value={{ showOverlay, show, hide }}>
       {children}
@@ -592,40 +639,12 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                     {showHandles &&
                       renderHandles(selection.width, selection.height, handleHandleMouseDown)}
                   </div>
-                  {/* Capture Image button centered below selection, only after selection is complete */}
-                  {selectionComplete && (
-                    <button
-                      style={{
-                        position: 'fixed',
-                        left: `calc(${viewportX + selection.width / 2}px)`,
-                        top: viewportY + selection.height + 24,
-                        width: 120,
-                        zIndex: 10110,
-                        background: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 8,
-                        padding: '8px 16px',
-                        fontWeight: 500,
-                        fontSize: 16,
-                        color: '#1e293b',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        transform: 'translateX(-50%)',
-                      }}
-                      onClick={async () => {
-                        setShowOverlay(false);
-                        await captureNow();
-                      }}
-                    >
-                      Capture Image
-                    </button>
-                  )}
                 </>
               );
             })()}
         </FullViewportOverlay>
       )}
+      {captureButtonPortal}
     </OverlayContext.Provider>
   );
 };

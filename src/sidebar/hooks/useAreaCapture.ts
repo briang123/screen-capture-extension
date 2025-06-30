@@ -76,7 +76,6 @@ export function useAreaCapture({
             height: sel.height,
           },
         });
-        console.log('[useAreaCapture] captureSelectedArea response:', response);
         if (response.success && response.imageData) {
           onCapture(response.imageData);
           // Reset selection state after capture
@@ -85,10 +84,9 @@ export function useAreaCapture({
           setStartPos(null);
           setShowWarning(false);
         } else {
-          throw new Error(response.error || 'Capture failed');
+          setShowWarning(true);
         }
-      } catch (error) {
-        console.error('Area capture failed:', error);
+      } catch {
         setShowWarning(true);
       }
     },
@@ -97,7 +95,6 @@ export function useAreaCapture({
 
   // Start selection
   const startSelection = useCallback((x: number, y: number) => {
-    console.log('[useAreaCapture] startSelection called with:', { x, y });
     setStartPos({ x, y });
     setIsSelecting(true);
     setSelection({ x, y, width: 0, height: 0 });
@@ -107,7 +104,6 @@ export function useAreaCapture({
   // Update selection
   const updateSelection = useCallback((currentX: number, currentY: number) => {
     if (!isSelectingRef.current || !startPosRef.current) {
-      console.log('[useAreaCapture] updateSelection skipped - not selecting or no start pos');
       return;
     }
 
@@ -116,12 +112,6 @@ export function useAreaCapture({
     const width = Math.abs(currentX - startPosRef.current.x);
     const height = Math.abs(currentY - startPosRef.current.y);
     const sel = { x, y, width, height };
-    console.log('[useAreaCapture] updateSelection:', {
-      currentX,
-      currentY,
-      startPos: startPosRef.current,
-      selection: sel,
-    });
     setSelection(sel);
     setShowWarning(!isSelectionInViewport(sel));
     // Store as last valid selection if valid
@@ -133,17 +123,14 @@ export function useAreaCapture({
   // Complete selection
   const completeSelection = useCallback(() => {
     if (!isSelectingRef.current || !selection) {
-      console.log('[useAreaCapture] completeSelection skipped - not selecting or no selection');
       return;
     }
 
-    console.log('[useAreaCapture] completeSelection called with selection:', selection);
     setIsSelecting(false);
     setStartPos(null);
 
     // If the selection is 0x0 (just a tap without drag), clear it
     if (selection.width === 0 || selection.height === 0) {
-      console.log('[useAreaCapture] Clearing invalid 0x0 selection');
       setSelection(null);
       return;
     }
@@ -164,18 +151,12 @@ export function useAreaCapture({
   // Global mouse event handlers
   useEffect(() => {
     if (!isVisible) {
-      console.log('[useAreaCapture] Overlay not visible, skipping event listener setup');
       return;
     }
 
-    console.log('[useAreaCapture] Setting up global mouse event listeners');
-
     const handleGlobalMouseDown = (e: MouseEvent) => {
-      console.log('[useAreaCapture] Global mousedown event:', {
-        pageX: e.pageX,
-        pageY: e.pageY,
-        isSelecting: isSelectingRef.current,
-      });
+      // Ignore if event target is the portal capture button or its child
+      if (e.target instanceof HTMLElement && e.target.closest('#portal-capture-btn')) return;
       if (isSelectingRef.current) return; // Already selecting
 
       // Prevent default to avoid text selection
@@ -188,7 +169,6 @@ export function useAreaCapture({
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (!isSelectingRef.current) return;
 
-      console.log('[useAreaCapture] Global mousemove event:', { pageX: e.pageX, pageY: e.pageY });
       // Prevent default to avoid text selection
       e.preventDefault();
       e.stopPropagation();
@@ -197,11 +177,8 @@ export function useAreaCapture({
     };
 
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      console.log('[useAreaCapture] Global mouseup event:', {
-        pageX: e.pageX,
-        pageY: e.pageY,
-        isSelecting: isSelectingRef.current,
-      });
+      // Ignore if event target is the portal capture button or its child
+      if (e.target instanceof HTMLElement && e.target.closest('#portal-capture-btn')) return;
       if (!isSelectingRef.current) return;
 
       // Prevent default to avoid text selection
@@ -220,7 +197,6 @@ export function useAreaCapture({
     document.body.style.userSelect = 'none';
 
     return () => {
-      console.log('[useAreaCapture] Cleaning up global mouse event listeners');
       document.removeEventListener('mousedown', handleGlobalMouseDown, true);
       document.removeEventListener('mousemove', handleGlobalMouseMove, true);
       document.removeEventListener('mouseup', handleGlobalMouseUp, true);
@@ -268,8 +244,6 @@ export function useAreaCapture({
 
   // Add this to the return value of useAreaCapture
   const captureNow = useCallback(async () => {
-    console.log('[useAreaCapture] captureNow called');
-    // Hide overlay (handled by parent)
     await new Promise((r) =>
       requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))
     );
