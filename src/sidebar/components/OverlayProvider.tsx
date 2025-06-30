@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useAreaCapture } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
@@ -11,6 +11,14 @@ import { isSelectionComplete } from '@/shared/utils/selection';
 import { useCaptureButtonPortal } from '@/sidebar/hooks/useCaptureButtonPortal';
 import { pageToViewportCoords } from '@/shared/utils/position';
 import { useHandleResize } from '@/sidebar/hooks/useHandleResize';
+
+// Add this at the top of the file, after imports
+if (typeof document !== 'undefined' && !document.getElementById('sc-hide-for-capture-style')) {
+  const style = document.createElement('style');
+  style.id = 'sc-hide-for-capture-style';
+  style.innerHTML = `.sc-hide-for-capture { display: none !important; }`;
+  document.head.appendChild(style);
+}
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -105,11 +113,22 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
 
   const hasValidSelection = selection && selection.width > 0 && selection.height > 0;
 
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const [hideForCapture, setHideForCapture] = useState(false);
+
   const captureButtonPortal = useCaptureButtonPortal({
     selection,
     selectionComplete,
     onCapture: async () => {
+      // Visually hide overlay and cursor, wait for paint, then capture
+      setHideForCapture(true);
+      const prevCursor = document.body.style.cursor;
+      document.body.style.cursor = 'none';
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       await captureNow();
+      setHideForCapture(false);
+      document.body.style.cursor = prevCursor;
+      // Now unmount the overlay as before
       setTimeout(() => setShowOverlay(false), 0);
     },
     show: !!(hasValidSelection && selectionComplete),
@@ -119,125 +138,104 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     <OverlayContext.Provider value={{ showOverlay, show, hide }}>
       {children}
       {showOverlay && (
-        <FullViewportOverlay visible={showOverlay}>
-          {/* Overlay mask with cutout (z-index: 10001) */}
-          {hasValidSelection && <OverlayMask selection={selection} />}
+        <div ref={overlayRef} className={hideForCapture ? 'sc-hide-for-capture' : ''}>
+          <FullViewportOverlay visible={showOverlay} hideForCapture={hideForCapture}>
+            {/* Overlay mask with cutout (z-index: 10001) */}
+            {hasValidSelection && <OverlayMask selection={selection} />}
 
-          {/* Instructions (only show while dragging or before selection) */}
-          {!selectionComplete && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 16,
-                left: 0,
-                width: '100vw',
-                zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-                textAlign: 'center',
-                pointerEvents: 'none',
-              }}
-            >
-              <span className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base">
-                Click and drag to select capture area
-                <br />
-                <span className="text-xs text-gray-500">Press ESC to cancel</span>
-              </span>
-            </div>
-          )}
+            {/* Instructions (only show while dragging or before selection) */}
+            {!selectionComplete && (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 16,
+                  left: 0,
+                  width: '100vw',
+                  zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
+                  textAlign: 'center',
+                  pointerEvents: 'none',
+                }}
+              >
+                <span className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base">
+                  Click and drag to select capture area
+                  <br />
+                  <span className="text-xs text-gray-500">Press ESC to cancel</span>
+                </span>
+              </div>
+            )}
 
-          {/* Cancel button (always visible) */}
-          <CancelButton onClick={hide} />
+            {/* Cancel button (always visible) */}
+            <CancelButton onClick={hide} />
 
-          {/* Selection rectangle with handles and shadow (z-index: 10100) */}
-          {hasValidSelection &&
-            isSelecting &&
-            (() => {
-              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
-              return (
-                <SelectionRectangle
-                  x={viewportX}
-                  y={viewportY}
-                  width={selection.width}
-                  height={selection.height}
-                  showHandles={isSelecting}
-                  showSizeIndicator={isSelecting}
-                  onHandleMouseDown={handleHandleMouseDown}
-                />
-              );
-            })()}
+            {/* Selection rectangle with handles and shadow (z-index: 10100) */}
+            {hasValidSelection && isSelecting && (
+              <SelectionRectangle
+                x={pageToViewportCoords(selection.x, selection.y).x}
+                y={pageToViewportCoords(selection.x, selection.y).y}
+                width={selection.width}
+                height={selection.height}
+                showHandles={isSelecting}
+                showSizeIndicator={isSelecting}
+                onHandleMouseDown={handleHandleMouseDown}
+              />
+            )}
 
-          {/* Warning if selection is outside viewport */}
-          {showWarning && (
-            <div
-              style={{
-                position: 'fixed',
-                bottom: 16,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: Z_INDEX.WARNING,
-                pointerEvents: 'none',
-              }}
-            >
-              <span className="inline-block bg-red-500/95 text-white px-4 py-2 rounded-lg shadow border border-red-200 text-sm font-medium">
-                ⚠️ Selection is outside viewport
-              </span>
-            </div>
-          )}
+            {/* Warning if selection is outside viewport */}
+            {showWarning && (
+              <div
+                style={{
+                  position: 'fixed',
+                  bottom: 16,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: Z_INDEX.WARNING,
+                  pointerEvents: 'none',
+                }}
+              >
+                <span className="inline-block bg-red-500/95 text-white px-4 py-2 rounded-lg shadow border border-red-200 text-sm font-medium">
+                  ⚠️ Selection is outside viewport
+                </span>
+              </div>
+            )}
 
-          {/* Selection rectangle always visible after selection, with handles if complete or resizing */}
-          {hasValidSelection &&
-            (() => {
-              const { x: viewportX, y: viewportY } = pageToViewportCoords(selection.x, selection.y);
-              const showHandles = selectionComplete || isSelecting;
-              return (
-                <>
-                  {/* Size indicator (after selection complete) */}
-                  <div
-                    style={{
-                      position: 'fixed',
-                      left: viewportX - 2,
-                      top: viewportY - 32,
-                      background: 'rgba(0,0,0,0.85)',
-                      color: '#fff',
-                      fontSize: 13,
-                      padding: '2px 8px',
-                      borderRadius: 6,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                      pointerEvents: 'none',
-                      zIndex: Z_INDEX.SIZE_INDICATOR,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {Math.round(selection.width)} × {Math.round(selection.height)}
-                  </div>
-                  <div
-                    className="absolute pointer-events-auto"
-                    style={{
-                      left: viewportX,
-                      top: viewportY,
-                      width: selection.width,
-                      height: selection.height,
-                      position: 'fixed',
-                      border: '2px dotted #fff',
-                      zIndex: Z_INDEX.SELECTION_OVERLAY,
-                      background: 'transparent',
-                    }}
-                  >
-                    {showHandles && (
-                      <SelectionRectangle
-                        x={viewportX}
-                        y={viewportY}
-                        width={selection.width}
-                        height={selection.height}
-                        showHandles={showHandles}
-                        showSizeIndicator={showHandles}
-                        onHandleMouseDown={handleHandleMouseDown}
-                      />
-                    )}
-                  </div>
-                </>
-              );
-            })()}
-        </FullViewportOverlay>
+            {/* Selection rectangle always visible after selection, with handles if complete or resizing */}
+            {hasValidSelection && (
+              <>
+                {/* Size indicator (after selection complete) */}
+                <div
+                  style={{
+                    position: 'fixed',
+                    left: pageToViewportCoords(selection.x, selection.y).x - 2,
+                    top: pageToViewportCoords(selection.x, selection.y).y - 32,
+                    background: 'rgba(0,0,0,0.85)',
+                    color: '#fff',
+                    fontSize: 13,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                    pointerEvents: 'none',
+                    zIndex: Z_INDEX.SIZE_INDICATOR,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {Math.round(selection.width)} × {Math.round(selection.height)}
+                </div>
+                {/* Handles if complete or resizing */}
+                {(selectionComplete || isSelecting) && (
+                  <SelectionRectangle
+                    x={pageToViewportCoords(selection.x, selection.y).x}
+                    y={pageToViewportCoords(selection.x, selection.y).y}
+                    width={selection.width}
+                    height={selection.height}
+                    showHandles={selectionComplete || isSelecting}
+                    showSizeIndicator={false}
+                    onHandleMouseDown={handleHandleMouseDown}
+                  />
+                )}
+              </>
+            )}
+          </FullViewportOverlay>
+        </div>
       )}
       {captureButtonPortal}
     </OverlayContext.Provider>

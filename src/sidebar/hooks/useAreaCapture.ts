@@ -74,6 +74,7 @@ export function useAreaCapture({
             y: sel.y,
             width: sel.width,
             height: sel.height,
+            includeCursor: false,
           },
         });
         if (response.success && response.imageData) {

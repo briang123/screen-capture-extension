@@ -29,14 +29,14 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 ## User Interaction
 
 - [x] Tapping close button on sidebar panel should reset the process and overlay so that when user opens extension again, they should see the sidebar panel again and be able to start a new process. Should also unmount the sidebar component so we leave no trace.
-- [ ] Cancel selection with ESC key or Cancel button
+- [x] Cancel selection with ESC key or Cancel button
 - [ ] Prevent text selection and scrolling while overlay is active
 - [ ] Support both mouse and touch input for selection
 - [ ] Provide clear instructions to the user
 
 ## Capture Logic
 
-- [ ] When tapping on capture image button, capture the selected area as an image (e.g., the drag and drop handles, selection borders/lines should not be part of the image capture)
+- [x] When tapping on capture image button, capture the selected area as an image (e.g., the drag and drop handles, selection borders/lines should not be part of the image capture)
 - [ ] Add the captured image to the sidebar panel
 - [ ] Handle errors gracefully (e.g., selection too small, capture failed)
 
@@ -115,7 +115,7 @@ Consider:
 
 5. Event Handler Extraction
 
-- [ ] Handlers like handleHandleMouseDown are large and could be moved outside the main component for clarity, or at least split into smaller functions.
+- [x] Handlers like handleHandleMouseDown are large and could be moved outside the main component for clarity, or at least split into smaller functions.
 
 6. Selection State Management
 

@@ -33,6 +33,7 @@ interface ContentScriptMessage {
     y?: number;
     width?: number;
     height?: number;
+    includeCursor?: boolean;
   };
   [key: string]: unknown;
 }
@@ -141,6 +142,7 @@ chrome.runtime.onMessage.addListener(
             y: message.data.y,
             width: message.data.width,
             height: message.data.height,
+            includeCursor: message.data.includeCursor,
           }).then(sendResponse);
         } else {
           sendResponse({ success: false, error: 'Invalid area data' });
@@ -545,7 +547,13 @@ async function captureFullPage(): Promise<{
 }
 
 // Area capture logic
-async function captureArea(area: { x: number; y: number; width: number; height: number }): Promise<{
+async function captureArea(area: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  includeCursor?: boolean;
+}): Promise<{
   success: boolean;
   imageData?: string;
   error?: string;
@@ -565,10 +573,12 @@ async function captureArea(area: { x: number; y: number; width: number; height: 
       cropY,
       width: area.width,
       height: area.height,
+      includeCursor: area.includeCursor,
     });
 
     // Crop the image to the selected area
     const cropped = await cropImage(response.imageData, cropX, cropY, area.width, area.height);
+    // (Future: If area.includeCursor, draw cursor on cropped canvas here)
     return { success: true, imageData: cropped };
   } catch (error) {
     console.error('Area capture failed:', error);
