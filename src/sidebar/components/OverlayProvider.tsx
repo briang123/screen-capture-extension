@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useAreaCapture } from '../hooks/useAreaCapture';
-import type { SelectionRect } from '../hooks/useAreaCapture';
 import FullViewportOverlay from './FullViewportOverlay';
 import { useDebug } from '../hooks/useDebug';
 import { Z_INDEX } from '@/shared/constants';
@@ -11,6 +10,7 @@ import { useSelectionState } from '@/sidebar/hooks/useSelectionState';
 import { isSelectionComplete } from '@/shared/utils/selection';
 import { useCaptureButtonPortal } from '@/sidebar/hooks/useCaptureButtonPortal';
 import { pageToViewportCoords } from '@/shared/utils/position';
+import { useHandleResize } from '@/sidebar/hooks/useHandleResize';
 
 interface OverlayContextType {
   showOverlay: boolean;
@@ -101,73 +101,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
   });
 
   // Add handler for resizing
-  const handleHandleMouseDown = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    handleKey: string
-  ) => {
-    e.stopPropagation();
-    // Store initial mouse and selection state
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startSelection = { ...selection } as SelectionRect;
-
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      let newSelection: SelectionRect = { ...startSelection };
-      // Update selection based on handle
-      switch (handleKey) {
-        case 'nw':
-          newSelection.x = (newSelection.x ?? 0) + dx;
-          newSelection.y = (newSelection.y ?? 0) + dy;
-          newSelection.width = (newSelection.width ?? 0) - dx;
-          newSelection.height = (newSelection.height ?? 0) - dy;
-          break;
-        case 'n':
-          newSelection.y = (newSelection.y ?? 0) + dy;
-          newSelection.height = (newSelection.height ?? 0) - dy;
-          break;
-        case 'ne':
-          newSelection.y = (newSelection.y ?? 0) + dy;
-          newSelection.width = (newSelection.width ?? 0) + dx;
-          newSelection.height = (newSelection.height ?? 0) - dy;
-          break;
-        case 'w':
-          newSelection.x = (newSelection.x ?? 0) + dx;
-          newSelection.width = (newSelection.width ?? 0) - dx;
-          break;
-        case 'e':
-          newSelection.width = (newSelection.width ?? 0) + dx;
-          break;
-        case 'sw':
-          newSelection.x = (newSelection.x ?? 0) + dx;
-          newSelection.width = (newSelection.width ?? 0) - dx;
-          newSelection.height = (newSelection.height ?? 0) + dy;
-          break;
-        case 's':
-          newSelection.height = (newSelection.height ?? 0) + dy;
-          break;
-        case 'se':
-          newSelection.width = (newSelection.width ?? 0) + dx;
-          newSelection.height = (newSelection.height ?? 0) + dy;
-          break;
-        default:
-          break;
-      }
-      // Enforce minimum size
-      newSelection.width = Math.max(10, newSelection.width ?? 0);
-      newSelection.height = Math.max(10, newSelection.height ?? 0);
-      setSelection(newSelection);
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  };
+  const { handleHandleMouseDown } = useHandleResize(selection, setSelection);
 
   const hasValidSelection = selection && selection.width > 0 && selection.height > 0;
 
