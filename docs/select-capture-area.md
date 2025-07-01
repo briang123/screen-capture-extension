@@ -39,9 +39,11 @@ A checklist for building a robust, user-friendly area selection overlay for scre
 - [x] When tapping on capture image button, capture the selected area as an image (e.g., the drag and drop handles, selection borders/lines should not be part of the image capture)
 - [ ] Add the captured image to the sidebar panel
 - [ ] Handle errors gracefully (e.g., selection too small, capture failed)
+- [ ] Capture full screen of active tab when tapping the "Capture Full Page" button.
 
 ## Visual Polish
 
+- [ ] Ensure that the image grid in the sidebar panel resemble this image preview shape (top) and when hovered on (bottom) we see different options that we can do with the image. I like this style, too - https://cleanshot.com/_nuxt/quick_access_overlay.ee985eca.jpg
 - [ ] Animate overlay and rectangle appearance/disappearance
 - [ ] Ensure overlay and rectangle work on all major websites (test for stacking context issues)
 - [ ] Provide visual feedback for invalid selections (e.g., too small, out of bounds)
