@@ -44,41 +44,33 @@ const test = base.extend<MyFixtures>({
 
 // --- Playwright afterEach logic ---
 //
-// Use a different approach to avoid configuration issues
-// We'll register the afterEach hook in a way that doesn't conflict with Playwright's configuration
+// Register the afterEach hook directly in the test configuration
+// This avoids conflicts with Playwright's test system
 
-let afterEachRegistered = false;
-
-export function registerAfterEachArtifacts() {
-  if (afterEachRegistered) return;
-
-  test.afterEach(async ({ page }, testInfo) => {
-    const mediaDir = path.join(process.cwd(), 'tests', 'media');
-    if (!fs.existsSync(mediaDir)) {
-      fs.mkdirSync(mediaDir, { recursive: true });
+test.afterEach(async ({ page }, testInfo) => {
+  const mediaDir = path.join(process.cwd(), 'tests', 'media');
+  if (!fs.existsSync(mediaDir)) {
+    fs.mkdirSync(mediaDir, { recursive: true });
+  }
+  const artifactInfo = {
+    status: testInfo.status ?? 'unknown',
+    title: testInfo.title ?? 'unknown',
+  };
+  // Screenshot
+  if (COLLECT_SCREENSHOTS) {
+    const filename = generateTestArtifactFilename(artifactInfo, 'png');
+    const filepath = path.join(mediaDir, filename);
+    await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
+  }
+  // Video
+  if (COLLECT_VIDEO) {
+    const video = testInfo.attachments.find((a) => a.name === 'video');
+    if (video && video.path) {
+      const videoFilename = generateTestArtifactFilename(artifactInfo, 'webm');
+      const videoDest = path.join(mediaDir, videoFilename);
+      fs.renameSync(video.path, videoDest);
     }
-    const artifactInfo = {
-      status: testInfo.status ?? 'unknown',
-      title: testInfo.title ?? 'unknown',
-    };
-    // Screenshot
-    if (COLLECT_SCREENSHOTS) {
-      const filename = generateTestArtifactFilename(artifactInfo, 'png');
-      const filepath = path.join(mediaDir, filename);
-      await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
-    }
-    // Video
-    if (COLLECT_VIDEO) {
-      const video = testInfo.attachments.find((a) => a.name === 'video');
-      if (video && video.path) {
-        const videoFilename = generateTestArtifactFilename(artifactInfo, 'webm');
-        const videoDest = path.join(mediaDir, videoFilename);
-        fs.renameSync(video.path, videoDest);
-      }
-    }
-  });
-
-  afterEachRegistered = true;
-}
+  }
+});
 
 export { test, expect };
