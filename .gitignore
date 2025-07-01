@@ -12,6 +12,8 @@ build/
 # Environment variables
 .env
 .env.local
+.env.development
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
@@ -97,4 +99,10 @@ jspm_packages/
 *.pem
 
 # AI generated files (if any)
-ai-generated/ 
+ai-generated/
+
+# Playwright
+/playwright-report/
+/test-results/
+/.playwright/
+/.pw-chrome-profile/ 

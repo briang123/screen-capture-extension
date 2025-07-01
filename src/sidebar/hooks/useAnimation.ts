@@ -243,6 +243,15 @@ export function useAnimation(options: UseAnimationOptions = {}): UseAnimationRet
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
+  // Track mount state
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // Apply config to transition
   const appliedTransition = useMemo(
     () => ({
@@ -348,7 +357,9 @@ export function useAnimation(options: UseAnimationOptions = {}): UseAnimationRet
 
   // Reset animation
   const reset = useCallback(() => {
-    controls.set(initial);
+    if (isMounted.current) {
+      controls.set(initial);
+    }
     updateState({
       isPlaying: false,
       isPaused: false,
@@ -362,7 +373,9 @@ export function useAnimation(options: UseAnimationOptions = {}): UseAnimationRet
   // Set animation variant
   const setVariant = useCallback(
     (variant: string) => {
-      controls.set(variant);
+      if (isMounted.current) {
+        controls.set(variant);
+      }
       updateState({
         currentVariant: variant,
         isInitial: variant === initial,

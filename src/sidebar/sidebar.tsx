@@ -159,13 +159,18 @@ const Sidebar: React.FC = () => {
 };
 
 export function mountSidebar() {
+  console.log('[DEV] mountSidebar() called');
   let container = document.getElementById(SIDEBAR_ROOT_ID);
   if (!container) {
     container = document.createElement('div');
     container.id = SIDEBAR_ROOT_ID;
     document.body.appendChild(container);
+    console.log('[DEV] #sc-sidebar-root created and appended to document.body');
+  } else {
+    console.log('[DEV] #sc-sidebar-root already exists');
   }
   reactSidebarRoot = createRoot(container);
+  console.log('[DEV] React root created, rendering sidebar...');
   reactSidebarRoot.render(
     <React.StrictMode>
       <ErrorBoundary
@@ -187,6 +192,7 @@ export function mountSidebar() {
       </ErrorBoundary>
     </React.StrictMode>
   );
+  console.log('[DEV] Sidebar render call complete');
 }
 
 // Wrapper component to access capture context and pass it to OverlayProvider

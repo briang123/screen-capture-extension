@@ -3,3 +3,7 @@ description:
 globs:
 alwaysApply: false
 ---
+# Restore Checkpoint Confirmation Rule
+
+When the user taps a "Restore checkpoint" button, always provide a clear description of what will be restored (e.g., which files, settings, or state will be reverted). Prompt the user to confirm the action before proceeding with the restore. Do not perform the restore automatically—wait for explicit user confirmation.
+

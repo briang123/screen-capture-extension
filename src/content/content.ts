@@ -7,6 +7,10 @@ import './content.css';
 import { mountSidebar, unmountSidebar } from '@/sidebar/sidebar';
 
 console.log('Screen Capture Extension content script loaded');
+console.log('[DEV] window.location.hostname:', window.location.hostname);
+// Use build-time injected variable for dev mode
+const DEV_MODE = import.meta.env.DEV;
+console.log('[DEV] DEV_MODE:', DEV_MODE);
 
 // Interface for element selection
 interface ElementSelection {
@@ -50,6 +54,7 @@ let areaOverlay: HTMLDivElement | null = null;
 const SIDEBAR_PIN_KEY = 'sc_sidebar_pinned';
 
 function injectSidebar() {
+  console.log('[DEV] injectSidebar() called');
   mountSidebar();
 }
 
@@ -160,6 +165,30 @@ chrome.runtime.onMessage.addListener(
 // Auto-inject if pinned
 if (localStorage.getItem(SIDEBAR_PIN_KEY) === 'true') {
   injectSidebar();
+}
+
+// Auto-inject sidebar in dev mode for testing
+if (DEV_MODE && window.location.hostname === 'cleanshot.com' && document.body) {
+  console.log('[DEV] Entering auto-inject block for sidebar on cleanshot.com');
+  injectSidebar();
+  console.log('[DEV] Called injectSidebar()');
+  // Log after mounting
+  setTimeout(() => {
+    const sidebarRoot = document.getElementById('sc-sidebar-root');
+    if (sidebarRoot) {
+      const style = window.getComputedStyle(sidebarRoot);
+      console.log(
+        '[DEV] #sc-sidebar-root exists. display:',
+        style.display,
+        'visibility:',
+        style.visibility,
+        'opacity:',
+        style.opacity
+      );
+    } else {
+      console.log('[DEV] #sc-sidebar-root does not exist after injectSidebar');
+    }
+  }, 1000);
 }
 
 // Start element selection mode
