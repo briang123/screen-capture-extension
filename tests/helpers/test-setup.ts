@@ -21,7 +21,8 @@ type MyFixtures = {
 };
 
 const test = base.extend<MyFixtures>({
-  context: async (_args, use) => {
+  // eslint-disable-next-line no-empty-pattern
+  context: async ({}, use) => {
     const context = await launchExtensionContext();
     await use(context);
     await context.close();
@@ -43,12 +44,14 @@ const test = base.extend<MyFixtures>({
 
 // --- Playwright afterEach logic ---
 //
-// Playwright does not allow test.afterEach() to be called in files that may be imported as config or setup files.
-// To avoid errors, we export a helper function that test files can call to register the afterEach hook.
-// Usage: import { test, expect, registerAfterEachArtifacts } from './helpers/test-setup';
-//        registerAfterEachArtifacts();
+// Use a different approach to avoid configuration issues
+// We'll register the afterEach hook in a way that doesn't conflict with Playwright's configuration
+
+let afterEachRegistered = false;
 
 export function registerAfterEachArtifacts() {
+  if (afterEachRegistered) return;
+
   test.afterEach(async ({ page }, testInfo) => {
     const mediaDir = path.join(process.cwd(), 'tests', 'media');
     if (!fs.existsSync(mediaDir)) {
@@ -74,6 +77,8 @@ export function registerAfterEachArtifacts() {
       }
     }
   });
+
+  afterEachRegistered = true;
 }
 
 export { test, expect };
