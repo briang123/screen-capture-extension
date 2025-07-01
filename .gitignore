@@ -106,3 +106,4 @@ ai-generated/
 /test-results/
 /.playwright/
 /.pw-chrome-profile/ 
+/tests/media/

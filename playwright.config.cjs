@@ -2,9 +2,6 @@
 /* eslint-disable no-undef */
 // If running in Node.js, you may need to register tsconfig-paths or module-alias to use @ aliases.
 // Example: require('tsconfig-paths/register');
-const { loadEnv } = require('@/shared/utils/env');
-loadEnv();
-// Load environment variables from the correct .env file
 const dotenv = require('dotenv');
 const envFile =
   process.env.NODE_ENV === 'production'
@@ -19,7 +16,7 @@ dotenv.config({ path: envFile });
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
   testDir: './tests',
-  testMatch: /.*\.spec\.js$/,
+  testMatch: /.*\.spec\.(js|ts)$/,
   timeout: 30000,
   retries: 0,
   use: {

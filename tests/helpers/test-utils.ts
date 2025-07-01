@@ -22,8 +22,8 @@ declare global {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const extensionPath = path.join(__dirname, '../dist');
-export const userDataDir = path.join(__dirname, '../.pw-chrome-profile');
+export const extensionPath = path.resolve(__dirname, '..', '..', 'dist');
+export const userDataDir = path.join(process.cwd(), '.pw-chrome-profile');
 
 export function getLaunchArgs() {
   const args = [
@@ -47,10 +47,16 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
 }
 
 export async function launchExtensionContext(): Promise<BrowserContext> {
-  return chromium.launchPersistentContext(userDataDir, {
+  const contextOptions: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless: false,
     args: getLaunchArgs(),
-  });
+  };
+  if (process.env.COLLECT_VIDEO === 'true') {
+    contextOptions.recordVideo = {
+      dir: path.resolve(__dirname, '..', '..', 'tests', 'media'),
+    };
+  }
+  return chromium.launchPersistentContext(userDataDir, contextOptions);
 }
 
 export async function setupExtensionPage(

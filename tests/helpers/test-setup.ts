@@ -10,7 +10,7 @@ import {
   triggerSidebarOverlay,
   generateTestArtifactFilename,
 } from './test-utils';
-import { COLLECT_SCREENSHOTS, COLLECT_VIDEO } from './test-constants';
+import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
 
 loadEnv();
@@ -21,7 +21,7 @@ type MyFixtures = {
 };
 
 const test = base.extend<MyFixtures>({
-  context: async (_, use) => {
+  context: async (_args, use) => {
     const context = await launchExtensionContext();
     await use(context);
     await context.close();
@@ -41,30 +41,39 @@ const test = base.extend<MyFixtures>({
   },
 });
 
-test.afterEach(async ({ page }, testInfo) => {
-  const mediaDir = path.join(process.cwd(), 'tests', 'media');
-  if (!fs.existsSync(mediaDir)) {
-    fs.mkdirSync(mediaDir, { recursive: true });
-  }
-  const artifactInfo = {
-    status: testInfo.status ?? 'unknown',
-    title: testInfo.title ?? 'unknown',
-  };
-  // Screenshot
-  if (COLLECT_SCREENSHOTS) {
-    const filename = generateTestArtifactFilename(artifactInfo, 'png');
-    const filepath = path.join(mediaDir, filename);
-    await page.screenshot({ path: filepath, fullPage: true });
-  }
-  // Video
-  if (COLLECT_VIDEO) {
-    const video = testInfo.attachments.find((a) => a.name === 'video');
-    if (video && video.path) {
-      const videoFilename = generateTestArtifactFilename(artifactInfo, 'webm');
-      const videoDest = path.join(mediaDir, videoFilename);
-      fs.renameSync(video.path, videoDest);
+// --- Playwright afterEach logic ---
+//
+// Playwright does not allow test.afterEach() to be called in files that may be imported as config or setup files.
+// To avoid errors, we export a helper function that test files can call to register the afterEach hook.
+// Usage: import { test, expect, registerAfterEachArtifacts } from './helpers/test-setup';
+//        registerAfterEachArtifacts();
+
+export function registerAfterEachArtifacts() {
+  test.afterEach(async ({ page }, testInfo) => {
+    const mediaDir = path.join(process.cwd(), 'tests', 'media');
+    if (!fs.existsSync(mediaDir)) {
+      fs.mkdirSync(mediaDir, { recursive: true });
     }
-  }
-});
+    const artifactInfo = {
+      status: testInfo.status ?? 'unknown',
+      title: testInfo.title ?? 'unknown',
+    };
+    // Screenshot
+    if (COLLECT_SCREENSHOTS) {
+      const filename = generateTestArtifactFilename(artifactInfo, 'png');
+      const filepath = path.join(mediaDir, filename);
+      await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
+    }
+    // Video
+    if (COLLECT_VIDEO) {
+      const video = testInfo.attachments.find((a) => a.name === 'video');
+      if (video && video.path) {
+        const videoFilename = generateTestArtifactFilename(artifactInfo, 'webm');
+        const videoDest = path.join(mediaDir, videoFilename);
+        fs.renameSync(video.path, videoDest);
+      }
+    }
+  });
+}
 
 export { test, expect };
