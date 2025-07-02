@@ -40,8 +40,12 @@ jobs:
       # Run Playwright tests and output results in JSON
       - name: Run Playwright tests and output results
         run: |
-          npx playwright test --reporter=json > e2e-test-results.json || true
-          E2E_PASSING=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' e2e-test-results.json)
+          npx playwright test --reporter=json > e2e-test-results.json 2> playwright-error.log || true
+          if jq empty e2e-test-results.json 2>/dev/null; then
+            E2E_PASSING=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' e2e-test-results.json)
+          else
+            E2E_PASSING=0
+          fi
           echo $E2E_PASSING > e2e-passing.txt
 
       # Download and update the Gist JSON
