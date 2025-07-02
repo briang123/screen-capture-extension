@@ -8,6 +8,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
+  dataTestId?: string;
 }
 
 const baseClasses =
@@ -29,6 +30,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   children,
   className = '',
+  dataTestId,
   ...props
 }) => {
   return (
@@ -41,6 +43,7 @@ const Button: React.FC<ButtonProps> = ({
         className,
       ].join(' ')}
       disabled={disabled}
+      data-testid={dataTestId}
       {...props}
     >
       {children}
@@ -54,12 +57,14 @@ export default Button;
 interface CaptureButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isCapturing: boolean;
   onCapture: () => void;
+  dataTestId?: string;
 }
 
-export const CaptureButton: React.FC<CaptureButtonProps> = ({
+export const SidebarCaptureButton: React.FC<CaptureButtonProps> = ({
   isCapturing,
   onCapture,
   className = '',
+  dataTestId = 'sidebar-capture-button',
   ...props
 }) => (
   <Button
@@ -69,7 +74,7 @@ export const CaptureButton: React.FC<CaptureButtonProps> = ({
     disabled={isCapturing}
     className={['w-full flex items-center justify-center', className].join(' ')}
     aria-busy={isCapturing}
-    data-testid="capture-button"
+    data-testid={dataTestId}
     {...props}
   >
     {isCapturing ? (

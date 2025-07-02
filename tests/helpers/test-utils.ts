@@ -331,3 +331,36 @@ export function generateTestArtifactFilename(
   const testName = testInfo.title.replace(/[^a-zA-Z0-9-_]/g, '_');
   return `${timestamp}-${testName}-${status}.${ext}`;
 }
+
+/**
+ * Simulates a mouse drag to select an area on the page.
+ * @param page - The Playwright page object
+ * @param startX - The starting x coordinate
+ * @param startY - The starting y coordinate
+ * @param endX - The ending x coordinate
+ * @param endY - The ending y coordinate
+ * @param steps - Number of steps for the drag (default 10)
+ */
+export async function dragToSelectArea(
+  page: Page,
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  steps: number = 10
+): Promise<void> {
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(endX, endY, { steps });
+  await page.mouse.up();
+}
+
+/**
+ * Waits for a button (by selector) to appear and clicks it.
+ * @param page Playwright page object
+ * @param selector CSS selector for the button
+ */
+export async function waitForAndClickButton(page: Page, selector: string): Promise<void> {
+  await page.waitForSelector(selector, { state: 'visible' });
+  await page.click(selector);
+}

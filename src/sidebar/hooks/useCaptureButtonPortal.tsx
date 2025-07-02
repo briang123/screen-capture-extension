@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Portal from '@/shared/components/Portal';
-import CaptureButton from '@/sidebar/components/CaptureButton';
+import OverlayCaptureButton from '@/sidebar/components/OverlayCaptureButton';
 import { pageToViewportCoords } from '@/shared/utils/position';
 import { Z_INDEX } from '@/shared/constants';
 
@@ -23,7 +23,7 @@ export function useCaptureButtonPortal({
 
     return (
       <Portal>
-        <CaptureButton
+        <OverlayCaptureButton
           style={{
             position: 'fixed',
             top: viewportY + selection.height + 24,
@@ -44,9 +44,10 @@ export function useCaptureButtonPortal({
             pointerEvents: 'auto',
           }}
           onClick={onCapture}
+          dataTestId="area-capture-button"
         >
           Capture Image
-        </CaptureButton>
+        </OverlayCaptureButton>
       </Portal>
     );
   }, [show, selection, selectionComplete, onCapture]);

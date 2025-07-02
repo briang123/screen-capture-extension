@@ -1,12 +1,18 @@
 import React from 'react';
 
-interface CaptureButtonProps {
+interface OverlayCaptureButtonProps {
   style?: React.CSSProperties;
   onClick: () => void;
   children?: React.ReactNode;
+  dataTestId?: string;
 }
 
-const CaptureButton: React.FC<CaptureButtonProps> = ({ style, onClick, children }) => {
+const OverlayCaptureButton: React.FC<OverlayCaptureButtonProps> = ({
+  style,
+  onClick,
+  children,
+  dataTestId = 'area-capture-button',
+}) => {
   const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.stopPropagation();
   };
@@ -16,6 +22,7 @@ const CaptureButton: React.FC<CaptureButtonProps> = ({ style, onClick, children 
   return (
     <button
       id="portal-capture-btn"
+      data-testid={dataTestId}
       style={{
         position: 'fixed',
         width: 120,
@@ -42,4 +49,4 @@ const CaptureButton: React.FC<CaptureButtonProps> = ({ style, onClick, children 
   );
 };
 
-export default CaptureButton;
+export default OverlayCaptureButton;

@@ -194,6 +194,10 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 6. Push to the branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
 
+## NPM Scripts & Workflow
+
+For a complete list of available npm scripts, their purpose, and recommended workflows, see [SCRIPTS.md](./SCRIPTS.md).
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -211,10 +215,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Tailwind CSS** - For the beautiful utility-first CSS framework
 - **React Team** - For the amazing UI library
 - **Vite Team** - For the fast build tool
-
----
-
-**Made with ❤️ for the developer community**
-
-**Version**: 1.0.0  
-**Last Updated**: 2025-07-02

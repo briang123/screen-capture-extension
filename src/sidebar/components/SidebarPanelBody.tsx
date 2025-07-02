@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { CaptureButton } from '@/sidebar/components/Button';
+import { SidebarCaptureButton } from '@/sidebar/components/Button';
 import { useOverlay } from '@/sidebar/components/OverlayProvider';
 import { useCaptureContext } from '@/sidebar/contexts/CaptureContext';
 import LoadingSpinner from '@/shared/components/LoadingSpinner';
@@ -186,7 +186,11 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
       >
         {/* Capture Buttons */}
         <div className="space-y-3">
-          <CaptureButton isCapturing={isCapturing} onCapture={handleCaptureWithOverlayCancel} />
+          <SidebarCaptureButton
+            isCapturing={isCapturing}
+            onCapture={handleCaptureWithOverlayCancel}
+            dataTestId="sidebar-capture-button"
+          />
           {!isSwitchingSide && (
             <>
               <button

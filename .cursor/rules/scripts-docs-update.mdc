@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# NPM Scripts Documentation Rule
+
+Whenever you add, remove, or change npm scripts in [package.json](mdc:package.json), you must update [SCRIPTS.md](mdc:SCRIPTS.md) to keep the documentation in sync with the actual scripts. This ensures that all contributors have an up-to-date reference for available commands and workflows.
+
