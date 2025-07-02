@@ -27,6 +27,8 @@ export const userDataDir = path.join(process.cwd(), '.pw-chrome-profile');
 
 export function getLaunchArgs() {
   const args = [
+    // Essential extension loading arguments
+    '--enable-extensions',
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
     '--no-sandbox',
@@ -39,16 +41,36 @@ export function getLaunchArgs() {
     '--allow-running-insecure-content',
     '--disable-web-security',
     '--disable-features=VizDisplayCompositor',
+    // Additional arguments for better extension support
+    '--disable-background-networking',
+    '--disable-default-apps',
+    '--disable-sync',
+    '--disable-translate',
+    '--hide-scrollbars',
+    '--mute-audio',
+    '--no-first-run',
+    '--safebrowsing-disable-auto-update',
+    '--allow-legacy-extension-manifests',
   ];
-  // Add --headless=chrome for better extension support in headless mode
+
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
   const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
+
   if (shouldUseHeadless) {
-    args.push('--headless=chrome');
+    // Use --headless=new for better extension support
+    args.push('--headless=new');
+    // Additional headless-specific arguments
+    args.push('--disable-gpu');
+    args.push('--disable-software-rasterizer');
+    args.push('--disable-background-timer-throttling');
+    args.push('--disable-backgrounding-occluded-windows');
+    args.push('--disable-renderer-backgrounding');
   }
+
   if (process.env.DEVTOOLS === '1') {
     args.push('--auto-open-devtools-for-tabs');
   }
+
   return args;
 }
 
@@ -159,16 +181,47 @@ export async function launchExtensionContext(): Promise<BrowserContext> {
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
   const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
 
+  console.log('Launching Chrome with extension support...');
+  console.log('Extension path:', extensionPath);
+  console.log('Headless mode:', shouldUseHeadless);
+  console.log('CI environment:', isCI);
+
+  // Check if extension directory exists and has required files
+  const fs = await import('fs');
+  const manifestPath = path.join(extensionPath, 'manifest.json');
+  const backgroundPath = path.join(extensionPath, 'background.js');
+
+  console.log('Checking extension files...');
+  console.log('Manifest exists:', fs.existsSync(manifestPath));
+  console.log('Background script exists:', fs.existsSync(backgroundPath));
+
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(`Extension manifest not found at ${manifestPath}`);
+  }
+
+  if (!fs.existsSync(backgroundPath)) {
+    throw new Error(`Extension background script not found at ${backgroundPath}`);
+  }
+
   const contextOptions: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless: shouldUseHeadless,
     args: getLaunchArgs(),
   };
+
   if (process.env.COLLECT_VIDEO === 'true') {
     contextOptions.recordVideo = {
       dir: path.resolve(__dirname, '..', '..', 'tests', 'media'),
     };
   }
-  return chromium.launchPersistentContext(userDataDir, contextOptions);
+
+  const context = await chromium.launchPersistentContext(userDataDir, contextOptions);
+
+  // Log context info
+  console.log('Chrome context created successfully');
+  console.log('Background pages:', context.backgroundPages().length);
+  console.log('Service workers:', context.serviceWorkers().length);
+
+  return context;
 }
 
 export async function setupExtensionPage(
