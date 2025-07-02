@@ -26,7 +26,7 @@ jobs:
       - name: Run unit tests and output results
         run: |
           npx vitest run --reporter=json > unit-test-results.json || true
-          UNIT_PASSING=$(jq '[.testResults[].tasks[] | select(.result.state=="pass")] | length' unit-test-results.json)
+          UNIT_PASSING=$(jq '[.testResults[].assertionResults[] | select(.status=="passed")] | length' unit-test-results.json)
           echo $UNIT_PASSING > unit-passing.txt
 
       - name: Install Playwright browsers
