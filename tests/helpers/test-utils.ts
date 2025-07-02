@@ -29,7 +29,18 @@ export function getLaunchArgs() {
   const args = [
     `--disable-extensions-except=${extensionPath}`,
     `--load-extension=${extensionPath}`,
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
   ];
+  // Add --headless=chrome for better extension support in headless mode
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
+  if (shouldUseHeadless) {
+    args.push('--headless=chrome');
+  }
   if (process.env.DEVTOOLS === '1') {
     args.push('--auto-open-devtools-for-tabs');
   }
@@ -37,12 +48,36 @@ export function getLaunchArgs() {
 }
 
 export async function getExtensionId(context: BrowserContext): Promise<string | null> {
-  const allTargets = [...context.backgroundPages(), ...context.serviceWorkers()];
-  for (const target of allTargets) {
-    const url = target.url();
-    const match = url.match(EXTENSION_ID_PATTERN);
-    if (match) return match[1];
+  console.log('Getting extension ID...');
+
+  // Wait a bit for extension to load
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Try multiple times to get the extension ID
+  for (let attempt = 0; attempt < 5; attempt++) {
+    console.log(`Attempt ${attempt + 1} to get extension ID...`);
+
+    const allTargets = [...context.backgroundPages(), ...context.serviceWorkers()];
+    console.log(`Found ${allTargets.length} targets (background pages + service workers)`);
+
+    for (const target of allTargets) {
+      const url = target.url();
+      console.log('Target URL:', url);
+      const match = url.match(EXTENSION_ID_PATTERN);
+      if (match) {
+        console.log('Extension ID found:', match[1]);
+        return match[1];
+      }
+    }
+
+    // Wait before next attempt
+    if (attempt < 4) {
+      console.log('Waiting before next attempt...');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
+
+  console.log('Extension ID not found after all attempts');
   return null;
 }
 
@@ -92,8 +127,31 @@ export async function triggerSidebarOverlay(page: Page, extensionId: string): Pr
 }
 
 export async function captureImage(page: Page): Promise<ElementHandle | null> {
-  await page.getByRole('button', getButtonByLabel('capture image')).click();
+  console.log('Starting captureImage function...');
+
+  // Wait for the sidebar to be fully loaded and the capture button to be available
+  console.log('Waiting for capture button...');
+  await page.waitForSelector('[data-testid="capture-button"]', { timeout: 15000 });
+  console.log('Capture button found!');
+
+  // Wait a bit more for the button to be fully interactive
+  await page.waitForTimeout(2000);
+  console.log('Waited for button to be interactive');
+
+  // Try to find the button and log its state
+  const button = page.getByRole('button', getButtonByLabel('capture image'));
+  console.log('Looking for button with label "capture image"');
+
+  // Check if button is visible
+  const isVisible = await button.isVisible();
+  console.log('Button visible:', isVisible);
+
+  await button.click();
+  console.log('Button clicked successfully');
+
   await page.waitForSelector(SCREENSHOT_THUMBNAIL_SELECTOR, { timeout: 7000 });
+  console.log('Screenshot thumbnail found');
+
   return page.$(SCREENSHOT_THUMBNAIL_SELECTOR);
 }
 

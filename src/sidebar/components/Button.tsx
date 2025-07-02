@@ -69,6 +69,7 @@ export const CaptureButton: React.FC<CaptureButtonProps> = ({
     disabled={isCapturing}
     className={['w-full flex items-center justify-center', className].join(' ')}
     aria-busy={isCapturing}
+    data-testid="capture-button"
     {...props}
   >
     {isCapturing ? (
