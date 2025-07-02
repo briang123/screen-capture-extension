@@ -109,8 +109,9 @@ const test = base.extend<MyFixtures>({
             `;
             captureButton.onclick = () => {
               // Simulate capture functionality
-              const thumbnail = document.createElement('div');
+              const thumbnail = document.createElement('img');
               thumbnail.setAttribute('data-testid', 'screenshot-thumbnail');
+              thumbnail.setAttribute('alt', 'Captured screenshot thumbnail');
               thumbnail.style.cssText = `
                 width: 100px;
                 height: 100px;
@@ -119,6 +120,9 @@ const test = base.extend<MyFixtures>({
                 margin: 10px;
                 display: inline-block;
               `;
+              // Create a data URL for a simple test image
+              thumbnail.src =
+                'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+VGVzdCBJbWFnZTwvdGV4dD48L3N2Zz4=';
               sidebarRoot!.appendChild(thumbnail);
             };
             sidebarRoot.appendChild(captureButton);
