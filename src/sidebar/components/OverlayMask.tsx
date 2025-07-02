@@ -11,7 +11,7 @@ const OverlayMask: React.FC<OverlayMaskProps> = ({ selection }) => {
   return (
     <>
       {sectionStyles.map((style: React.CSSProperties, idx: number) => (
-        <div key={idx} style={style} />
+        <div className="overlay-mask-section" key={idx} style={style} />
       ))}
     </>
   );

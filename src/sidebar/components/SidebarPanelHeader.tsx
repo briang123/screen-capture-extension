@@ -40,12 +40,7 @@ const SidebarPanelHeader: React.FC<SidebarPanelHeaderProps> = ({
       >
         ⇄
       </Button>
-      <ExpandCollapseButton
-        side={side}
-        collapsed={collapsed}
-        onClick={onToggleCollapse}
-        dataTestId="sidebar-expand-collapse-button"
-      />
+      <ExpandCollapseButton side={side} collapsed={collapsed} onClick={onToggleCollapse} />
       <Button
         variant="danger"
         size="sm"

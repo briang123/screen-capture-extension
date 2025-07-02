@@ -138,7 +138,11 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
     <OverlayContext.Provider value={{ showOverlay, show, hide }}>
       {children}
       {showOverlay && (
-        <div ref={overlayRef} className={hideForCapture ? 'sc-hide-for-capture' : ''}>
+        <div
+          data-testid="event-capturing-overlay"
+          ref={overlayRef}
+          className={hideForCapture ? 'sc-hide-for-capture' : ''}
+        >
           <FullViewportOverlay visible={showOverlay} hideForCapture={hideForCapture}>
             {/* Overlay mask with cutout (z-index: 10001) */}
             {hasValidSelection && <OverlayMask selection={selection} />}
@@ -155,8 +159,12 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   textAlign: 'center',
                   pointerEvents: 'none',
                 }}
+                data-testid="select-area-instruction-container"
               >
-                <span className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base">
+                <span
+                  data-testid="instruction"
+                  className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base"
+                >
                   Click and drag to select capture area
                   <br />
                   <span className="text-xs text-gray-500">Press ESC to cancel</span>
@@ -191,6 +199,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
                   zIndex: Z_INDEX.WARNING,
                   pointerEvents: 'none',
                 }}
+                data-testid="selection-warning-message"
               >
                 <span className="inline-block bg-red-500/95 text-white px-4 py-2 rounded-lg shadow border border-red-200 text-sm font-medium">
                   ⚠️ Selection is outside viewport

@@ -18,6 +18,7 @@ const CancelButton: React.FC<CancelButtonProps> = ({ style, onClick, children })
     }}
     className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow border border-gray-200"
     onClick={onClick}
+    data-testid="cancel-selection-button"
   >
     {children || 'Cancel'}
   </button>

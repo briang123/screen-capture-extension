@@ -26,6 +26,7 @@ const FullViewportOverlay: React.FC<FullViewportOverlayProps> = ({
         pointerEvents: 'auto',
         background: 'transparent',
       }}
+      data-testid="portal-viewport-overlay"
     >
       {children}
     </div>,

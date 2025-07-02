@@ -1,0 +1,8 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Commit Message Line Length Rule
+
+When asked to create a commit message, ensure that no line exceeds 100 characters. This prevents commit lint rule failures and ensures compatibility with the project's commit message standards.

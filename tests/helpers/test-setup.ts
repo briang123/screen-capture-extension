@@ -12,12 +12,38 @@ import {
 } from './test-utils';
 import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
+import { test as baseTest, TestInfo } from '@playwright/test';
+import os from 'os';
 
 loadEnv();
 
 type MyFixtures = {
   extensionId: string;
   sidebar: boolean;
+};
+
+const sanitizeFilename = (str: string) => str.replace(/[^a-zA-Z0-9-_.]/g, '_');
+
+let currentTestTimestamp: string | undefined;
+let currentTestLogFile: string | undefined;
+
+const getTestLogFile = (testInfo?: TestInfo) => {
+  const timestamp = currentTestTimestamp || new Date().toISOString().replace(/[:.]/g, '-');
+  const title = testInfo?.title ? sanitizeFilename(testInfo.title) : 'unknown';
+  const dir = path.join(process.cwd(), 'tests', 'results');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return path.join(dir, `${timestamp}_${title}.log`);
+};
+
+const getFinalLogFile = (testInfo: TestInfo, status: string) => {
+  const base = getTestLogFile(testInfo).replace(/\.log$/, '');
+  let suffix = '_UNKNOWN';
+  if (status === 'passed') suffix = '_PASSED';
+  else if (status === 'failed') suffix = '_FAILED';
+  else if (status === 'skipped') suffix = '_SKIPPED';
+  return `${base}${suffix}.log`;
 };
 
 const test = base.extend<MyFixtures>({
@@ -27,8 +53,18 @@ const test = base.extend<MyFixtures>({
     await use(context);
     await context.close();
   },
-  page: async ({ context }, use) => {
+  page: async ({ context }, use, testInfo) => {
+    currentTestTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    currentTestLogFile = getTestLogFile(testInfo);
     const page = await setupExtensionPage(context);
+    page.on('console', (msg) => {
+      const now = new Date();
+      const timestamp = now.toISOString();
+      fs.appendFileSync(
+        currentTestLogFile!,
+        `[${timestamp}] [${msg.type()}] ${msg.text()}${os.EOL}`
+      );
+    });
     await use(page);
   },
   extensionId: async ({ context }, use) => {
@@ -82,6 +118,32 @@ test.afterEach(async ({ page }, testInfo) => {
       fs.renameSync(video.path, videoDest);
     }
   }
+});
+
+// Log test results after each test
+// eslint-disable-next-line no-empty-pattern
+baseTest.afterEach(async ({}, testInfo: TestInfo) => {
+  const status = testInfo.status ? testInfo.status : 'unknown';
+  const title = testInfo.title;
+  const now = new Date();
+  const timestamp = now.toISOString();
+  fs.appendFileSync(
+    currentTestLogFile!,
+    `[${timestamp}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
+  );
+  // Rename the log file to include the result
+  const finalLogFile = getFinalLogFile(testInfo, status);
+  if (currentTestLogFile && currentTestLogFile !== finalLogFile) {
+    try {
+      fs.renameSync(currentTestLogFile, finalLogFile);
+    } catch {
+      // fallback: copy and remove if rename fails
+      fs.copyFileSync(currentTestLogFile, finalLogFile);
+      fs.unlinkSync(currentTestLogFile);
+    }
+  }
+  currentTestTimestamp = undefined;
+  currentTestLogFile = undefined;
 });
 
 export { test, expect };

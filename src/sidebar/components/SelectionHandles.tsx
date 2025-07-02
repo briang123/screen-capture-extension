@@ -76,6 +76,7 @@ const CornerHandle: React.FC<{
     <>
       <div
         data-selection-handle
+        className="selection-handle"
         style={{
           position: 'absolute',
           background: HANDLE_COLOR,
@@ -88,6 +89,7 @@ const CornerHandle: React.FC<{
       />
       <div
         data-selection-handle
+        className="selection-handle"
         style={{
           position: 'absolute',
           background: HANDLE_COLOR,
@@ -118,6 +120,7 @@ const SelectionHandles: React.FC<SelectionHandlesProps> = ({
             <div
               key={handle.key}
               data-selection-handle
+              className="selection-handle"
               style={{
                 position: 'absolute',
                 left: handle.x - HANDLE_OFFSET,
@@ -137,6 +140,7 @@ const SelectionHandles: React.FC<SelectionHandlesProps> = ({
             <div
               key={handle.key}
               data-selection-handle
+              className="selection-handle"
               style={{
                 position: 'absolute',
                 left: handle.x - HANDLE_THICKNESS / 2,

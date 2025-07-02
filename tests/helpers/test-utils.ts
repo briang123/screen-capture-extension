@@ -11,8 +11,19 @@ import {
   SIDEBAR_CAPTURE_BUTTON_SELECTOR,
   AREA_CAPTURE_BUTTON_SELECTOR,
   SCREENSHOT_THUMBNAIL_SELECTOR,
+  SIDEBAR_LEFT_PANEL_SELECTOR,
+  SIDEBAR_RIGHT_PANEL_SELECTOR,
+  SIDEBAR_MOVE_BUTTON_SELECTOR,
+  SIDEBAR_EXPAND_COLLAPSE_BUTTON_SELECTOR,
+  SIDEBAR_ROOT_SELECTOR,
 } from './test-selectors';
-import type { BrowserContext, Page, ConsoleMessage, ElementHandle } from '@playwright/test';
+import type {
+  BrowserContext,
+  Page,
+  ConsoleMessage,
+  ElementHandle,
+  Locator,
+} from '@playwright/test';
 import { expect } from '@playwright/test';
 
 declare global {
@@ -27,6 +38,9 @@ const __dirname = path.dirname(__filename);
 export const extensionPath = path.resolve(__dirname, '..', '..', 'dist');
 export const userDataDir = path.join(process.cwd(), '.pw-chrome-profile');
 
+/**
+ * Returns the launch arguments for Chromium with extension support and test optimizations.
+ */
 export function getLaunchArgs() {
   const args = [
     // Essential extension loading arguments
@@ -76,6 +90,11 @@ export function getLaunchArgs() {
   return args;
 }
 
+/**
+ * Attempts to retrieve the extension ID from the browser context using several strategies.
+ * @param context Playwright browser context
+ * @returns The extension ID as a string, or null if not found
+ */
 export async function getExtensionId(context: BrowserContext): Promise<string | null> {
   console.log('Getting extension ID...');
 
@@ -178,6 +197,10 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
   return null;
 }
 
+/**
+ * Launches a persistent Chromium context with the extension loaded.
+ * @returns The Playwright browser context
+ */
 export async function launchExtensionContext(): Promise<BrowserContext> {
   // Only use headless mode if explicitly requested
   const shouldUseHeadless = process.env.HEADLESS === 'true';
@@ -226,6 +249,12 @@ export async function launchExtensionContext(): Promise<BrowserContext> {
   return context;
 }
 
+/**
+ * Sets up a new page in the given context and navigates to the test URL.
+ * @param context Playwright browser context
+ * @param devMode Whether to enable dev mode (default: true)
+ * @returns The Playwright page
+ */
 export async function setupExtensionPage(
   context: BrowserContext,
   devMode: boolean = true
@@ -246,6 +275,11 @@ export async function setupExtensionPage(
   return page;
 }
 
+/**
+ * Triggers the sidebar overlay in the extension by sending a runtime message.
+ * @param page Playwright page object
+ * @param extensionId The extension ID
+ */
 export async function triggerSidebarOverlay(page: Page, extensionId: string): Promise<void> {
   const client = await page.context().newCDPSession(page);
   await client.send('Runtime.evaluate', {
@@ -258,6 +292,12 @@ export type CaptureButtonSelector =
   | typeof SIDEBAR_CAPTURE_BUTTON_SELECTOR
   | typeof AREA_CAPTURE_BUTTON_SELECTOR;
 
+/**
+ * Captures an image using the specified capture button selector.
+ * @param page Playwright page object
+ * @param buttonSelector Selector for the capture button (sidebar or area)
+ * @returns The ElementHandle for the screenshot thumbnail, or null if not found
+ */
 export async function captureImage(
   page: Page,
   buttonSelector: CaptureButtonSelector = SIDEBAR_CAPTURE_BUTTON_SELECTOR
@@ -283,6 +323,12 @@ export async function captureImage(
   return page.$(SCREENSHOT_THUMBNAIL_SELECTOR);
 }
 
+/**
+ * Selects an image by its position in the sidebar.
+ * @param page Playwright page object
+ * @param position The 1-based index of the image
+ * @returns The ElementHandle for the selected image, or null if not found
+ */
 export async function selectImageByPosition(
   page: Page,
   position: number
@@ -292,18 +338,36 @@ export async function selectImageByPosition(
   return page.$(getSelectedImage());
 }
 
+/**
+ * Clicks the "Open" button for the currently selected image in the sidebar.
+ * @param page Playwright page object
+ */
 export async function clickSelectedImageOpenButton(page: Page): Promise<void> {
   await page.click(getSelectedImageOpenButton());
 }
 
+/**
+ * Clicks the "Copy" button for the currently selected image in the sidebar.
+ * @param page Playwright page object
+ */
 export async function clickSelectedImageCopyButton(page: Page): Promise<void> {
   await page.click(getSelectedImageCopyButton());
 }
 
+/**
+ * Clicks the "Delete" button for the currently selected image in the sidebar.
+ * @param page Playwright page object
+ */
 export async function clickSelectedImageDeleteButton(page: Page): Promise<void> {
   await page.click(getSelectedImageDeleteButton());
 }
 
+/**
+ * Returns true if the current script is run directly (not imported).
+ * @param importMetaUrl The import.meta.url value
+ * @param argv1 The process.argv[1] value
+ * @returns True if the script is run directly
+ */
 export function isDirectScriptRun(
   importMetaUrl: string = import.meta.url,
   argv1: string = process.argv[1]
@@ -311,6 +375,10 @@ export function isDirectScriptRun(
   return importMetaUrl === `file://${argv1}`;
 }
 
+/**
+ * Generates a timestamp string in the format YYYY-MM-DD-HH-mm-ss.
+ * @returns The timestamp string
+ */
 function getTimestampString(): string {
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -324,6 +392,12 @@ function getTimestampString(): string {
   ].join('-');
 }
 
+/**
+ * Generates a filename for test artifacts (screenshots, videos) based on test info and status.
+ * @param testInfo Test info object with status and title
+ * @param ext File extension (default: 'png')
+ * @returns The generated filename
+ */
 export function generateTestArtifactFilename(
   testInfo: { status: string; title: string },
   ext: string = 'png'
@@ -336,12 +410,12 @@ export function generateTestArtifactFilename(
 
 /**
  * Simulates a mouse drag to select an area on the page.
- * @param page - The Playwright page object
- * @param startX - The starting x coordinate
- * @param startY - The starting y coordinate
- * @param endX - The ending x coordinate
- * @param endY - The ending y coordinate
- * @param steps - Number of steps for the drag (default 10)
+ * @param page Playwright page object
+ * @param startX Starting x coordinate
+ * @param startY Starting y coordinate
+ * @param endX Ending x coordinate
+ * @param endY Ending y coordinate
+ * @param steps Number of steps for the drag (default: 10)
  */
 export async function dragToSelectArea(
   page: Page,
@@ -367,6 +441,12 @@ export async function waitForAndClickButton(page: Page, selector: string): Promi
   await page.click(selector);
 }
 
+/**
+ * Captures an image and verifies that the thumbnail appears in the sidebar.
+ * @param page Playwright page object
+ * @param buttonSelector Selector for the capture button
+ * @returns The ElementHandle for the screenshot thumbnail, or null if not found
+ */
 export async function captureAndVerifyImage(
   page: Page,
   buttonSelector: CaptureButtonSelector
@@ -377,4 +457,118 @@ export async function captureAndVerifyImage(
     expect(await thumbnail.isVisible()).toBe(true);
   }
   return thumbnail;
+}
+
+/**
+ * Moves the sidebar to the other side of the screen and returns the new panel locator.
+ * @param page Playwright page object
+ * @returns The Locator for the moved sidebar panel
+ */
+export async function moveSidebarToOtherSide(page: Page): Promise<Locator> {
+  let isLeft = (await page.locator(SIDEBAR_LEFT_PANEL_SELECTOR).count()) > 0;
+  await page.click(SIDEBAR_MOVE_BUTTON_SELECTOR);
+  const movedPanel = isLeft
+    ? page.locator(SIDEBAR_RIGHT_PANEL_SELECTOR)
+    : page.locator(SIDEBAR_LEFT_PANEL_SELECTOR);
+  await expect(movedPanel).toBeVisible();
+  return movedPanel;
+}
+
+/**
+ * Collapses the sidebar by clicking the expand/collapse button and verifying the collapsed state.
+ * @param page Playwright page object
+ */
+export async function collapseSidebar(page: Page): Promise<void> {
+  const sidebarPanel = await getCurrentSidebarPanel(page);
+  await page.click(SIDEBAR_EXPAND_COLLAPSE_BUTTON_SELECTOR);
+  await expect(sidebarPanel).toHaveClass(/collapsed/);
+}
+
+/**
+ * Expands the sidebar by clicking the expand/collapse button and verifying the expanded state.
+ * @param page Playwright page object
+ */
+export async function expandSidebar(page: Page): Promise<void> {
+  const sidebarPanel = await getCurrentSidebarPanel(page);
+  await page.click(SIDEBAR_EXPAND_COLLAPSE_BUTTON_SELECTOR);
+  await expect(sidebarPanel).not.toHaveClass(/collapsed/);
+}
+
+/**
+ * Returns the Locator for the currently visible sidebar panel (left or right).
+ * @param page Playwright page object
+ * @returns The Locator for the current sidebar panel
+ */
+export async function getCurrentSidebarPanel(page: Page): Promise<Locator> {
+  let sidebarPanel = page.locator(SIDEBAR_LEFT_PANEL_SELECTOR);
+  if ((await sidebarPanel.count()) === 0) {
+    sidebarPanel = page.locator(SIDEBAR_RIGHT_PANEL_SELECTOR);
+  }
+  return sidebarPanel;
+}
+
+/**
+ * Returns true if either the left or right sidebar panel is visible.
+ * @param page Playwright page object
+ * @returns True if the sidebar is open
+ */
+export async function isSidebarOpen(page: Page): Promise<boolean> {
+  const leftVisible = await page
+    .locator(SIDEBAR_LEFT_PANEL_SELECTOR)
+    .isVisible()
+    .catch(() => false);
+  const rightVisible = await page
+    .locator(SIDEBAR_RIGHT_PANEL_SELECTOR)
+    .isVisible()
+    .catch(() => false);
+  return leftVisible || rightVisible;
+}
+
+/**
+ * Asserts that the sidebar is open (visible on either side).
+ * @param page Playwright page object
+ */
+export async function sidebarShouldBeOpen(page: Page): Promise<void> {
+  expect(await isSidebarOpen(page)).toBe(true);
+}
+
+/**
+ * Asserts that the sidebar root is not visible (sidebar is closed or removed).
+ * @param page Playwright page object
+ */
+export async function sidebarShouldBeRemoved(page: Page): Promise<void> {
+  await expect(page.locator(SIDEBAR_ROOT_SELECTOR)).not.toBeVisible();
+}
+
+/**
+ * Asserts that an image has been copied to the clipboard. Only runs in headed mode.
+ * @param page Playwright page object
+ */
+export async function assertImageCopiedToClipboard(page: Page): Promise<void> {
+  if (process.env.HEADLESS === 'true') {
+    console.log('Skipping clipboard check in headless mode.');
+    return;
+  }
+  // Try to read clipboard contents in the browser context
+  const clipboardData = await page.evaluate(async () => {
+    async function checkClipboardForImage() {
+      // eslint-disable-next-line no-undef
+      if (!('clipboard' in navigator)) return null;
+      try {
+        // eslint-disable-next-line no-undef
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          if (item.types.includes('image/png')) {
+            const blob = await item.getType('image/png');
+            return blob.size > 0;
+          }
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
+    return await checkClipboardForImage();
+  });
+  expect(clipboardData).toBe(true);
 }

@@ -25,6 +25,7 @@ const SelectionRectangle: React.FC<SelectionRectangleProps> = ({
 }) => {
   return (
     <motion.div
+      data-testid="selection-area"
       className="absolute pointer-events-none"
       style={{
         left: x,
@@ -58,6 +59,7 @@ const SelectionRectangle: React.FC<SelectionRectangleProps> = ({
             zIndex: Z_INDEX.SIZE_INDICATOR,
             whiteSpace: 'nowrap',
           }}
+          data-testid="selection-area-size-indicator"
         >
           {Math.round(width)} × {Math.round(height)}
         </div>
