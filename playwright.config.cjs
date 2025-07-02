@@ -20,7 +20,10 @@ const config = {
   timeout: 30000,
   retries: 0,
   use: {
-    headless: false,
+    headless:
+      process.env.CI === 'true' ||
+      process.env.GITHUB_ACTIONS === 'true' ||
+      process.env.HEADLESS === 'true',
     viewport: { width: 1280, height: 800 },
     ignoreHTTPSErrors: true,
     video: process.env.COLLECT_VIDEO === 'true' ? 'on' : 'off',

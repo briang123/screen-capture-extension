@@ -47,8 +47,12 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
 }
 
 export async function launchExtensionContext(): Promise<BrowserContext> {
+  // Detect CI environment and force headless mode
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
+
   const contextOptions: Parameters<typeof chromium.launchPersistentContext>[1] = {
-    headless: false,
+    headless: shouldUseHeadless,
     args: getLaunchArgs(),
   };
   if (process.env.COLLECT_VIDEO === 'true') {
