@@ -62,9 +62,6 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
   for (let attempt = 0; attempt < 15; attempt++) {
     console.log(`Attempt ${attempt + 1} to get extension ID...`);
 
-    // Try different methods to get the extension ID
-    let extensionId: string | null = null;
-
     // Method 1: Check background pages and service workers
     const allTargets = [...context.backgroundPages(), ...context.serviceWorkers()];
     console.log(`Found ${allTargets.length} targets (background pages + service workers)`);
@@ -75,103 +72,75 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
       const match = url.match(EXTENSION_ID_PATTERN);
       if (match) {
         console.log('Extension ID found from target URL:', match[1]);
-        extensionId = match[1];
-        break;
+        return match[1];
       }
     }
 
     // Method 2: Try to get extension ID from chrome.management API
-    if (!extensionId) {
+    try {
+      const page = await context.newPage();
+      // Try to access chrome://extensions/ but handle the error gracefully
       try {
-        const page = await context.newPage();
-        // Try to access chrome://extensions/ but handle the error gracefully
-        try {
-          await page.goto('chrome://extensions/');
+        await page.goto('chrome://extensions/');
 
-          // Wait for extensions page to load
-          await page.waitForTimeout(2000);
+        // Wait for extensions page to load
+        await page.waitForTimeout(2000);
 
-          // Try to get extension ID from the page
-          const extensionIdFromPage = await page.evaluate(() => {
-            // Look for extension cards and extract IDs
-            const cards = document.querySelectorAll('.extension-card');
-            for (let i = 0; i < cards.length; i++) {
-              const card = cards[i];
-              const idElement = card.querySelector('.extension-id');
-              if (idElement) {
-                return idElement.textContent?.trim();
-              }
+        // Try to get extension ID from the page
+        const extensionIdFromPage = await page.evaluate(() => {
+          // Look for extension cards and extract IDs
+          const cards = document.querySelectorAll('.extension-card');
+          for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            const idElement = card.querySelector('.extension-id');
+            if (idElement) {
+              return idElement.textContent?.trim();
             }
-            return null;
-          });
-
-          if (extensionIdFromPage) {
-            console.log('Extension ID found from extensions page:', extensionIdFromPage);
-            extensionId = extensionIdFromPage;
-          }
-        } catch {
-          console.log('Chrome://extensions/ not accessible, skipping this method');
-        }
-
-        await page.close();
-      } catch (error) {
-        console.log('Error getting extension ID from chrome://extensions/:', error);
-      }
-    }
-
-    // Method 3: Try to get extension ID from chrome.runtime.id in a test page
-    if (!extensionId) {
-      try {
-        const page = await context.newPage();
-        await page.goto(
-          'data:text/html,<html><body><script>console.log(chrome.runtime.id);</script></body></html>'
-        );
-
-        // Wait for any console messages
-        await page.waitForTimeout(1000);
-
-        // Check if we can access chrome.runtime.id
-        const runtimeId = await page.evaluate(() => {
-          if (typeof chrome !== 'undefined' && chrome.runtime) {
-            return chrome.runtime.id;
           }
           return null;
         });
 
-        if (runtimeId) {
-          console.log('Extension ID found from chrome.runtime.id:', runtimeId);
-          extensionId = runtimeId;
+        if (extensionIdFromPage) {
+          console.log('Extension ID found from extensions page:', extensionIdFromPage);
+          await page.close();
+          return extensionIdFromPage;
         }
+      } catch {
+        console.log('Chrome://extensions/ not accessible, skipping this method');
+      }
 
+      await page.close();
+    } catch (error) {
+      console.log('Error getting extension ID from chrome://extensions/:', error);
+    }
+
+    // Method 3: Try to get extension ID from chrome.runtime.id in a test page
+    try {
+      const page = await context.newPage();
+      await page.goto(
+        'data:text/html,<html><body><script>console.log(chrome.runtime.id);</script></body></html>'
+      );
+
+      // Wait for any console messages
+      await page.waitForTimeout(1000);
+
+      // Check if we can access chrome.runtime.id
+      const runtimeId = await page.evaluate(() => {
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          return chrome.runtime.id;
+        }
+        return null;
+      });
+
+      if (runtimeId) {
+        console.log('Extension ID found from chrome.runtime.id:', runtimeId);
         await page.close();
-      } catch (error) {
-        console.log('Error getting extension ID from chrome.runtime.id:', error);
+        return runtimeId;
       }
-    }
 
-    // Method 4: Try to get extension ID from the extension directory
-    if (!extensionId) {
-      try {
-        // In development mode, the extension ID is often derived from the path
-        // For unpacked extensions, we can try to get it from the directory name or generate it
-        const extensionDir = path.basename(extensionPath);
-        console.log('Extension directory:', extensionDir);
-
-        // Try to get the extension ID from the directory structure
-        // This is a fallback method for development/testing
-        if (extensionDir === 'dist') {
-          // Generate a consistent extension ID for testing
-          const testExtensionId = 'test-extension-id-12345';
-          console.log('Using test extension ID:', testExtensionId);
-          extensionId = testExtensionId;
-        }
-      } catch (error) {
-        console.log('Error getting extension ID from directory:', error);
-      }
-    }
-
-    if (extensionId) {
-      return extensionId;
+      await page.close();
+    } catch (error) {
+      console.log('Error getting extension ID from chrome.runtime.id:', error);
     }
 
     // Wait before next attempt
@@ -181,10 +150,8 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
     }
   }
 
-  // Final fallback: Use a hardcoded extension ID for testing
-  // This is not ideal but ensures tests can run in CI
-  console.log('Using fallback extension ID for testing');
-  return 'test-extension-id-12345';
+  console.log('Failed to get extension ID after all attempts');
+  return null;
 }
 
 export async function launchExtensionContext(): Promise<BrowserContext> {
