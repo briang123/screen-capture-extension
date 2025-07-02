@@ -25,8 +25,8 @@ jobs:
       # Run unit tests and output results in JSON
       - name: Run unit tests and output results
         run: |
-          npm test -- --json --outputFile=unit-test-results.json || true
-          UNIT_PASSING=$(jq '[.testResults[].assertionResults[] | select(.status=="passed")] | length' unit-test-results.json)
+          npx vitest run --reporter=json > unit-test-results.json || true
+          UNIT_PASSING=$(jq '[.testResults[].tasks[] | select(.result.state=="pass")] | length' unit-test-results.json)
           echo $UNIT_PASSING > unit-passing.txt
 
       - name: Install Playwright browsers
@@ -50,7 +50,7 @@ jobs:
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           GIST_ID: b417ceac6cfcf12a0910ef90196e7512
-          GIST_FILENAME: gistfile1.txt
+          GIST_FILENAME: tests-badge.json
           REPO_KEY: screen-capture-extension
         run: |
           # Download the current Gist JSON
