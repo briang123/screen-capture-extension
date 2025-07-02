@@ -1,4 +1,7 @@
-name: CI
+name: CI & Test Badges
+
+description: >
+  Runs lint, unit tests, and e2e tests for the Chrome extension. Updates a public Gist for dynamic Shields.io test badges.
 
 on:
   push:
@@ -7,77 +10,75 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  test-and-badge:
+    name: Lint, Test, and Update Badge
     runs-on: ubuntu-latest
+    env:
+      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      GIST_ID: b417ceac6cfcf12a0910ef90196e7512
+      GIST_FILENAME: tests-badge.json
+      REPO_KEY: screen-capture-extension
+      GIST_URL: https://api.github.com/gists/b417ceac6cfcf12a0910ef90196e7512
+      GIST_RAW: https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Use Node.js
+      - name: Setup Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
-      - run: npm run lint
+      - name: Lint source code
+        run: npm run lint
 
-      # Run unit tests and output results in JSON
-      - name: Run unit tests and output results
+      - name: Run unit tests (Vitest) and count passing
         run: |
           npx vitest run --reporter=json > unit-test-results.json || true
-          UNIT_PASSING=$(jq '[.testResults[].assertionResults[] | select(.status=="passed")] | length' unit-test-results.json)
-          echo $UNIT_PASSING > unit-passing.txt
+          jq '[.testResults[].assertionResults[] | select(.status=="passed")] | length' unit-test-results.json > unit-passing.txt
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Start xvfb
+      - name: Start Xvfb for headless browser tests
         run: |
           Xvfb :99 -screen 0 1280x800x24 > /dev/null 2>&1 &
           echo "DISPLAY=:99" >> $GITHUB_ENV
 
-      # Run Playwright tests and output results in JSON
-      - name: Run Playwright tests and output results
+      - name: Run e2e tests (Playwright) and count passing
         run: |
           npx playwright test --reporter=json > e2e-test-results.json 2> playwright-error.log || true
           if jq empty e2e-test-results.json 2>/dev/null; then
-            E2E_PASSING=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' e2e-test-results.json)
+            jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' e2e-test-results.json > e2e-passing.txt
           else
-            E2E_PASSING=0
+            echo 0 > e2e-passing.txt
           fi
-          echo $E2E_PASSING > e2e-passing.txt
 
-      # Download and update the Gist JSON
-      - name: Update tests badge Gist
-        if: always()
-        env:
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-          GIST_ID: b417ceac6cfcf12a0910ef90196e7512
-          GIST_FILENAME: tests-badge.json
-          REPO_KEY: screen-capture-extension
+      - name: Prepare badge JSON for Gist
         run: |
-          # Download the current Gist JSON
-          curl -s -o gist.json https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json
-
-          # Prepare new badge data
           UNIT_PASSING=$(cat unit-passing.txt)
           E2E_PASSING=$(cat e2e-passing.txt)
-          jq --arg repo "$REPO_KEY" \
-             --arg unit_label "unit tests" \
-             --arg unit_msg "$UNIT_PASSING passing" \
-             --arg e2e_label "e2e tests" \
-             --arg e2e_msg "$E2E_PASSING passing" \
-             '
-             .[$repo].unit.label = $unit_label |
-             .[$repo].unit.message = $unit_msg |
-             .[$repo].unit.color = "brightgreen" |
-             .[$repo].e2e.label = $e2e_label |
-             .[$repo].e2e.message = $e2e_msg |
-             .[$repo].e2e.color = "brightgreen"
-             ' gist.json > new-gist.json
+          jq --null-input \
+            --arg repo "$REPO_KEY" \
+            --arg unit_label "unit tests" \
+            --arg unit_msg "$UNIT_PASSING passing" \
+            --arg e2e_label "e2e tests" \
+            --arg e2e_msg "$E2E_PASSING passing" \
+            '{
+              ($repo): {
+                unit: {label: $unit_label, message: $unit_msg, color: "brightgreen"},
+                e2e: {label: $e2e_label, message: $e2e_msg, color: "brightgreen"}
+              }
+            }' > tests-badge.json
 
-          # Patch the Gist with the updated JSON
-          curl -s -X PATCH -H "Authorization: token $GIST_TOKEN" \
-            -d "{\"files\": {\"$GIST_FILENAME\": {\"content\": \"$(cat new-gist.json)\"}}}" \
-            https://api.github.com/gists/$GIST_ID
+      - name: Update Shields.io test badge Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: tests-badge.json
+          gist_file_name: tests-badge.json
