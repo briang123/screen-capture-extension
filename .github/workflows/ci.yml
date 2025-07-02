@@ -88,8 +88,8 @@ jobs:
             --arg e2e_msg "$E2E_PASSING passing" \
             '{
               ($repo): {
-                unit: {label: $unit_label, message: $unit_msg, color: "brightgreen"},
-                e2e: {label: $e2e_label, message: $e2e_msg, color: "brightgreen"}
+                unit: {schemaVersion: 1, label: $unit_label, message: $unit_msg, color: "brightgreen"},
+                e2e: {schemaVersion: 1, label: $e2e_label, message: $e2e_msg, color: "brightgreen"}
               }
             }' > tests-badge.json
 
