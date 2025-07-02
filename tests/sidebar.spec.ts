@@ -4,7 +4,21 @@ import {
   AREA_CAPTURE_BUTTON_SELECTOR,
   SELECT_AREA_TO_CAPTURE_BUTTON_SELECTOR,
   SIDEBAR_CAPTURE_BUTTON_SELECTOR,
+  SIDEBAR_CLOSE_BUTTON_SELECTOR,
+  SIDEBAR_ROOT_SELECTOR,
 } from './helpers/test-selectors';
+
+test('User can close the sidebar by clicking the X button', async ({ page, sidebar }) => {
+  // Ensure sidebar is loaded
+  expect(sidebar).toBe(true);
+
+  // Click the close (X) button using the static selector
+  await page.click(SIDEBAR_CLOSE_BUTTON_SELECTOR);
+
+  // Assert that the sidebar is no longer visible
+  // Wait for sidebar root to be removed or hidden
+  await expect(page.locator(SIDEBAR_ROOT_SELECTOR)).not.toBeVisible();
+});
 
 test('Capture Image adds screenshot to sidebar', async ({ page, sidebar }) => {
   expect(sidebar).toBe(true);

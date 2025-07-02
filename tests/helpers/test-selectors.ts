@@ -6,6 +6,12 @@ export const SCREENSHOT_THUMBNAIL_SELECTOR = 'img[alt^="Captured screenshot thum
 export const SIDEBAR_CAPTURE_BUTTON_SELECTOR = '[data-testid="sidebar-capture-button"]';
 export const AREA_CAPTURE_BUTTON_SELECTOR = '[data-testid="area-capture-button"]';
 export const SELECT_AREA_TO_CAPTURE_BUTTON_SELECTOR = 'button:has-text("Select Area to Capture")';
+export const SIDEBAR_TITLE_SELECTOR = '[data-testid="sidebar-title"]';
+export const SIDEBAR_THEME_TOGGLE_SELECTOR = '[data-testid="sidebar-theme-toggle"]';
+export const SIDEBAR_MOVE_BUTTON_SELECTOR = '[data-testid="sidebar-move-button"]';
+export const SIDEBAR_EXPAND_COLLAPSE_BUTTON_SELECTOR =
+  '[data-testid="sidebar-expand-collapse-button"]';
+export const SIDEBAR_CLOSE_BUTTON_SELECTOR = '[data-testid="sidebar-close-button"]';
 
 // Selector factories / dynamic selectors
 export const getSidebarPanelSelector = (panelName: string) => `[data-panel="${panelName}"]`;

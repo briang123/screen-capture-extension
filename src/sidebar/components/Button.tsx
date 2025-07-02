@@ -74,7 +74,7 @@ export const SidebarCaptureButton: React.FC<CaptureButtonProps> = ({
     disabled={isCapturing}
     className={['w-full flex items-center justify-center', className].join(' ')}
     aria-busy={isCapturing}
-    data-testid={dataTestId}
+    dataTestId={dataTestId}
     {...props}
   >
     {isCapturing ? (

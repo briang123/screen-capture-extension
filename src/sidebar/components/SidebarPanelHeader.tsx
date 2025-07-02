@@ -23,16 +23,36 @@ const SidebarPanelHeader: React.FC<SidebarPanelHeaderProps> = ({
   collapsed,
 }) => (
   <div className="sc-sidebar-header flex items-center justify-between px-6 py-4 border-b border-gray-200">
-    <span className="sc-sidebar-title text-xl font-semibold text-gray-900 dark:text-gray-100">
+    <span
+      className="sc-sidebar-title text-xl font-semibold text-gray-900 dark:text-gray-100"
+      data-testid="sidebar-title"
+    >
       Screen Capture
     </span>
     <div className="sc-sidebar-actions flex items-center gap-2">
-      <ThemeToggle theme={theme} onToggle={onThemeToggle} />
-      <Button variant="secondary" size="sm" onClick={onMoveSide} title="Move Sidebar to Other Side">
+      <ThemeToggle theme={theme} onToggle={onThemeToggle} data-testid="sidebar-theme-toggle" />
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={onMoveSide}
+        title="Move Sidebar to Other Side"
+        dataTestId="sidebar-move-button"
+      >
         ⇄
       </Button>
-      <ExpandCollapseButton side={side} collapsed={collapsed} onClick={onToggleCollapse} />
-      <Button variant="danger" size="sm" onClick={onClose} title="Close Sidebar">
+      <ExpandCollapseButton
+        side={side}
+        collapsed={collapsed}
+        onClick={onToggleCollapse}
+        dataTestId="sidebar-expand-collapse-button"
+      />
+      <Button
+        variant="danger"
+        size="sm"
+        onClick={onClose}
+        title="Close Sidebar"
+        dataTestId="sidebar-close-button"
+      >
         ✖️
       </Button>
     </div>
