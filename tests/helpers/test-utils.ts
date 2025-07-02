@@ -3,15 +3,17 @@ import { fileURLToPath } from 'url';
 import { chromium } from '@playwright/test';
 import { TEST_URL, EXTENSION_ID_PATTERN } from './test-constants';
 import {
-  getButtonByLabel,
-  SCREENSHOT_THUMBNAIL_SELECTOR,
   getImageByPosition,
   getSelectedImage,
   getSelectedImageOpenButton,
   getSelectedImageCopyButton,
   getSelectedImageDeleteButton,
+  SIDEBAR_CAPTURE_BUTTON_SELECTOR,
+  AREA_CAPTURE_BUTTON_SELECTOR,
+  SCREENSHOT_THUMBNAIL_SELECTOR,
 } from './test-selectors';
 import type { BrowserContext, Page, ConsoleMessage, ElementHandle } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 declare global {
   interface Window {
@@ -252,29 +254,29 @@ export async function triggerSidebarOverlay(page: Page, extensionId: string): Pr
   });
 }
 
-export async function captureImage(page: Page): Promise<ElementHandle | null> {
-  console.log('Starting captureImage function...');
+export type CaptureButtonSelector =
+  | typeof SIDEBAR_CAPTURE_BUTTON_SELECTOR
+  | typeof AREA_CAPTURE_BUTTON_SELECTOR;
 
-  // Wait for the sidebar to be fully loaded and the capture button to be available
-  console.log('Waiting for capture button...');
-  await page.waitForSelector('[data-testid="capture-button"]', { timeout: 15000 });
+export async function captureImage(
+  page: Page,
+  buttonSelector: CaptureButtonSelector = SIDEBAR_CAPTURE_BUTTON_SELECTOR
+): Promise<ElementHandle | null> {
+  console.log(`Starting captureImage function with selector: ${buttonSelector}`);
+
+  // Wait for the correct capture button to be available
+  console.log(`Waiting for button ${buttonSelector}...`);
+  await page.waitForSelector(buttonSelector, { timeout: 15000 });
   console.log('Capture button found!');
 
   // Wait a bit more for the button to be fully interactive
   await page.waitForTimeout(2000);
-  console.log('Waited for button to be interactive');
 
-  // Try to find the button and log its state
-  const button = page.getByRole('button', getButtonByLabel('capture image'));
-  console.log('Looking for button with label "capture image"');
-
-  // Check if button is visible
-  const isVisible = await button.isVisible();
-  console.log('Button visible:', isVisible);
-
-  await button.click();
+  // Click the button
+  await page.click(buttonSelector);
   console.log('Button clicked successfully');
 
+  // Wait for the thumbnail to appear in the sidebar
   await page.waitForSelector(SCREENSHOT_THUMBNAIL_SELECTOR, { timeout: 7000 });
   console.log('Screenshot thumbnail found');
 
@@ -363,4 +365,16 @@ export async function dragToSelectArea(
 export async function waitForAndClickButton(page: Page, selector: string): Promise<void> {
   await page.waitForSelector(selector, { state: 'visible' });
   await page.click(selector);
+}
+
+export async function captureAndVerifyImage(
+  page: Page,
+  buttonSelector: CaptureButtonSelector
+): Promise<ElementHandle | null> {
+  const thumbnail = await captureImage(page, buttonSelector);
+  expect(thumbnail).not.toBeNull();
+  if (thumbnail) {
+    expect(await thumbnail.isVisible()).toBe(true);
+  }
+  return thumbnail;
 }
