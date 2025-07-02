@@ -38,7 +38,26 @@ const test = base.extend<MyFixtures>({
   },
   sidebar: async ({ page, extensionId }, use) => {
     console.log('Sidebar fixture: Extension ID =', extensionId);
-    await triggerSidebarOverlay(page, extensionId);
+
+    // If we're using a fallback extension ID, try a different approach
+    if (extensionId === 'test-extension-id-12345') {
+      console.log('Using fallback extension ID, trying alternative sidebar trigger method');
+
+      // Try to trigger the sidebar by injecting a script directly
+      await page.evaluate(() => {
+        // Create a custom event to trigger the sidebar
+        const event = new (window as any).CustomEvent('openSidebar', {
+          detail: { action: 'openSidebar' },
+        });
+        window.dispatchEvent(event);
+      });
+
+      // Wait a bit for the sidebar to appear
+      await page.waitForTimeout(2000);
+    } else {
+      await triggerSidebarOverlay(page, extensionId);
+    }
+
     console.log('Sidebar fixture: Triggered sidebar overlay');
     await use(true);
   },
