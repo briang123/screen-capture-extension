@@ -8,8 +8,8 @@
 
 <!-- Replace GIST_URL with your actual Gist raw URL after first workflow run -->
 
-![Unit Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt&query=$.screen-capture-extension.unit)
-![E2E Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt&query=$.screen-capture-extension.e2e)
+![Unit Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.unit)
+![E2E Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.e2e)
 
 # Screen Capture Extension
 
