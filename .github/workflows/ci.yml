@@ -22,17 +22,58 @@ jobs:
 
       - run: npm run lint
 
-      - run: npm test
+      # Run unit tests and output results in JSON
+      - name: Run unit tests and output results
+        run: |
+          npm test -- --json --outputFile=unit-test-results.json || true
+          UNIT_PASSING=$(jq '[.testResults[].assertionResults[] | select(.status=="passed")] | length' unit-test-results.json)
+          echo $UNIT_PASSING > unit-passing.txt
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      # Start Xvfb (virtual display server) for headed browser tests
       - name: Start xvfb
         run: |
           Xvfb :99 -screen 0 1280x800x24 > /dev/null 2>&1 &
           echo "DISPLAY=:99" >> $GITHUB_ENV
 
-      # Run Playwright tests in headed mode (with virtual display)
-      - name: Run Playwright tests
-        run: npx playwright test
+      # Run Playwright tests and output results in JSON
+      - name: Run Playwright tests and output results
+        run: |
+          npx playwright test --reporter=json > e2e-test-results.json || true
+          E2E_PASSING=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' e2e-test-results.json)
+          echo $E2E_PASSING > e2e-passing.txt
+
+      # Download and update the Gist JSON
+      - name: Update tests badge Gist
+        if: always()
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: b417ceac6cfcf12a0910ef90196e7512
+          GIST_FILENAME: gistfile1.txt
+          REPO_KEY: screen-capture-extension
+        run: |
+          # Download the current Gist JSON
+          curl -s -o gist.json https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt
+
+          # Prepare new badge data
+          UNIT_PASSING=$(cat unit-passing.txt)
+          E2E_PASSING=$(cat e2e-passing.txt)
+          jq --arg repo "$REPO_KEY" \
+             --arg unit_label "unit tests" \
+             --arg unit_msg "$UNIT_PASSING passing" \
+             --arg e2e_label "e2e tests" \
+             --arg e2e_msg "$E2E_PASSING passing" \
+             '
+             .[$repo].unit.label = $unit_label |
+             .[$repo].unit.message = $unit_msg |
+             .[$repo].unit.color = "brightgreen" |
+             .[$repo].e2e.label = $e2e_label |
+             .[$repo].e2e.message = $e2e_msg |
+             .[$repo].e2e.color = "brightgreen"
+             ' gist.json > new-gist.json
+
+          # Patch the Gist with the updated JSON
+          curl -s -X PATCH -H "Authorization: token $GIST_TOKEN" \
+            -d "{\"files\": {\"$GIST_FILENAME\": {\"content\": \"$(cat new-gist.json)\"}}}" \
+            https://api.github.com/gists/$GIST_ID

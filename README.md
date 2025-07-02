@@ -1,3 +1,16 @@
+![Build Status (master)](https://github.com/briang123/screen-capture-extension/actions/workflows/ci.yml/badge.svg?branch=master)
+![Last Commit](https://img.shields.io/github/last-commit/briang123/screen-capture-extension)
+
+<!-- ![Chrome Web Store Installs](https://img.shields.io/chrome-web-store/users/EXTENSION_ID) -->
+<!-- ![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/EXTENSION_ID) -->
+
+![GitHub Stars](https://img.shields.io/github/stars/briang123/screen-capture-extension?style=social)
+
+<!-- Replace GIST_URL with your actual Gist raw URL after first workflow run -->
+
+![Unit Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt&query=$.screen-capture-extension.unit)
+![E2E Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt&query=$.screen-capture-extension.e2e)
+
 # Screen Capture Extension
 
 A powerful Chrome extension for capturing and annotating web pages with beautiful backgrounds and editing tools.
