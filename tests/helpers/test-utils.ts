@@ -177,9 +177,9 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
 }
 
 export async function launchExtensionContext(): Promise<BrowserContext> {
-  // Detect CI environment and force headless mode
+  // Only use headless mode if explicitly requested
+  const shouldUseHeadless = process.env.HEADLESS === 'true';
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-  const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
 
   console.log('Launching Chrome with extension support...');
   console.log('Extension path:', extensionPath);
