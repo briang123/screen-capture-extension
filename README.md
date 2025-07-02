@@ -1,19 +1,30 @@
 ![Build Status (master)](https://github.com/briang123/screen-capture-extension/actions/workflows/ci.yml/badge.svg?branch=master)
 ![Last Commit](https://img.shields.io/github/last-commit/briang123/screen-capture-extension)
+![Unit Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.unit&cacheSeconds=60)
+![E2E Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.e2e&cacheSeconds=60)
 
 <!-- ![Chrome Web Store Installs](https://img.shields.io/chrome-web-store/users/EXTENSION_ID) -->
 <!-- ![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/EXTENSION_ID) -->
 
-![GitHub Stars](https://img.shields.io/github/stars/briang123/screen-capture-extension?style=social)
-
 <!-- Replace GIST_URL with your actual Gist raw URL after first workflow run -->
-
-![Unit Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.unit)
-![E2E Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json&query=$.screen-capture-extension.e2e)
 
 # Screen Capture Extension
 
 A powerful Chrome extension for capturing and annotating web pages with beautiful backgrounds and editing tools.
+
+## 🚦 Continuous Integration & Live Badges
+
+This project uses GitHub Actions for continuous integration:
+
+- **Linting, unit tests, and e2e tests** run automatically on every push and pull request to `master`.
+- **Live test badges** at the top of this README show the current number of passing unit and e2e tests.
+  - Test results are written to a public Gist by CI.
+  - [Shields.io](https://shields.io/) reads the Gist and displays the latest test counts as badges.
+  - Badges refresh every minute.
+- **Dependency caching** is enabled for faster CI runs (`node_modules` and Playwright browsers).
+- **No secrets or sensitive data** are ever committed; all tokens are managed via GitHub Secrets.
+
+See `.github/workflows/ci.yml` for details.
 
 ## 🎯 Features
 
@@ -206,4 +217,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Made with ❤️ for the developer community**
 
 **Version**: 1.0.0  
-**Last Updated**: 2024-01-15
+**Last Updated**: 2025-07-02
