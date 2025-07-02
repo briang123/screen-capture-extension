@@ -54,7 +54,7 @@ jobs:
           REPO_KEY: screen-capture-extension
         run: |
           # Download the current Gist JSON
-          curl -s -o gist.json https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/gistfile1.txt
+          curl -s -o gist.json https://gist.githubusercontent.com/briang123/b417ceac6cfcf12a0910ef90196e7512/raw/tests-badge.json
 
           # Prepare new badge data
           UNIT_PASSING=$(cat unit-passing.txt)
