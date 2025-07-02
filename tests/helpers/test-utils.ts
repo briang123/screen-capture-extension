@@ -56,10 +56,10 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
   console.log('Getting extension ID...');
 
   // Wait a bit for extension to load
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Try multiple times to get the extension ID
-  for (let attempt = 0; attempt < 10; attempt++) {
+  for (let attempt = 0; attempt < 15; attempt++) {
     console.log(`Attempt ${attempt + 1} to get extension ID...`);
 
     // Try different methods to get the extension ID
@@ -84,28 +84,33 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
     if (!extensionId) {
       try {
         const page = await context.newPage();
-        await page.goto('chrome://extensions/');
+        // Try to access chrome://extensions/ but handle the error gracefully
+        try {
+          await page.goto('chrome://extensions/');
 
-        // Wait for extensions page to load
-        await page.waitForTimeout(2000);
+          // Wait for extensions page to load
+          await page.waitForTimeout(2000);
 
-        // Try to get extension ID from the page
-        const extensionIdFromPage = await page.evaluate(() => {
-          // Look for extension cards and extract IDs
-          const cards = document.querySelectorAll('.extension-card');
-          for (let i = 0; i < cards.length; i++) {
-            const card = cards[i];
-            const idElement = card.querySelector('.extension-id');
-            if (idElement) {
-              return idElement.textContent?.trim();
+          // Try to get extension ID from the page
+          const extensionIdFromPage = await page.evaluate(() => {
+            // Look for extension cards and extract IDs
+            const cards = document.querySelectorAll('.extension-card');
+            for (let i = 0; i < cards.length; i++) {
+              const card = cards[i];
+              const idElement = card.querySelector('.extension-id');
+              if (idElement) {
+                return idElement.textContent?.trim();
+              }
             }
-          }
-          return null;
-        });
+            return null;
+          });
 
-        if (extensionIdFromPage) {
-          console.log('Extension ID found from extensions page:', extensionIdFromPage);
-          extensionId = extensionIdFromPage;
+          if (extensionIdFromPage) {
+            console.log('Extension ID found from extensions page:', extensionIdFromPage);
+            extensionId = extensionIdFromPage;
+          }
+        } catch {
+          console.log('Chrome://extensions/ not accessible, skipping this method');
         }
 
         await page.close();
@@ -170,9 +175,9 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
     }
 
     // Wait before next attempt
-    if (attempt < 9) {
+    if (attempt < 14) {
       console.log('Waiting before next attempt...');
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
 
