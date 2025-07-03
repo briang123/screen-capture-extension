@@ -19,6 +19,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:pw": "playwright test",
+    "test:pw:dev": "cross-env NODE_ENV=development playwright test",
     "test:e2e:extension": "tsx scripts/extension-e2e-playwright.ts",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",

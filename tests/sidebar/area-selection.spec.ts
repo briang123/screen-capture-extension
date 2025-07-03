@@ -75,3 +75,19 @@ test.describe('Area Selection', () => {
     await sidebarShouldBeOpen(page);
   });
 });
+
+// TODO: create test that will allow user to delete the captured image from the sidebar panel
+
+// TODO: create test that will allow user to copy captured image from sidebar panel to clipboard
+
+// NOT IMPLEMENTED (IGNORE): create test that will check that the captured images in the sidebar are layed out in a grid
+
+// NOT IMPLEMENTED (IGNORE): create test that will check the hover affect of a captured image in the sidebar (actions)
+
+// NOT IMPLEMENTED (IGNORE): create test that will allow user to open captured image from sidebar panel to annotation window
+
+// NOT IMPLEMENTED (IGNORE): create test that should allow user to move sidebar either side while persisting selected area
+
+// NOT IMPLEMENTED (IGNORE): create test that should allow user to change theme while persisting selected area
+
+// NOT IMPLEMENTED (IGNORE): create test that should allow user to collapse and expand sidebar while persisting selected area

@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import 'dotenv/config';
 import { test as base, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
@@ -8,13 +7,15 @@ import {
   setupExtensionPage,
   getExtensionId,
   triggerSidebarOverlay,
-  generateTestArtifactFilename,
+  getTimestampString,
+  generateTestArtifactBaseName,
 } from './test-utils-core';
 import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
 import { test as baseTest, TestInfo } from '@playwright/test';
 import os from 'os';
 
+// Load environment variables from the correct .env file
 loadEnv();
 
 type MyFixtures = {
@@ -26,6 +27,15 @@ const sanitizeFilename = (str: string) => str.replace(/[^a-zA-Z0-9-_.]/g, '_');
 
 let currentTestTimestamp: string | undefined;
 let currentTestLogFile: string | undefined;
+
+// Video file tracking
+interface VideoFileMapping {
+  originalPath: string;
+  desiredFilename: string;
+  testTitle: string;
+}
+
+const videoFileMappings: VideoFileMapping[] = [];
 
 const getTestLogFile = (testInfo?: TestInfo) => {
   const timestamp = currentTestTimestamp || new Date().toISOString().replace(/[:.]/g, '-');
@@ -65,7 +75,24 @@ const test = base.extend<MyFixtures>({
   page: async ({ context }, use, testInfo) => {
     currentTestTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
     currentTestLogFile = getTestLogFile(testInfo);
+
+    // Create the test page
     const page = await setupExtensionPage(context);
+
+    // Close any initial pages to prevent duplicate video recordings
+    if (process.env.COLLECT_VIDEO === 'true') {
+      const pages = context.pages();
+      for (const otherPage of pages) {
+        if (otherPage !== page) {
+          const url = otherPage.url();
+          if (url === 'about:blank' || url === 'chrome://newtab/') {
+            console.log(`Closing initial page: ${url} to prevent duplicate video recordings`);
+            await otherPage.close();
+          }
+        }
+      }
+    }
+
     page.on('console', (msg) => {
       if (currentTestLogFile) {
         try {
@@ -118,19 +145,32 @@ test.afterEach(async ({ page }, testInfo) => {
     status: testInfo.status ?? 'unknown',
     title: testInfo.title ?? 'unknown',
   };
+  const timestamp = getTimestampString();
+  const baseName = `[${timestamp}] ${generateTestArtifactBaseName(artifactInfo)}`;
+
   // Screenshot
   if (COLLECT_SCREENSHOTS) {
-    const filename = generateTestArtifactFilename(artifactInfo, 'png');
+    const filename = `${baseName}.png`;
     const filepath = path.join(mediaDir, filename);
     await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
   }
-  // Video
-  if (COLLECT_VIDEO) {
-    const video = testInfo.attachments.find((a) => a.name === 'video');
-    if (video && video.path) {
-      const videoFilename = generateTestArtifactFilename(artifactInfo, 'webm');
-      const videoDest = path.join(mediaDir, videoFilename);
-      fs.renameSync(video.path, videoDest);
+
+  // Video - just capture the GUID and artifact name for afterAll
+  if (COLLECT_VIDEO && page.video) {
+    try {
+      const video = page.video();
+      if (video) {
+        const videoPath = await video.path();
+        const videoFilename = `${baseName}.webm`;
+        videoFileMappings.push({
+          originalPath: videoPath,
+          desiredFilename: videoFilename,
+          testTitle: testInfo.title,
+        });
+        console.log(`[Video Mapping] ${videoPath} → ${videoFilename}`);
+      }
+    } catch (err) {
+      console.warn('Error capturing video file mapping:', err);
     }
   }
 });
@@ -168,6 +208,66 @@ baseTest.afterEach(async ({}, testInfo: TestInfo) => {
 
   currentTestTimestamp = undefined;
   currentTestLogFile = undefined;
+});
+
+// Global afterAll hook for cleanup
+baseTest.afterAll(async () => {
+  // Close any remaining browser contexts
+  console.log('Test suite completed. Cleaning up...');
+
+  // Prepare timestamped log file
+  const resultsDir = path.join(process.cwd(), 'tests', 'results');
+  if (!fs.existsSync(resultsDir)) {
+    fs.mkdirSync(resultsDir, { recursive: true });
+  }
+  const logTimestamp = getTimestampString();
+  const logFile = path.join(resultsDir, `${logTimestamp}-video-artifacts.log`);
+  const log = (msg: string) => {
+    fs.appendFileSync(logFile, msg + '\n');
+    console.log(msg);
+  };
+
+  // Rename video files with retry logic
+  for (const mapping of videoFileMappings) {
+    let renamed = false;
+    for (let attempt = 0; attempt < 20; attempt++) {
+      try {
+        if (fs.existsSync(mapping.originalPath)) {
+          const destPath = path.join(path.dirname(mapping.originalPath), mapping.desiredFilename);
+          fs.renameSync(mapping.originalPath, destPath);
+          renamed = true;
+          log(`[Video Rename] ${path.basename(mapping.originalPath)} → ${mapping.desiredFilename}`);
+        } else {
+          log(
+            `[Video Rename] File not found: ${path.basename(mapping.originalPath)} (may have been renamed already)`
+          );
+          renamed = true;
+        }
+        break;
+      } catch (err) {
+        const error = err as any;
+        if (error.code === 'EBUSY' || error.code === 'EPERM') {
+          await new Promise((res) => setTimeout(res, 200));
+        } else {
+          log(`[Video Rename] Error renaming video: ${error.message}`);
+          break;
+        }
+      }
+    }
+    if (!renamed) {
+      log(
+        `[Video Rename] Failed to rename after multiple attempts: ${path.basename(mapping.originalPath)}`
+      );
+    }
+  }
+
+  // Log video file mappings for debugging
+  if (videoFileMappings.length > 0) {
+    log(`\n📹 Video files processed: ${videoFileMappings.length}`);
+    videoFileMappings.forEach((mapping, index) => {
+      log(`  ${index + 1}. ${mapping.testTitle} → ${mapping.desiredFilename}`);
+    });
+  }
 });
 
 export { test, expect };

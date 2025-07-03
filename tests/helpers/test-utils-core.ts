@@ -234,6 +234,7 @@ export async function launchExtensionContext(customUserDataDir?: string): Promis
   console.log('Chrome context created successfully');
   console.log('Background pages:', context.backgroundPages().length);
   console.log('Service workers:', context.serviceWorkers().length);
+  console.log('Initial pages:', context.pages().length);
 
   return context;
 }
@@ -248,17 +249,27 @@ export async function setupExtensionPage(
   context: BrowserContext,
   devMode: boolean = true
 ): Promise<Page> {
-  const page = await context.newPage();
+  // Try to reuse the initial about:blank page if it exists
+  let page: Page | undefined;
+  const pages = context.pages();
+  if (pages.length === 1 && pages[0].url() === 'about:blank') {
+    page = pages[0];
+  } else {
+    page = await context.newPage();
+  }
+
   // Logging
   page.on('console', (msg: ConsoleMessage) => {
     const type = msg.type();
     const location = msg.location();
     console.log(`[PAGE ${type.toUpperCase()}]`, msg.text(), location);
   });
+
   // Dev mode flag
   await page.addInitScript((mode: boolean) => {
     window.SC_DEV_MODE = mode;
   }, devMode);
+
   // Go to test page
   await page.goto(TEST_URL);
   return page;
@@ -294,7 +305,7 @@ export function isDirectScriptRun(
  * Generates a timestamp string in the format YYYY-MM-DD-HH-mm-ss.
  * @returns The timestamp string
  */
-function getTimestampString(): string {
+export function getTimestampString(): string {
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
   return [
@@ -307,20 +318,24 @@ function getTimestampString(): string {
   ].join('-');
 }
 
-/**
- * Generates a filename for test artifacts (screenshots, videos) based on test info and status.
- * @param testInfo Test info object with status and title
- * @param ext File extension (default: 'png')
- * @returns The generated filename
- */
+export function generateTestArtifactBaseName(artifactInfo: {
+  status: string;
+  title: string;
+}): string {
+  // Use the same logic as generateTestArtifactFilename, but do not add an extension
+  const { status, title } = artifactInfo;
+  // Sanitize title for filenames
+  const prettyTitle = title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+  return `${prettyTitle}-${status}`;
+}
+
 export function generateTestArtifactFilename(
-  testInfo: { status: string; title: string },
-  ext: string = 'png'
+  artifactInfo: { status: string; title: string },
+  ext: string
 ): string {
-  const timestamp = getTimestampString();
-  const status = testInfo.status === 'passed' ? 'passed' : 'failed';
-  const testName = testInfo.title.replace(/[^a-zA-Z0-9-_]/g, '_');
-  return `${timestamp}-${testName}-${status}.${ext}`;
+  // Use the new base name function and add the extension if provided
+  const base = generateTestArtifactBaseName(artifactInfo);
+  return ext ? `${base}.${ext}` : base;
 }
 
 /**
