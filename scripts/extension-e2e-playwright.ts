@@ -5,7 +5,7 @@ import {
   setupExtensionPage,
   getExtensionId,
   triggerSidebarOverlay,
-} from '../tests/helpers/test-utils';
+} from '../tests/helpers/test-utils-core';
 
 console.log('AFTER IMPORTS: Script is running');
 

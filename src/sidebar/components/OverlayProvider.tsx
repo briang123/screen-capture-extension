@@ -147,24 +147,25 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             {/* Overlay mask with cutout (z-index: 10001) */}
             {hasValidSelection && <OverlayMask selection={selection} />}
 
-            {/* Instructions (only show while dragging or before selection) */}
-            {!selectionComplete && (
+            {/* Only show before dragging */}
+            {!isSelecting && !hasValidSelection && (
               <div
                 style={{
                   position: 'fixed',
-                  top: 16,
+                  top: 0,
                   left: 0,
                   width: '100vw',
-                  zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY,
-                  textAlign: 'center',
+                  height: '100vh',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY + 1,
+                  background: 'rgba(0,0,0,.3)',
                   pointerEvents: 'none',
                 }}
                 data-testid="select-area-instruction-container"
               >
-                <span
-                  data-testid="instruction"
-                  className="inline-block bg-white/95 px-4 py-2 rounded-lg shadow border border-gray-200 text-gray-800 font-medium text-base"
-                >
+                <span data-testid="instruction">
                   Click and drag to select capture area
                   <br />
                   <span className="text-xs text-gray-500">Press ESC to cancel</span>
