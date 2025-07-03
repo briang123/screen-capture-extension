@@ -152,18 +152,24 @@ const SidebarPanelBody: React.FC<SidebarPanelBodyProps> = ({ isSwitchingSide }) 
               </div>
               <div className="flex gap-1 mt-1">
                 <button
+                  id={`open-image-${idx}`}
+                  data-testid={`open-image-${idx}`}
                   onClick={() => openCapturedImageInEditor(idx)}
                   className="px-2 py-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
                 >
                   Open
                 </button>
                 <button
+                  id={`copy-image-${idx}`}
+                  data-testid={`copy-image-${idx}`}
                   onClick={() => copyCapturedImage(idx)}
                   className="px-2 py-0.5 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
                 >
                   Copy
                 </button>
                 <button
+                  id={`delete-image-${idx}`}
+                  data-testid={`delete-image-${idx}`}
                   onClick={() => deleteCapturedImage(idx)}
                   className="px-2 py-0.5 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
                 >

@@ -147,22 +147,9 @@ async function handleOpenWindow(
   sendResponse: (response: ResponseData) => void
 ) {
   try {
-    // Check if window already exists
-    const existingWindows = await chrome.windows.getAll({ windowTypes: ['popup'] });
-    const existingWindow = existingWindows.find((window) =>
-      window.tabs?.some((tab) => tab.url?.includes('window.html'))
-    );
-
-    if (existingWindow) {
-      // Focus existing window
-      await chrome.windows.update(existingWindow.id!, { focused: true });
-      sendResponse({ success: true, windowId: existingWindow.id });
-      return;
-    }
-
-    // Create new window
+    // Always create a new window for annotation
     const window = await chrome.windows.create({
-      url: chrome.runtime.getURL('window.html'),
+      url: chrome.runtime.getURL('window.html'), // temp, will update below
       type: 'popup',
       width: 1200,
       height: 800,
@@ -170,15 +157,24 @@ async function handleOpenWindow(
       top: 100,
     });
 
-    // Send image data to window if provided
-    if (message.data?.imageData && window.id) {
-      // Store image data temporarily for the window to access
+    if (!window.id) throw new Error('Failed to create annotation window');
+
+    // Store image data with window-specific key
+    if (message.data?.imageData) {
       await chrome.storage.local.set({
         [`window_${window.id}_imageData`]: message.data.imageData,
       });
     }
 
-    sendResponse({ success: true, windowId: window.id });
+    // Update the window's tab to include the windowId in the URL
+    const windowId = window.id;
+    const tabId = window.tabs && window.tabs[0]?.id;
+    if (tabId) {
+      const urlWithId = `${chrome.runtime.getURL('window.html')}?windowId=${windowId}`;
+      await chrome.tabs.update(tabId, { url: urlWithId });
+    }
+
+    sendResponse({ success: true, windowId });
   } catch (error) {
     console.error('Failed to open window:', error);
     sendResponse({ success: false, error: (error as Error).message });
