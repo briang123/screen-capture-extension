@@ -2,9 +2,17 @@
 // TODO: Add element highlighting and selection
 // TODO: Implement element snapping functionality
 // TODO: Add keyboard shortcuts for capture
+import 'mv3-hot-reload/content';
+console.log('[DEV] mv3-hot-reload/content imported');
 
 import './content.css';
 import { mountSidebar, unmountSidebar } from '@/sidebar/sidebar';
+
+// if (import.meta.env.MODE === 'development') {
+//   import('mv3-hot-reload/content').then(() => {
+//     console.log('[DEV] mv3-hot-reload/content imported');
+//   });
+// }
 
 console.log('Screen Capture Extension content script loaded');
 console.log('[DEV] window.location.hostname:', window.location.hostname);

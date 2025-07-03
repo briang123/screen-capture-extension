@@ -1,6 +1,8 @@
 // Background service worker for Screen Capture Extension
 // TODO: Add error handling and logging
 // TODO: Implement retry logic for failed operations
+import 'mv3-hot-reload/background';
+console.log('[DEV] mv3-hot-reload/background imported');
 
 import { DEFAULT_SETTINGS } from '@/shared/settings';
 
@@ -40,6 +42,12 @@ interface ResponseData {
   windowId?: number;
   data?: unknown;
 }
+
+// if (import.meta.env.MODE === 'development') {
+//   import('mv3-hot-reload/background').then(() => {
+//     console.log('[DEV] mv3-hot-reload/background imported');
+//   });
+// }
 
 // Handle messages from popup and content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
