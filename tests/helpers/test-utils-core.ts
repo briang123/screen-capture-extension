@@ -102,6 +102,7 @@ export const ensureDir = async (dir: string) => {
   try {
     await fs.promises.mkdir(dir, { recursive: true });
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((err as any).code !== 'EEXIST') throw err;
   }
 };
@@ -144,6 +145,7 @@ export const renameWithRetry = async (
       }
       return false;
     } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = err as any;
       if (error.code === 'EBUSY' || error.code === 'EPERM') {
         await new Promise((res) => setTimeout(res, 200));

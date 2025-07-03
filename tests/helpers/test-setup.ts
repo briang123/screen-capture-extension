@@ -19,7 +19,7 @@ import {
   createLogger,
   renameWithRetry,
   sanitizeFilename,
-  getTestLogFile,
+  // getTestLogFile,
 } from './test-utils-core';
 import {
   COLLECT_SCREENSHOTS,
@@ -49,7 +49,7 @@ type MyFixtures = {
 // --------------------
 // Global Variables
 // --------------------
-let currentTestTimestamp: string | undefined;
+// let currentTestTimestamp: string | undefined;
 let currentTestLogFile: string | undefined;
 
 // Video file tracking
@@ -80,9 +80,10 @@ const test = base.extend<MyFixtures>({
     await use(context);
     await context.close();
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   page: async ({ context }, use, testInfo) => {
-    currentTestTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    currentTestLogFile = getTestLogFile(testInfo, currentTestTimestamp);
+    // currentTestTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // currentTestLogFile = getTestLogFile(testInfo, currentTestTimestamp);
 
     // Create the test page
     const page = await setupExtensionPage(context);
@@ -145,35 +146,37 @@ const test = base.extend<MyFixtures>({
 // Register the afterEach hook directly in the test configuration
 // This avoids conflicts with Playwright's test system
 test.afterEach(async ({ page }, testInfo) => {
-  const mediaDir = path.join(process.cwd(), 'tests', 'media');
-  if (!fs.existsSync(mediaDir)) {
-    fs.mkdirSync(mediaDir, { recursive: true });
-  }
-  const baseName = getArtifactBaseName({ status: testInfo.status, title: testInfo.title });
+  if (COLLECT_SCREENSHOTS || COLLECT_VIDEO) {
+    const mediaDir = path.join(process.cwd(), 'tests', 'media');
+    if (!fs.existsSync(mediaDir)) {
+      fs.mkdirSync(mediaDir, { recursive: true });
+    }
+    const baseName = getArtifactBaseName({ status: testInfo.status, title: testInfo.title });
 
-  // Screenshot
-  if (COLLECT_SCREENSHOTS) {
-    const filename = `${baseName}.png`;
-    const filepath = path.join(mediaDir, filename);
-    await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
-  }
+    // Screenshot
+    if (COLLECT_SCREENSHOTS) {
+      const filename = `${baseName}.png`;
+      const filepath = path.join(mediaDir, filename);
+      await page.screenshot({ path: filepath, fullPage: COLLECT_FULLPAGE_SCREENSHOTS });
+    }
 
-  // Video - just capture the GUID and artifact name for afterAll
-  if (COLLECT_VIDEO && page.video) {
-    try {
-      const video = page.video();
-      if (video) {
-        const videoPath = await video.path();
-        const videoFilename = `${baseName}.webm`;
-        videoFileMappings.push({
-          originalPath: videoPath,
-          desiredFilename: videoFilename,
-          testTitle: testInfo.title,
-        });
-        console.log(`[Video Mapping] ${videoPath} → ${videoFilename}`);
+    // Video - just capture the GUID and artifact name for afterAll
+    if (COLLECT_VIDEO && page.video) {
+      try {
+        const video = page.video();
+        if (video) {
+          const videoPath = await video.path();
+          const videoFilename = `${baseName}.webm`;
+          videoFileMappings.push({
+            originalPath: videoPath,
+            desiredFilename: videoFilename,
+            testTitle: testInfo.title,
+          });
+          console.log(`[Video Mapping] ${videoPath} → ${videoFilename}`);
+        }
+      } catch (err) {
+        console.warn('Error capturing video file mapping:', err);
       }
-    } catch (err) {
-      console.warn('Error capturing video file mapping:', err);
     }
   }
 });
@@ -181,7 +184,7 @@ test.afterEach(async ({ page }, testInfo) => {
 // eslint-disable-next-line no-empty-pattern
 test.afterEach(async ({}, testInfo: TestInfo) => {
   if (!LOG_TEST_RESULTS) {
-    currentTestTimestamp = undefined;
+    // currentTestTimestamp = undefined;
     currentTestLogFile = undefined;
     return;
   }
@@ -208,7 +211,7 @@ test.afterEach(async ({}, testInfo: TestInfo) => {
       console.warn('Failed to write test log:', error);
     }
   }
-  currentTestTimestamp = undefined;
+  // currentTestTimestamp = undefined;
   currentTestLogFile = undefined;
 });
 

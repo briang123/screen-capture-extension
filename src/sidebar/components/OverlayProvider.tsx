@@ -148,19 +148,20 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({
             {hasValidSelection && <OverlayMask selection={selection} />}
 
             {/* Only show before dragging */}
-            {!isSelecting && !hasValidSelection && (
+            {/* {!isSelecting && !hasValidSelection && ( */}
+            {!selectionComplete && (
               <div
                 style={{
                   position: 'fixed',
-                  top: 0,
+                  top: 16,
                   left: 0,
                   width: '100vw',
-                  height: '100vh',
+                  // height: '100vh',
                   display: 'flex',
-                  alignItems: 'center',
+                  // alignItems: 'center',
                   justifyContent: 'center',
                   zIndex: Z_INDEX.INSTRUCTIONS_OVERLAY + 1,
-                  background: 'rgba(0, 0, 0, 0.2)',
+                  // background: 'rgba(0, 0, 0, 0.2)',
                   pointerEvents: 'none',
                 }}
                 data-testid="select-area-instruction-container"
