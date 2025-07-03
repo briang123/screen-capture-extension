@@ -10,7 +10,7 @@ import { useEffect, useRef } from 'react';
  */
 export function useEventListener<K extends keyof globalThis.WindowEventMap>(
   event: K,
-  handler: (ev: globalThis.WindowEventMap[K]) => any,
+  handler: (ev: globalThis.WindowEventMap[K]) => void,
   target: globalThis.Window | globalThis.Document | HTMLElement = window,
   enabled: boolean = true,
   options?: boolean | globalThis.AddEventListenerOptions
@@ -25,7 +25,9 @@ export function useEventListener<K extends keyof globalThis.WindowEventMap>(
   useEffect(() => {
     if (!enabled || !target?.addEventListener) return;
 
-    const eventListener = (event: Event) => savedHandler.current(event as any);
+    const eventListener = (event: Event) => {
+      savedHandler.current(event as globalThis.WindowEventMap[K]);
+    };
     target.addEventListener(event, eventListener, options);
 
     return () => {

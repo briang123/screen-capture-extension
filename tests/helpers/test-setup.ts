@@ -12,7 +12,7 @@ import {
 } from './test-utils-core';
 import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
-import { test as baseTest, TestInfo } from '@playwright/test';
+import { TestInfo } from '@playwright/test';
 import os from 'os';
 
 // Load environment variables from the correct .env file
@@ -45,15 +45,6 @@ const getTestLogFile = (testInfo?: TestInfo) => {
     fs.mkdirSync(dir, { recursive: true });
   }
   return path.join(dir, `${timestamp}_${title}.log`);
-};
-
-const getFinalLogFile = (testInfo: TestInfo, status: string) => {
-  const base = getTestLogFile(testInfo).replace(/\.log$/, '');
-  let suffix = '_UNKNOWN';
-  if (status === 'passed') suffix = '_PASSED';
-  else if (status === 'failed') suffix = '_FAILED';
-  else if (status === 'skipped') suffix = '_SKIPPED';
-  return `${base}${suffix}.log`;
 };
 
 const test = base.extend<MyFixtures>({
@@ -96,8 +87,7 @@ const test = base.extend<MyFixtures>({
     page.on('console', (msg) => {
       if (currentTestLogFile) {
         try {
-          const now = new Date();
-          const timestamp = now.toISOString();
+          const timestamp = getTimestampString();
           fs.appendFileSync(
             currentTestLogFile,
             `[${timestamp}] [${msg.type()}] ${msg.text()}${os.EOL}`
@@ -177,11 +167,10 @@ test.afterEach(async ({ page }, testInfo) => {
 
 // Log test results after each test
 // eslint-disable-next-line no-empty-pattern
-baseTest.afterEach(async ({}, testInfo: TestInfo) => {
+test.afterEach(async ({}, testInfo: TestInfo) => {
   const status = testInfo.status ? testInfo.status : 'unknown';
   const title = testInfo.title;
-  const now = new Date();
-  const timestamp = now.toISOString();
+  const timestamp = getTimestampString();
 
   // Only log if we have a valid log file
   if (currentTestLogFile) {
@@ -190,8 +179,9 @@ baseTest.afterEach(async ({}, testInfo: TestInfo) => {
         currentTestLogFile,
         `[${timestamp}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
       );
-      // Rename the log file to include the result
-      const finalLogFile = getFinalLogFile(testInfo, status);
+      // Use the same timestamp and base name as media files
+      const baseName = `[${timestamp}] ${generateTestArtifactBaseName({ status: status.toUpperCase(), title })}`;
+      const finalLogFile = path.join(path.dirname(currentTestLogFile), `${baseName}.log`);
       if (currentTestLogFile !== finalLogFile) {
         try {
           fs.renameSync(currentTestLogFile, finalLogFile);
@@ -211,7 +201,7 @@ baseTest.afterEach(async ({}, testInfo: TestInfo) => {
 });
 
 // Global afterAll hook for cleanup
-baseTest.afterAll(async () => {
+test.afterAll(async () => {
   // Close any remaining browser contexts
   console.log('Test suite completed. Cleaning up...');
 
@@ -245,6 +235,7 @@ baseTest.afterAll(async () => {
         }
         break;
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const error = err as any;
         if (error.code === 'EBUSY' || error.code === 'EPERM') {
           await new Promise((res) => setTimeout(res, 200));
