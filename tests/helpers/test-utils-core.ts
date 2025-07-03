@@ -3,11 +3,158 @@ import { fileURLToPath } from 'url';
 import { chromium } from '@playwright/test';
 import { TEST_URL, EXTENSION_ID_PATTERN } from './test-constants';
 import type { BrowserContext, Page, ConsoleMessage } from '@playwright/test';
+import fs from 'fs';
+import os from 'os';
 
 // Re-export from specialized utility files
 export * from './sidebar-utils';
 export * from './capture-utils';
 export * from './area-selection-utils';
+
+/**
+ * Sanitizes a string for safe use in filenames.
+ * @param str The string to sanitize
+ * @returns The sanitized string
+ */
+export const sanitizeFilename = (str: string) => str.replace(/[^a-zA-Z0-9-_.]/g, '_');
+
+/**
+ * Generates a timestamp string in the format YYYY-MM-DD-HH-mm-ss.
+ * @returns The timestamp string
+ */
+export function getTimestampString(): string {
+  const now = new Date();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return [
+    now.getFullYear(),
+    pad(now.getMonth() + 1),
+    pad(now.getDate()),
+    pad(now.getHours()),
+    pad(now.getMinutes()),
+    pad(now.getSeconds()),
+  ].join('-');
+}
+
+/**
+ * Generates a base name for test artifacts using status and title.
+ * @param artifactInfo Object containing status and title
+ * @returns The artifact base name string
+ */
+export function generateTestArtifactBaseName(artifactInfo: {
+  status: string;
+  title: string;
+}): string {
+  const { status, title } = artifactInfo;
+  // Sanitize title for filenames
+  const prettyTitle = title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
+  return `${prettyTitle} [${status}]`;
+}
+
+/**
+ * Generates a test artifact filename with extension.
+ * @param artifactInfo Object containing status and title
+ * @param ext File extension
+ * @returns The artifact filename string
+ */
+export function generateTestArtifactFilename(
+  artifactInfo: { status: string; title: string },
+  ext: string
+): string {
+  // Use the new base name function and add the extension if provided
+  const base = generateTestArtifactBaseName(artifactInfo);
+  return ext ? `${base}.${ext}` : base;
+}
+
+/**
+ * Generates a timestamped artifact base name for test outputs.
+ * @param testInfo Object containing status and title
+ * @returns The artifact base name string
+ */
+export const getArtifactBaseName = (testInfo: { status?: string; title?: string }) => {
+  const timestamp = getTimestampString();
+  return `[${timestamp}] ${generateTestArtifactBaseName({
+    status: testInfo.status ? testInfo.status.toUpperCase() : 'UNKNOWN',
+    title: testInfo.title || 'unknown',
+  })}`;
+};
+
+/**
+ * Generates a log file path for a test, ensuring the results directory exists.
+ * @param testInfo Object containing test title
+ * @param currentTestTimestamp Optional timestamp string for the test
+ * @returns The log file path
+ */
+export const getTestLogFile = (testInfo?: { title?: string }, currentTestTimestamp?: string) => {
+  const timestamp = currentTestTimestamp || new Date().toISOString().replace(/[:.]/g, '-');
+  const title = testInfo?.title ? sanitizeFilename(testInfo.title) : 'unknown';
+  const dir = path.join(process.cwd(), 'tests', 'results');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return path.join(dir, `${timestamp}_${title}.log`);
+};
+
+/**
+ * Ensures a directory exists, creating it recursively if needed.
+ * @param dir The directory path
+ */
+export const ensureDir = async (dir: string) => {
+  try {
+    await fs.promises.mkdir(dir, { recursive: true });
+  } catch (err) {
+    if ((err as any).code !== 'EEXIST') throw err;
+  }
+};
+
+/**
+ * Creates an async logger that writes to a file (if enabled) and always logs to console.
+ * @param logFile The log file path
+ * @param LOG_TEST_RESULTS Whether to write to the log file
+ * @returns Async logger function
+ */
+export const createLogger = (logFile: string, LOG_TEST_RESULTS: boolean) => async (msg: string) => {
+  if (LOG_TEST_RESULTS) {
+    await fs.promises.appendFile(logFile, msg + os.EOL);
+  }
+  console.log(msg);
+};
+
+/**
+ * Renames a file with retry logic for EBUSY/EPERM errors, logging errors as needed.
+ * @param src Source file path
+ * @param dest Destination file path
+ * @param log Async logger function
+ * @returns True if renamed successfully, false otherwise
+ */
+export const renameWithRetry = async (
+  src: string,
+  dest: string,
+  log: (msg: string) => Promise<void>
+) => {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      if (
+        await fs.promises.stat(src).then(
+          () => true,
+          () => false
+        )
+      ) {
+        await fs.promises.rename(src, dest);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      const error = err as any;
+      if (error.code === 'EBUSY' || error.code === 'EPERM') {
+        await new Promise((res) => setTimeout(res, 200));
+      } else {
+        await log(`[Video Rename] Error renaming video: ${error.message}`);
+        break;
+      }
+    }
+  }
+  return false;
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -299,43 +446,6 @@ export function isDirectScriptRun(
   argv1: string = process.argv[1]
 ): boolean {
   return importMetaUrl === `file://${argv1}`;
-}
-
-/**
- * Generates a timestamp string in the format YYYY-MM-DD-HH-mm-ss.
- * @returns The timestamp string
- */
-export function getTimestampString(): string {
-  const now = new Date();
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return [
-    now.getFullYear(),
-    pad(now.getMonth() + 1),
-    pad(now.getDate()),
-    pad(now.getHours()),
-    pad(now.getMinutes()),
-    pad(now.getSeconds()),
-  ].join('-');
-}
-
-export function generateTestArtifactBaseName(artifactInfo: {
-  status: string;
-  title: string;
-}): string {
-  // Use the same logic as generateTestArtifactFilename, but do not add an extension
-  const { status, title } = artifactInfo;
-  // Sanitize title for filenames
-  const prettyTitle = title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '_');
-  return `${prettyTitle}-${status}`;
-}
-
-export function generateTestArtifactFilename(
-  artifactInfo: { status: string; title: string },
-  ext: string
-): string {
-  // Use the new base name function and add the extension if provided
-  const base = generateTestArtifactBaseName(artifactInfo);
-  return ext ? `${base}.${ext}` : base;
 }
 
 /**

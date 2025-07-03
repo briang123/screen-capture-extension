@@ -14,3 +14,7 @@ export function loadEnv() {
         : '.env';
   dotenv.config({ path: envFile });
 }
+
+export function parseEnvBool(val: string | undefined, defaultVal = false): boolean {
+  return val === undefined ? defaultVal : val === 'true';
+}

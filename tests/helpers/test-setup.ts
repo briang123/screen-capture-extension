@@ -1,30 +1,54 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { test as base, expect } from '@playwright/test';
+// Node.js built-in modules
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
+
+// Third-party modules
+import { test as base, expect } from '@playwright/test';
+
+// Project-specific modules
 import {
   launchExtensionContext,
   setupExtensionPage,
   getExtensionId,
   triggerSidebarOverlay,
   getTimestampString,
-  generateTestArtifactBaseName,
+  getArtifactBaseName,
+  ensureDir,
+  createLogger,
+  renameWithRetry,
+  sanitizeFilename,
+  getTestLogFile,
 } from './test-utils-core';
-import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
+import {
+  COLLECT_SCREENSHOTS,
+  COLLECT_VIDEO,
+  COLLECT_FULLPAGE_SCREENSHOTS,
+  LOG_TEST_RESULTS,
+} from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
-import { TestInfo } from '@playwright/test';
-import os from 'os';
 
+// Type-only imports
+import type { TestInfo } from '@playwright/test';
+
+// --------------------
+// Environment Setup
+// --------------------
 // Load environment variables from the correct .env file
 loadEnv();
 
+// --------------------
+// Type Definitions
+// --------------------
 type MyFixtures = {
   extensionId: string;
   sidebar: boolean;
 };
 
-const sanitizeFilename = (str: string) => str.replace(/[^a-zA-Z0-9-_.]/g, '_');
-
+// --------------------
+// Global Variables
+// --------------------
 let currentTestTimestamp: string | undefined;
 let currentTestLogFile: string | undefined;
 
@@ -37,16 +61,9 @@ interface VideoFileMapping {
 
 const videoFileMappings: VideoFileMapping[] = [];
 
-const getTestLogFile = (testInfo?: TestInfo) => {
-  const timestamp = currentTestTimestamp || new Date().toISOString().replace(/[:.]/g, '-');
-  const title = testInfo?.title ? sanitizeFilename(testInfo.title) : 'unknown';
-  const dir = path.join(process.cwd(), 'tests', 'results');
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return path.join(dir, `${timestamp}_${title}.log`);
-};
-
+// --------------------
+// Playwright Fixture Extension
+// --------------------
 const test = base.extend<MyFixtures>({
   // eslint-disable-next-line no-empty-pattern
   context: async ({}, use, testInfo) => {
@@ -65,7 +82,7 @@ const test = base.extend<MyFixtures>({
   },
   page: async ({ context }, use, testInfo) => {
     currentTestTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    currentTestLogFile = getTestLogFile(testInfo);
+    currentTestLogFile = getTestLogFile(testInfo, currentTestTimestamp);
 
     // Create the test page
     const page = await setupExtensionPage(context);
@@ -121,22 +138,18 @@ const test = base.extend<MyFixtures>({
   },
 });
 
+// --------------------
+// Playwright Hooks
+// --------------------
 // --- Playwright afterEach logic ---
-//
 // Register the afterEach hook directly in the test configuration
 // This avoids conflicts with Playwright's test system
-
 test.afterEach(async ({ page }, testInfo) => {
   const mediaDir = path.join(process.cwd(), 'tests', 'media');
   if (!fs.existsSync(mediaDir)) {
     fs.mkdirSync(mediaDir, { recursive: true });
   }
-  const artifactInfo = {
-    status: testInfo.status ?? 'unknown',
-    title: testInfo.title ?? 'unknown',
-  };
-  const timestamp = getTimestampString();
-  const baseName = `[${timestamp}] ${generateTestArtifactBaseName(artifactInfo)}`;
+  const baseName = getArtifactBaseName({ status: testInfo.status, title: testInfo.title });
 
   // Screenshot
   if (COLLECT_SCREENSHOTS) {
@@ -165,100 +178,96 @@ test.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-// Log test results after each test
 // eslint-disable-next-line no-empty-pattern
 test.afterEach(async ({}, testInfo: TestInfo) => {
+  if (!LOG_TEST_RESULTS) {
+    currentTestTimestamp = undefined;
+    currentTestLogFile = undefined;
+    return;
+  }
   const status = testInfo.status ? testInfo.status : 'unknown';
   const title = testInfo.title;
-  const timestamp = getTimestampString();
-
-  // Only log if we have a valid log file
-  if (currentTestLogFile) {
+  // Only log if we have a valid log file and logging is enabled
+  if (currentTestLogFile && LOG_TEST_RESULTS) {
     try {
-      fs.appendFileSync(
+      await fs.promises.appendFile(
         currentTestLogFile,
-        `[${timestamp}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
+        `[${getTimestampString()}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
       );
-      // Use the same timestamp and base name as media files
-      const baseName = `[${timestamp}] ${generateTestArtifactBaseName({ status: status.toUpperCase(), title })}`;
+      const baseName = getArtifactBaseName({ status, title });
       const finalLogFile = path.join(path.dirname(currentTestLogFile), `${baseName}.log`);
       if (currentTestLogFile !== finalLogFile) {
         try {
-          fs.renameSync(currentTestLogFile, finalLogFile);
+          await fs.promises.rename(currentTestLogFile, finalLogFile);
         } catch {
-          // fallback: copy and remove if rename fails
-          fs.copyFileSync(currentTestLogFile, finalLogFile);
-          fs.unlinkSync(currentTestLogFile);
+          await fs.promises.copyFile(currentTestLogFile, finalLogFile);
+          await fs.promises.unlink(currentTestLogFile);
         }
       }
     } catch (error) {
       console.warn('Failed to write test log:', error);
     }
   }
-
   currentTestTimestamp = undefined;
   currentTestLogFile = undefined;
 });
 
-// Global afterAll hook for cleanup
 test.afterAll(async () => {
-  // Close any remaining browser contexts
-  console.log('Test suite completed. Cleaning up...');
+  if (!COLLECT_VIDEO) return;
 
-  // Prepare timestamped log file
   const resultsDir = path.join(process.cwd(), 'tests', 'results');
-  if (!fs.existsSync(resultsDir)) {
-    fs.mkdirSync(resultsDir, { recursive: true });
-  }
+  await ensureDir(resultsDir);
+
   const logTimestamp = getTimestampString();
   const logFile = path.join(resultsDir, `${logTimestamp}-video-artifacts.log`);
-  const log = (msg: string) => {
-    fs.appendFileSync(logFile, msg + '\n');
-    console.log(msg);
-  };
+  const log = createLogger(logFile, LOG_TEST_RESULTS);
 
-  // Rename video files with retry logic
+  let afterAllErrors: string[] = [];
+
   for (const mapping of videoFileMappings) {
     let renamed = false;
-    for (let attempt = 0; attempt < 20; attempt++) {
-      try {
-        if (fs.existsSync(mapping.originalPath)) {
-          const destPath = path.join(path.dirname(mapping.originalPath), mapping.desiredFilename);
-          fs.renameSync(mapping.originalPath, destPath);
-          renamed = true;
-          log(`[Video Rename] ${path.basename(mapping.originalPath)} → ${mapping.desiredFilename}`);
-        } else {
-          log(
-            `[Video Rename] File not found: ${path.basename(mapping.originalPath)} (may have been renamed already)`
-          );
-          renamed = true;
-        }
-        break;
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const error = err as any;
-        if (error.code === 'EBUSY' || error.code === 'EPERM') {
-          await new Promise((res) => setTimeout(res, 200));
-        } else {
-          log(`[Video Rename] Error renaming video: ${error.message}`);
-          break;
-        }
+    if (
+      await fs.promises.stat(mapping.originalPath).then(
+        () => true,
+        () => false
+      )
+    ) {
+      const destPath = path.join(path.dirname(mapping.originalPath), mapping.desiredFilename);
+      renamed = await renameWithRetry(mapping.originalPath, destPath, log);
+      if (renamed) {
+        await log(
+          `[Video Rename] ${path.basename(mapping.originalPath)} → ${mapping.desiredFilename}`
+        );
       }
+    } else {
+      await log(
+        `[Video Rename] File not found: ${path.basename(mapping.originalPath)} (may have been renamed already)`
+      );
+      renamed = true;
     }
     if (!renamed) {
-      log(
+      await log(
         `[Video Rename] Failed to rename after multiple attempts: ${path.basename(mapping.originalPath)}`
       );
     }
   }
 
-  // Log video file mappings for debugging
   if (videoFileMappings.length > 0) {
-    log(`\n📹 Video files processed: ${videoFileMappings.length}`);
-    videoFileMappings.forEach((mapping, index) => {
-      log(`  ${index + 1}. ${mapping.testTitle} → ${mapping.desiredFilename}`);
-    });
+    await log(`\n📹 Video files processed: ${videoFileMappings.length}`);
+    for (const [index, mapping] of videoFileMappings.entries()) {
+      await log(`  ${index + 1}. ${mapping.testTitle} → ${mapping.desiredFilename}`);
+    }
+  }
+
+  if (afterAllErrors.length > 0) {
+    await log(`\n❗ Errors during afterAll cleanup:`);
+    for (const err of afterAllErrors) {
+      await log(`  - ${err}`);
+    }
   }
 });
 
+// --------------------
+// Exports
+// --------------------
 export { test, expect };
