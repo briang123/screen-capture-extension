@@ -9,7 +9,7 @@ import {
   getExtensionId,
   triggerSidebarOverlay,
   generateTestArtifactFilename,
-} from './test-utils';
+} from './test-utils-core';
 import { COLLECT_SCREENSHOTS, COLLECT_VIDEO, COLLECT_FULLPAGE_SCREENSHOTS } from './test-constants';
 import { loadEnv } from '../../src/shared/utils/env';
 import { test as baseTest, TestInfo } from '@playwright/test';
@@ -48,8 +48,17 @@ const getFinalLogFile = (testInfo: TestInfo, status: string) => {
 
 const test = base.extend<MyFixtures>({
   // eslint-disable-next-line no-empty-pattern
-  context: async ({}, use) => {
-    const context = await launchExtensionContext();
+  context: async ({}, use, testInfo) => {
+    // Create a unique user data directory for each test to avoid conflicts
+    const testId = testInfo?.title ? sanitizeFilename(testInfo.title) : 'unknown';
+    const timestamp = Date.now();
+    const uniqueUserDataDir = path.join(
+      process.cwd(),
+      '.pw-chrome-profile',
+      `${testId}_${timestamp}`
+    );
+
+    const context = await launchExtensionContext(uniqueUserDataDir);
     await use(context);
     await context.close();
   },
@@ -58,12 +67,18 @@ const test = base.extend<MyFixtures>({
     currentTestLogFile = getTestLogFile(testInfo);
     const page = await setupExtensionPage(context);
     page.on('console', (msg) => {
-      const now = new Date();
-      const timestamp = now.toISOString();
-      fs.appendFileSync(
-        currentTestLogFile!,
-        `[${timestamp}] [${msg.type()}] ${msg.text()}${os.EOL}`
-      );
+      if (currentTestLogFile) {
+        try {
+          const now = new Date();
+          const timestamp = now.toISOString();
+          fs.appendFileSync(
+            currentTestLogFile,
+            `[${timestamp}] [${msg.type()}] ${msg.text()}${os.EOL}`
+          );
+        } catch (error) {
+          console.warn('Failed to write console log:', error);
+        }
+      }
     });
     await use(page);
   },
@@ -127,21 +142,30 @@ baseTest.afterEach(async ({}, testInfo: TestInfo) => {
   const title = testInfo.title;
   const now = new Date();
   const timestamp = now.toISOString();
-  fs.appendFileSync(
-    currentTestLogFile!,
-    `[${timestamp}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
-  );
-  // Rename the log file to include the result
-  const finalLogFile = getFinalLogFile(testInfo, status);
-  if (currentTestLogFile && currentTestLogFile !== finalLogFile) {
+
+  // Only log if we have a valid log file
+  if (currentTestLogFile) {
     try {
-      fs.renameSync(currentTestLogFile, finalLogFile);
-    } catch {
-      // fallback: copy and remove if rename fails
-      fs.copyFileSync(currentTestLogFile, finalLogFile);
-      fs.unlinkSync(currentTestLogFile);
+      fs.appendFileSync(
+        currentTestLogFile,
+        `[${timestamp}] Test: ${title} - ${status.toUpperCase()}${os.EOL}`
+      );
+      // Rename the log file to include the result
+      const finalLogFile = getFinalLogFile(testInfo, status);
+      if (currentTestLogFile !== finalLogFile) {
+        try {
+          fs.renameSync(currentTestLogFile, finalLogFile);
+        } catch {
+          // fallback: copy and remove if rename fails
+          fs.copyFileSync(currentTestLogFile, finalLogFile);
+          fs.unlinkSync(currentTestLogFile);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to write test log:', error);
     }
   }
+
   currentTestTimestamp = undefined;
   currentTestLogFile = undefined;
 });

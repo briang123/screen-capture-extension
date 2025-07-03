@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Test Title Length Best Practice
+
+- All test titles should be concise and descriptive, with a recommended maximum length of **100 characters**.
+- This ensures test titles are readable in editors, CI logs, and test reports, and avoids line wrapping or formatting issues.
+- If additional detail is needed, use comments inside the test body rather than extending the title.
+- This rule applies to all test frameworks (e.g., Playwright, Jest, Mocha) used in this project.
+
+**References:**
+- [Google JavaScript Style Guide: 80 characters per line](mdc:https:/google.github.io/styleguide/jsguide.html#formatting-column-limit)
+- [Jest Best Practices](mdc:https:/jestjs.io/docs/api#testname-fn-timeout)
+- [Playwright Docs](mdc:https:/playwright.dev/docs/test-annotations#test-title)
+
