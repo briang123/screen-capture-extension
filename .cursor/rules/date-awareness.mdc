@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Date Awareness Rule
+
+## Overview
+Always ensure you know the current date before documenting any date information in documentation, logs, or commit messages.
+
+## Requirements
+
+### Before Documenting Dates
+1. **Check Current Date**: Always verify the current date before adding any date information to documentation
+2. **Ask for Clarification**: If you're unsure about the current date, ask the user to clarify before proceeding
+3. **Use Accurate Dates**: When documenting events, changes, or troubleshooting sessions, use the actual current date
+
+### Documentation Standards
+- Use the format `YYYY-MM-DD` for all dates in documentation
+- Include dates in troubleshooting logs, changelogs, and commit messages
+- Be consistent with date formatting across all documentation
+
+### Examples
+- ✅ "Fixed production mode test failures on 2024-12-19"
+- ✅ "Updated troubleshooting documentation on 2024-12-19"
+- ❌ "Fixed issues yesterday" (vague, no specific date)
+- ❌ "Updated docs recently" (no date provided)
+
+### When to Ask for Date
+- If you're unsure about the current date
+- If you need to reference a specific date for documentation
+- If you're creating time-sensitive documentation
+
+## Implementation
+- Always check the current date before adding date information
+- Ask the user: "What is the current date?" if you're uncertain
+- Use the confirmed date in all documentation and logs
+- Maintain consistency in date formatting across the codebase
+

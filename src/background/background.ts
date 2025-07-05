@@ -33,7 +33,16 @@ interface StorageMessage {
   value?: unknown;
 }
 
-type ExtensionMessage = CaptureMessage | CaptureAreaMessage | WindowMessage | StorageMessage;
+interface OpenSidebarMessage {
+  action: 'openSidebar';
+}
+
+type ExtensionMessage =
+  | CaptureMessage
+  | CaptureAreaMessage
+  | WindowMessage
+  | StorageMessage
+  | OpenSidebarMessage;
 
 interface ResponseData {
   success: boolean;
@@ -73,6 +82,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'setStorage':
       handleSetStorage(msg, sendResponse);
+      return true;
+
+    case 'openSidebar':
+      handleOpenSidebar(sendResponse);
       return true;
 
     default:
@@ -212,6 +225,43 @@ async function handleSetStorage(
     sendResponse({ success: true });
   } catch (error) {
     console.error('Set storage failed:', error);
+    sendResponse({ success: false, error: (error as Error).message });
+  }
+}
+
+async function handleOpenSidebar(sendResponse: (response: ResponseData) => void) {
+  try {
+    console.log('Background script: handleOpenSidebar called');
+
+    // Get the active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab.id) {
+      throw new Error('No active tab found');
+    }
+
+    console.log('Background script: Found active tab:', tab.id);
+
+    // Send message to content script to open sidebar
+    chrome.tabs.sendMessage(tab.id, { action: 'openSidebar' }, async (response) => {
+      console.log('Background script: Content script response:', response);
+      if (chrome.runtime.lastError) {
+        console.log('Background script: Content script not found, injecting...');
+        // If the content script is not injected, inject it
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id! },
+          files: ['content.js'],
+        });
+        // Try sending the message again
+        chrome.tabs.sendMessage(tab.id!, { action: 'openSidebar' }, (retryResponse) => {
+          console.log('Background script: Retry response:', retryResponse);
+        });
+      }
+    });
+
+    sendResponse({ success: true });
+  } catch (error) {
+    console.error('Failed to open sidebar:', error);
     sendResponse({ success: false, error: (error as Error).message });
   }
 }

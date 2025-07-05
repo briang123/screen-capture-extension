@@ -391,13 +391,9 @@ export async function launchExtensionContext(customUserDataDir?: string): Promis
 /**
  * Sets up a new page in the given context and navigates to the test URL.
  * @param context Playwright browser context
- * @param devMode Whether to enable dev mode (default: true)
  * @returns The Playwright page
  */
-export async function setupExtensionPage(
-  context: BrowserContext,
-  devMode: boolean = true
-): Promise<Page> {
+export async function setupExtensionPage(context: BrowserContext): Promise<Page> {
   // Try to reuse the initial about:blank page if it exists
   let page: Page | undefined;
   const pages = context.pages();
@@ -414,10 +410,13 @@ export async function setupExtensionPage(
     console.log(`[PAGE ${type.toUpperCase()}]`, msg.text(), location);
   });
 
-  // Dev mode flag
-  await page.addInitScript((mode: boolean) => {
-    window.SC_DEV_MODE = mode;
-  }, devMode);
+  // Test mode flag and TEST_URL for production tests
+  await page.addInitScript(() => {
+    // Set a cookie that the content script can access
+    document.cookie = 'test_mode=true; path=/';
+    // Set TEST_URL as a window variable that content script can access
+    (window as any).SC_TEST_URL = '${TEST_URL}';
+  });
 
   // Go to test page
   await page.goto(TEST_URL);
@@ -425,16 +424,19 @@ export async function setupExtensionPage(
 }
 
 /**
- * Triggers the sidebar overlay in the extension by sending a runtime message.
+ * Triggers the sidebar overlay in the extension by sending a message to the content script.
  * @param page Playwright page object
- * @param extensionId The extension ID
  */
-export async function triggerSidebarOverlay(page: Page, extensionId: string): Promise<void> {
-  const client = await page.context().newCDPSession(page);
-  await client.send('Runtime.evaluate', {
-    expression: `chrome.runtime.sendMessage('${extensionId}', { action: 'openSidebar' });`,
-    includeCommandLineAPI: true,
+export async function triggerSidebarOverlay(page: Page): Promise<void> {
+  // Send message to content script to open sidebar
+  await page.evaluate(() => {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ action: 'openSidebar' });
+    }
   });
+
+  // Wait a bit for the sidebar to be injected
+  await page.waitForTimeout(1000);
 }
 
 /**

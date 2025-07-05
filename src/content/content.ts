@@ -16,9 +16,6 @@ import { mountSidebar, unmountSidebar } from '@/sidebar/sidebar';
 
 console.log('Screen Capture Extension content script loaded');
 console.log('[DEV] window.location.hostname:', window.location.hostname);
-// Use build-time injected variable for dev mode
-const DEV_MODE = import.meta.env.DEV;
-console.log('[DEV] DEV_MODE:', DEV_MODE);
 
 // Interface for element selection
 interface ElementSelection {
@@ -175,18 +172,25 @@ if (localStorage.getItem(SIDEBAR_PIN_KEY) === 'true') {
   injectSidebar();
 }
 
-// Auto-inject sidebar in dev mode for testing
-if (DEV_MODE && window.location.hostname === 'cleanshot.com' && document.body) {
-  console.log('[DEV] Entering auto-inject block for sidebar on cleanshot.com');
+// Auto-inject sidebar in dev mode or test mode for testing
+const testUrl = (window as any).SC_TEST_URL || 'https://cleanshot.com';
+const testHostname = new URL(testUrl).hostname;
+
+const isTestMode =
+  window.location.hostname === testHostname &&
+  (window.location.search.includes('test=true') || document.cookie.includes('test_mode=true'));
+
+if (isTestMode && document.body) {
+  console.log(`[TEST] Auto-injecting sidebar for testing on ${testHostname}`);
   injectSidebar();
-  console.log('[DEV] Called injectSidebar()');
+  console.log('[TEST] Called injectSidebar()');
   // Log after mounting
   setTimeout(() => {
     const sidebarRoot = document.getElementById('sc-sidebar-root');
     if (sidebarRoot) {
       const style = window.getComputedStyle(sidebarRoot);
       console.log(
-        '[DEV] #sc-sidebar-root exists. display:',
+        '[TEST] #sc-sidebar-root exists. display:',
         style.display,
         'visibility:',
         style.visibility,
@@ -194,7 +198,7 @@ if (DEV_MODE && window.location.hostname === 'cleanshot.com' && document.body) {
         style.opacity
       );
     } else {
-      console.log('[DEV] #sc-sidebar-root does not exist after injectSidebar');
+      console.log('[TEST] #sc-sidebar-root does not exist after injectSidebar');
     }
   }, 1000);
 }

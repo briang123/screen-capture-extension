@@ -131,9 +131,9 @@ const test = base.extend<MyFixtures>({
     }
     await use(extensionId);
   },
-  sidebar: async ({ page, extensionId }, use) => {
-    console.log('Sidebar fixture: Extension ID =', extensionId);
-    await triggerSidebarOverlay(page, extensionId);
+  sidebar: async ({ page }, use) => {
+    console.log('Sidebar fixture: Triggering sidebar overlay');
+    await triggerSidebarOverlay(page);
     console.log('Sidebar fixture: Triggered sidebar overlay');
     await use(true);
   },

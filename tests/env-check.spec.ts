@@ -5,7 +5,6 @@ test('environment variables are loaded and correct', () => {
   console.log('COLLECT_VIDEO:', process.env.COLLECT_VIDEO);
   console.log('COLLECT_SCREENSHOTS:', process.env.COLLECT_SCREENSHOTS);
   console.log('COLLECT_FULLPAGE_SCREENSHOTS:', process.env.COLLECT_FULLPAGE_SCREENSHOTS);
-  console.log('DEV_MODE:', process.env.DEV_MODE);
   console.log('TEST_URL:', process.env.TEST_URL);
   console.log('NODE_ENV:', process.env.NODE_ENV);
   console.log('SHOW_BROWSER:', process.env.SHOW_BROWSER);
