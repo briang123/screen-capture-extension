@@ -196,7 +196,10 @@ export function getLaunchArgs() {
   ];
 
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-  const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
+  // Use TEST_MODE from environment files, with SHOW_BROWSER as override
+  const testMode = process.env.TEST_MODE || 'headless';
+  const shouldUseHeadless =
+    isCI || (process.env.SHOW_BROWSER !== 'true' && testMode === 'headless');
 
   if (shouldUseHeadless) {
     // Use --headless=new for better extension support
@@ -329,12 +332,15 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
  * @returns The Playwright browser context
  */
 export async function launchExtensionContext(customUserDataDir?: string): Promise<BrowserContext> {
-  // Only use headless mode if explicitly requested
-  const shouldUseHeadless = process.env.HEADLESS === 'true';
+  // Use TEST_MODE from environment files, with SHOW_BROWSER as override
+  const testMode = process.env.TEST_MODE || 'headless';
+  const shouldUseHeadless = process.env.SHOW_BROWSER !== 'true' && testMode === 'headless';
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
   console.log('Launching Chrome with extension support...');
   console.log('Extension path:', extensionPath);
+  console.log('Test mode:', testMode);
+  console.log('Show browser:', process.env.SHOW_BROWSER);
   console.log('Headless mode:', shouldUseHeadless);
   console.log('CI environment:', isCI);
 

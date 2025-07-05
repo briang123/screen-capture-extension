@@ -34,6 +34,8 @@ This document explains the available npm scripts in this project, their purpose,
 | `test:ui`            | Runs Vitest in UI mode                                                           | For interactive test debugging    |
 | `test:run`           | Runs Vitest tests in run mode                                                    | For CI or quick test runs         |
 | `test:pw`            | Runs Playwright browser tests                                                    | For browser/E2E testing           |
+| `test:pw:ui`         | Opens Playwright's interactive UI mode                                           | For interactive debugging         |
+| `test:pw:ui:dev`     | UI mode with development environment settings                                    | For development debugging         |
 | `test:e2e:extension` | Runs extension E2E tests via Playwright script                                   | For full extension E2E testing    |
 | `lint`               | Lints and auto-fixes code with ESLint                                            | Before commit or build            |
 | `type-check`         | Runs TypeScript type checking                                                    | Before commit or build            |

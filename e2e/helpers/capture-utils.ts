@@ -75,7 +75,9 @@ function isErrorWithMessage(error: unknown): error is { message: string } {
  * @param page Playwright page object
  */
 export async function assertImageCopiedToClipboard(page: Page): Promise<void> {
-  if (process.env.HEADLESS === 'true') {
+  // Use TEST_MODE from environment files instead of hardcoded HEADLESS
+  const testMode = process.env.TEST_MODE || 'headless';
+  if (testMode === 'headless') {
     console.log('Skipping clipboard check in headless mode.');
     return;
   }
