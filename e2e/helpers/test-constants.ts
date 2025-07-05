@@ -1,5 +1,5 @@
 // e2e/test-constants.js
-import { parseEnvBool } from '@shared/utils/env';
+import { parseEnvBool } from '../../src/shared/utils/env';
 
 export const TEST_URL: string = process.env.TEST_URL || 'https://cleanshot.com';
 export const TEST_TIMEOUT: number = 20000;

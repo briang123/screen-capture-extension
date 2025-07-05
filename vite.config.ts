@@ -59,11 +59,12 @@ export default defineConfig({
       '**/*.e2e.ts',
       '**/*.e2e.js',
     ],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
-        'node_modules/',
+        'node_modules/**',
         'src/helpers/test-setup.ts',
         '**/*.d.ts',
         '**/*.config.*',
