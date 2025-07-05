@@ -3,6 +3,7 @@ description:
 globs:
 alwaysApply: false
 ---
+
 # Code Structure and Organization Rule
 
 - When adding or editing code, always place new logic, hooks, or configuration blocks where they make the most logical sense within the file or module.
@@ -12,5 +13,6 @@ alwaysApply: false
 - If unsure about placement, ask the team or propose options for discussion.
 
 **References:**
+
 - [Cursor Rules Instructions](mdc:.cursor/rules)
-- [tests/helpers/test-setup.ts](mdc:tests/helpers/test-setup.ts)
+- [e2e/helpers/test-setup.ts](mdc:e2e/helpers/test-setup.ts)

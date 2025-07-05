@@ -1,11 +1,13 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
+
 # Playwright Testing Best Practices
 
 ## Documentation Reference
+
 - [Playwright Official Documentation](mdc:https:/playwright.dev/docs/intro) - Primary reference for all Playwright features and best practices
 - [Playwright Test Configuration](mdc:https:/playwright.dev/docs/test-configuration) - Configuration options and setup
 - [Playwright Video Recording](mdc:https:/playwright.dev/docs/videos) - Video recording configuration and troubleshooting
@@ -13,44 +15,52 @@ alwaysApply: true
 ## Project-Specific Test Setup
 
 ### Environment Configuration
+
 - Tests use environment-specific configuration files: [.env](mdc:.env), [.env.development](mdc:.env.development), [.env.production](mdc:.env.production)
 - Environment loading is handled by [src/shared/utils/env.ts](mdc:src/shared/utils/env.ts)
-- Test constants are defined in [tests/helpers/test-constants.ts](mdc:tests/helpers/test-constants.ts)
+- Test constants are defined in [e2e/helpers/test-constants.ts](mdc:e2e/helpers/test-constants.ts)
 
 ### Test Configuration Files
+
 - Main Playwright config: [playwright.config.cjs](mdc:playwright.config.cjs)
 - Global setup: [playwright.global-setup.cjs](mdc:playwright.global-setup.cjs)
-- Test setup and fixtures: [tests/helpers/test-setup.ts](mdc:tests/helpers/test-setup.ts)
+- Test setup and fixtures: [e2e/helpers/test-setup.ts](mdc:e2e/helpers/test-setup.ts)
 
 ### Core Test Utilities
-- Browser context and page setup: [tests/helpers/test-utils-core.ts](mdc:tests/helpers/test-utils-core.ts)
-- Sidebar-specific test utilities: [tests/helpers/sidebar-utils.ts](mdc:tests/helpers/sidebar-utils.ts)
-- Capture and area selection utilities: [tests/helpers/capture-utils.ts](mdc:tests/helpers/capture-utils.ts)
+
+- Browser context and page setup: [e2e/helpers/test-utils-core.ts](mdc:e2e/helpers/test-utils-core.ts)
+- Sidebar-specific test utilities: [e2e/helpers/sidebar-utils.ts](mdc:e2e/helpers/sidebar-utils.ts)
+- Capture and area selection utilities: [e2e/helpers/capture-utils.ts](mdc:e2e/helpers/capture-utils.ts)
 
 ## Best Practices
 
 ### Video Recording
+
 - **Issue**: Context-level video recording creates duplicate videos for multiple tabs
 - **Solution**: Use page-level video recording or close initial pages before creating test pages
 - **Configuration**: Set `COLLECT_VIDEO=true` in environment files for video recording
 
 ### Screenshot Capture
+
 - **Configuration**: Set `COLLECT_SCREENSHOTS=true` and `COLLECT_FULLPAGE_SCREENSHOTS=true` in environment files
-- **Location**: Screenshots are saved to `tests/media/` directory
+- **Location**: Screenshots are saved to `e2e/media/` directory
 - **Naming**: Files use timestamp-based naming with test status
 
 ### Browser Context Management
+
 - Each test gets a unique user data directory to avoid conflicts
-- Extension loading is configured in [tests/helpers/test-utils-core.ts](mdc:tests/helpers/test-utils-core.ts)
+- Extension loading is configured in [e2e/helpers/test-utils-core.ts](mdc:e2e/helpers/test-utils-core.ts)
 - Chrome arguments are optimized for extension testing
 
 ### Test Fixtures
+
 - `context`: Provides a browser context with extension loaded
 - `page`: Sets up a test page with proper logging and navigation
 - `extensionId`: Retrieves and validates the extension ID
 - `sidebar`: Triggers sidebar overlay for sidebar-specific tests
 
 ### Running Tests
+
 ```bash
 # Run all tests
 npm run test:pw
@@ -69,6 +79,7 @@ npm run test:pw:dev
 ```
 
 ### Environment Variables
+
 - `TEST_URL`: Target URL for tests (default: https://cleanshot.com)
 - `COLLECT_SCREENSHOTS`: Enable screenshot capture
 - `COLLECT_VIDEO`: Enable video recording
@@ -79,37 +90,42 @@ npm run test:pw:dev
 ### Common Issues and Solutions
 
 #### Duplicate Video Recordings
+
 - **Cause**: Multiple tabs in context with context-level video recording
 - **Solution**: Initial `about:blank` pages are automatically closed after test page creation to prevent duplicate recordings
 
 #### Context Closed Errors
+
 - **Cause**: Closing all pages in a context with video recording
 - **Solution**: Keep at least one page open or use page-level recording
 
 #### Environment Variables Not Loading
+
 - **Cause**: Wrong environment file being loaded
 - **Solution**: Use `npm run test:pw:dev` instead of `npm run test:pw` to automatically load `.env.development`
 
 #### Extension Not Loading
+
 - **Cause**: Extension build issues or incorrect path
 - **Solution**: Ensure extension is built before running tests (`npm run build`)
 
 ### Test Structure
-- Tests are located in [tests/](mdc:tests) directory
-- Sidebar tests: [tests/sidebar/](mdc:tests/sidebar)
-- Test helpers: [tests/helpers/](mdc:tests/helpers)
-- Test results and media: [tests/results/](mdc:tests/results) and [tests/media/](mdc:tests/media)
+
+- Tests are located in [e2e/](mdc:e2e) directory
+- Sidebar tests: [e2e/sidebar/](mdc:e2e/sidebar)
+- Test helpers: [e2e/helpers/](mdc:e2e/helpers)
+- Test results and media: [e2e/results/](mdc:e2e/results) and [e2e/media/](mdc:e2e/media)
 
 ### Debugging Tests
+
 - Use `--headed` flag to see browser during test execution
 - Check console logs for detailed debugging information
-- Review test artifacts in `tests/media/` and `tests/results/` directories
+- Review test artifacts in `e2e/media/` and `e2e/results/` directories
 - Use Playwright's trace viewer for detailed test analysis
 
 ### Performance Considerations
+
 - Tests run with optimized Chrome arguments for extension support
 - Each test uses isolated user data directory to prevent conflicts
 - Video recording can significantly impact test performance
 - Consider using headless mode for CI/CD pipelines
-
-

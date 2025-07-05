@@ -151,7 +151,7 @@ When using UI mode scripts (`test:pw:ui`), you get access to:
 - **Console & Network**: Browser logs and network request details
 - **Watch Mode**: Auto-rerun tests on file changes
 
-For detailed UI mode documentation, see [tests/README.md](tests/README.md).
+For detailed UI mode documentation, see [e2e/README.md](e2e/README.md).
 
 ---
 

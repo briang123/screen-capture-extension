@@ -70,7 +70,7 @@ This document summarizes key lessons, strategies, and known issues from extensiv
 2. **Review Playwright Test Setup**
    - Double-check that the extension is built and present in the expected directory before running tests.
    - Ensure the test harness page matches the extension's content script match patterns.
-   - Use the `tests/env-check.spec.ts` to verify environment variables at runtime.
+   - Use the `e2e/env-check.spec.ts` to verify environment variables at runtime.
 
 3. **Isolate and Document Known Limitations**
    - Clearly mark tests that are expected to fail due to Playwright/content script limitations.
@@ -297,8 +297,8 @@ Given the current limitations and findings, here are actionable recommendations 
 
 ### Summary of Changes Made
 
-- **Restored Working Commit Pattern**: Updated `tests/helpers/test-setup.ts` to use `launchExtensionContext()` and `setupExtensionPage()` instead of the current `playwright.chromium.launch()` approach.
-- **Fixed Test Structure**: Updated `tests/sidebar/sidebar-injection.spec.ts` to use proper fixtures instead of creating its own browser/context.
+- **Restored Working Commit Pattern**: Updated `e2e/helpers/test-setup.ts` to use `launchExtensionContext()` and `setupExtensionPage()` instead of the current `playwright.chromium.launch()` approach.
+- **Fixed Test Structure**: Updated `e2e/sidebar/sidebar-injection.spec.ts` to use proper fixtures instead of creating its own browser/context.
 - **Removed initialURL**: Updated `launchExtensionContext()` to not use `initialURL` parameter, letting `setupExtensionPage()` handle navigation.
 
 ### Test Results
@@ -444,7 +444,7 @@ test('Test Extension Injected UI', async () => {
 
 ### Key Observations from the Working Commit
 
-- **Playwright Test Setup (`tests/helpers/test-setup.ts`):**
+- **Playwright Test Setup (`e2e/helpers/test-setup.ts`):**
   - Used `playwright.chromium.launch` (not persistent context) with `headless` set by `process.env.TEST_MODE`.
   - Used `getLaunchArgs()` for Chrome flags, including all necessary extension flags.
   - Created a new context for each test and closed it after use.
@@ -454,7 +454,7 @@ test('Test Extension Injected UI', async () => {
   - Used `getExtensionId(context)` and threw if not found.
   - Called `triggerSidebarOverlay(page, extensionId)` to trigger the sidebar after page load.
 
-- **Test Utils Core (`tests/helpers/test-utils-core.ts`):**
+- **Test Utils Core (`e2e/helpers/test-utils-core.ts`):**
   - `getLaunchArgs()` included all required flags for extension loading and stability.
   - `getExtensionId` waited for the extension to load and checked background pages/service workers.
   - `launchExtensionContext` was available but not used in the main test setup.

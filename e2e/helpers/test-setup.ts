@@ -147,7 +147,7 @@ const test = base.extend<MyFixtures>({
 // This avoids conflicts with Playwright's test system
 test.afterEach(async ({ page }, testInfo) => {
   if (COLLECT_SCREENSHOTS || COLLECT_VIDEO) {
-    const mediaDir = path.join(process.cwd(), 'tests', 'media');
+    const mediaDir = path.join(process.cwd(), 'e2e', 'media');
     if (!fs.existsSync(mediaDir)) {
       fs.mkdirSync(mediaDir, { recursive: true });
     }

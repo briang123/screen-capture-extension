@@ -15,7 +15,7 @@ dotenv.config({ path: envFile });
 // @ts-check
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
-  testDir: './tests',
+  testDir: './e2e',
   testMatch: /.*\.spec\.(js|ts)$/,
   timeout: 30000,
   retries: 0,

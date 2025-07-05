@@ -5,7 +5,7 @@ This directory contains the Playwright tests for the screen capture extension. T
 ## Directory Structure
 
 ```
-tests/
+e2e/
 ├── README.md                    # This file
 ├── sidebar/                     # Sidebar-specific tests
 │   ├── sidebar-core.spec.ts     # Core sidebar functionality (open, close, move, collapse)
@@ -77,13 +77,13 @@ npm test
 
 ```bash
 # Run only sidebar core tests
-npx playwright test tests/sidebar/sidebar-core.spec.ts
+npx playwright test e2e/sidebar/sidebar-core.spec.ts
 
 # Run only area selection tests
-npx playwright test tests/sidebar/area-selection.spec.ts
+npx playwright test e2e/sidebar/area-selection.spec.ts
 
 # Run only screenshot capture tests
-npx playwright test tests/sidebar/screenshot-capture.spec.ts
+npx playwright test e2e/sidebar/screenshot-capture.spec.ts
 ```
 
 ### Run tests with specific options
@@ -287,7 +287,7 @@ When using UI mode (`npm run test:pw:ui`), you get access to:
 ## Test Structure
 
 ```
-tests/
+e2e/
 ├── helpers/                 # Test utilities and setup
 │   ├── test-constants.ts    # Environment constants
 │   ├── test-setup.ts        # Playwright configuration
@@ -328,7 +328,7 @@ tests/
 #### Video Recording Issues
 
 - Set `COLLECT_VIDEO=true` for video recording
-- Videos are saved to `tests/media/` directory
+- Videos are saved to `e2e/media/` directory
 - Use UI mode to view videos with timeline
 
 ## Best Practices
@@ -354,6 +354,6 @@ tests/
 ## Configuration Files
 
 - `playwright.config.cjs`: Main Playwright configuration
-- `tests/helpers/test-constants.ts`: Environment constants
-- `tests/helpers/test-setup.ts`: Test setup and fixtures
+- `e2e/helpers/test-constants.ts`: Environment constants
+- `e2e/helpers/test-setup.ts`: Test setup and fixtures
 - `playwright.global-setup.cjs`: Global setup for extension loading

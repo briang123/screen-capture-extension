@@ -1,4 +1,4 @@
-// tests/test-constants.js
+// e2e/test-constants.js
 import { parseEnvBool } from '@shared/utils/env';
 
 export const TEST_URL: string = process.env.TEST_URL || 'https://cleanshot.com';

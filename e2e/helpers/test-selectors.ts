@@ -1,4 +1,4 @@
-// tests/test-selectors.ts
+// e2e/test-selectors.ts
 
 // Static selectors
 export const SIDEBAR_ROOT_SELECTOR = '#sc-sidebar-root';

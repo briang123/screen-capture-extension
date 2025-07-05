@@ -54,7 +54,7 @@ export default defineConfig({
     css: true,
     exclude: [
       'node_modules/**',
-      'tests/**/*.spec.ts',
+      'e2e/**/*.spec.ts',
       '**/node_modules/**',
       '**/*.e2e.ts',
       '**/*.e2e.js',
@@ -68,7 +68,7 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         'dist/',
-        'tests/**/*',
+        'e2e/**/*',
       ],
     },
   },

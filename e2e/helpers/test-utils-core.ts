@@ -362,7 +362,7 @@ export async function launchExtensionContext(customUserDataDir?: string): Promis
 
   if (process.env.COLLECT_VIDEO === 'true') {
     contextOptions.recordVideo = {
-      dir: path.resolve(__dirname, '..', '..', 'tests', 'media'),
+      dir: path.resolve(__dirname, '..', '..', 'e2e', 'media'),
     };
   }
 
