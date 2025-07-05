@@ -103,6 +103,8 @@ const test = base.extend<MyFixtures>({
     }
 
     page.on('console', (msg) => {
+      // Print all console messages to the terminal
+      console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
       if (currentTestLogFile) {
         try {
           const timestamp = getTimestampString();
@@ -119,6 +121,7 @@ const test = base.extend<MyFixtures>({
   },
   extensionId: async ({ context }, use) => {
     const extensionId = await getExtensionId(context);
+    console.log('[Test Setup] Extension ID:', extensionId);
     if (!extensionId) {
       console.error('Extension ID could not be determined. This usually means:');
       console.error('1. The extension failed to load properly');
@@ -142,6 +145,13 @@ const test = base.extend<MyFixtures>({
 // --------------------
 // Playwright Hooks
 // --------------------
+// test.beforeEach(async ({ page }) => {
+//   if (process.env.NODE_ENV === 'production') {
+//     await page.evaluate(() => localStorage.setItem('sc_sidebar_pinned', 'true'));
+//     await page.reload();
+//   }
+// });
+
 // --- Playwright afterEach logic ---
 // Register the afterEach hook directly in the test configuration
 // This avoids conflicts with Playwright's test system

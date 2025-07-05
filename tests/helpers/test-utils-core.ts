@@ -196,7 +196,7 @@ export function getLaunchArgs() {
   ];
 
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-  const shouldUseHeadless = isCI || process.env.HEADLESS === 'true';
+  const shouldUseHeadless = isCI || process.env.TEST_MODE === 'headless';
 
   if (shouldUseHeadless) {
     // Use --headless=new for better extension support
@@ -330,7 +330,7 @@ export async function getExtensionId(context: BrowserContext): Promise<string | 
  */
 export async function launchExtensionContext(customUserDataDir?: string): Promise<BrowserContext> {
   // Only use headless mode if explicitly requested
-  const shouldUseHeadless = process.env.HEADLESS === 'true';
+  const shouldUseHeadless = process.env.TEST_MODE === 'headless';
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
   console.log('Launching Chrome with extension support...');
@@ -367,6 +367,7 @@ export async function launchExtensionContext(customUserDataDir?: string): Promis
   }
 
   const userDataDirToUse = customUserDataDir || userDataDir;
+  // Launch persistent context without initialURL (let setupExtensionPage handle navigation)
   const context = await chromium.launchPersistentContext(userDataDirToUse, contextOptions);
 
   // Grant clipboard permissions for the test URL
@@ -384,6 +385,10 @@ export async function launchExtensionContext(customUserDataDir?: string): Promis
   console.log('Background pages:', context.backgroundPages().length);
   console.log('Service workers:', context.serviceWorkers().length);
   console.log('Initial pages:', context.pages().length);
+  // Log the URL of the initial page
+  if (context.pages().length > 0) {
+    console.log('Initial page URL:', context.pages()[0].url());
+  }
 
   return context;
 }

@@ -1,0 +1,13 @@
+{
+  "origins": [
+    {
+      "origin": "https://cleanshot.com",
+      "localStorage": [
+        {
+          "name": "sc_sidebar_pinned",
+          "value": "true"
+        }
+      ]
+    }
+  ]
+}

@@ -11,3 +11,17 @@ export const COLLECT_FULLPAGE_SCREENSHOTS: boolean = parseEnvBool(
   process.env.COLLECT_FULLPAGE_SCREENSHOTS
 );
 export const LOG_TEST_RESULTS: boolean = parseEnvBool(process.env.LOG_TEST_RESULTS, true);
+
+// UI Mode Configuration
+export const TEST_MODE: 'headed' | 'headless' | 'ui' = (process.env.TEST_MODE as any) || 'headless';
+export const HEADLESS_MODE: boolean =
+  TEST_MODE === 'headless' || parseEnvBool(process.env.HEADLESS, true);
+export const UI_MODE: boolean = TEST_MODE === 'ui';
+export const HEADED_MODE: boolean = TEST_MODE === 'headed';
+
+// UI Mode specific settings
+export const SHOW_BROWSER: boolean = parseEnvBool(process.env.SHOW_BROWSER, HEADED_MODE || UI_MODE);
+export const WATCH_MODE: boolean = parseEnvBool(process.env.WATCH_MODE, UI_MODE);
+export const TRACE_MODE: 'off' | 'on' | 'retain-on-failure' | 'on-first-retry' = UI_MODE
+  ? 'on'
+  : (process.env.TRACE_MODE as any) || 'on-first-retry';

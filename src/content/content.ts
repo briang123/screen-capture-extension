@@ -20,6 +20,13 @@ console.log('[DEV] window.location.hostname:', window.location.hostname);
 const DEV_MODE = import.meta.env.DEV;
 console.log('[DEV] DEV_MODE:', DEV_MODE);
 
+// Extend Window interface for test-only flag
+declare global {
+  interface Window {
+    PLAYWRIGHT_TEST?: boolean;
+  }
+}
+
 // Interface for element selection
 interface ElementSelection {
   element: HTMLElement;
@@ -170,8 +177,15 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
+// Test-only override: always inject sidebar if ?test=1 is present in the URL
+if (window.location.search.includes('test=1')) {
+  console.log('[Content Script] Detected ?test=1, injecting sidebar');
+  injectSidebar();
+}
+
 // Auto-inject if pinned
 if (localStorage.getItem(SIDEBAR_PIN_KEY) === 'true') {
+  console.log('[Content Script] Detected sc_sidebar_pinned, injecting sidebar');
   injectSidebar();
 }
 
@@ -631,3 +645,5 @@ export {
   getElementInfo,
   generateSelector,
 };
+
+console.log('[Content Script] (top) Loaded on', window.location.href);
