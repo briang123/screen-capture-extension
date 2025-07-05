@@ -1,0 +1,16 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Code Structure and Organization Rule
+
+- When adding or editing code, always place new logic, hooks, or configuration blocks where they make the most logical sense within the file or module.
+- Maintain a clear and consistent order: setup and configuration (e.g., beforeEach, afterEach) should be grouped together and ordered logically (setup before teardown).
+- Keep related code (e.g., hooks, fixtures, utility functions) together to improve readability and maintainability.
+- When reviewing or writing code, feel free to suggest or ask about alternative structures, organization, or sorting to further improve clarity and maintainability.
+- If unsure about placement, ask the team or propose options for discussion.
+
+**References:**
+- [Cursor Rules Instructions](mdc:.cursor/rules)
+- [tests/helpers/test-setup.ts](mdc:tests/helpers/test-setup.ts)

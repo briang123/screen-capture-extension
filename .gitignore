@@ -105,6 +105,6 @@ ai-generated/
 /playwright-report/
 /test-results/
 /.playwright/
-/.pw-chrome-profile/ 
 /tests/media/
 /tests/results/
+.pw-*
