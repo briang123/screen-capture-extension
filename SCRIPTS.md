@@ -8,6 +8,7 @@ This document explains the available npm scripts in this project, their purpose,
 
 - **Development:** Use `dev` for local development with hot reload. Use `build:main` or `build:content:dev` for fast, partial builds.
 - **Testing:** Use `test` for unit/integration tests, `test:pw` for Playwright browser tests, and `test:e2e:extension` for end-to-end extension tests.
+- **UI Mode Testing:** Use `test:pw:ui` for interactive debugging, `test:pw:headed` for visual debugging, and `test:pw:headless` for fast execution.
 - **Linting/Formatting:** Use `lint`, `format`, and `type-check` to ensure code quality before committing or building.
 - **Build & Release:** Use `build` for a full, production-ready build. Use `zip` to package the extension for distribution.
 - **Cleanup:** Use `clean` to remove build artifacts.
@@ -37,6 +38,24 @@ This document explains the available npm scripts in this project, their purpose,
 | `lint`               | Lints and auto-fixes code with ESLint                                            | Before commit or build            |
 | `type-check`         | Runs TypeScript type checking                                                    | Before commit or build            |
 | `format`             | Formats code with Prettier                                                       | Before commit or build            |
+
+### UI Mode Testing Scripts
+
+| Script                   | Description                                        | When to Use                         |
+| ------------------------ | -------------------------------------------------- | ----------------------------------- |
+| `test:pw:headless`       | Runs tests in headless mode (fastest)              | CI/CD, quick test runs              |
+| `test:pw:headed`         | Runs tests with browser visible                    | Development, visual debugging       |
+| `test:pw:ui`             | Opens Playwright UI mode for interactive debugging | Complex debugging, test development |
+| `test:pw:ui:dev`         | UI mode with development environment               | Development with UI mode            |
+| `test:pw:popup`          | Tests popup interface (headless)                   | Popup-specific testing              |
+| `test:pw:sidebar`        | Tests sidebar interface (headless)                 | Sidebar-specific testing            |
+| `test:pw:window`         | Tests window interface (headless)                  | Window-specific testing             |
+| `test:pw:popup:headed`   | Tests popup interface (headed)                     | Popup debugging                     |
+| `test:pw:sidebar:headed` | Tests sidebar interface (headed)                   | Sidebar debugging                   |
+| `test:pw:window:headed`  | Tests window interface (headed)                    | Window debugging                    |
+| `test:pw:popup:ui`       | Tests popup interface (UI mode)                    | Popup complex debugging             |
+| `test:pw:sidebar:ui`     | Tests sidebar interface (UI mode)                  | Sidebar complex debugging           |
+| `test:pw:window:ui`      | Tests window interface (UI mode)                   | Window complex debugging            |
 
 ---
 
@@ -73,6 +92,22 @@ This document explains the available npm scripts in this project, their purpose,
 - **`test:pw`**: Runs Playwright browser tests for E2E/browser automation.
 - **`test:e2e:extension`**: Runs full extension E2E tests using a Playwright script.
 
+### UI Mode Testing
+
+- **`test:pw:headless`**: Runs tests without showing the browser (fastest, best for CI/CD).
+- **`test:pw:headed`**: Runs tests with browser visible (good for development debugging).
+- **`test:pw:ui`**: Opens Playwright's interactive UI mode with timeline view, DOM snapshots, and time-travel debugging.
+- **`test:pw:ui:dev`**: UI mode with development environment settings.
+- **`test:pw:popup`**: Tests only the popup interface in headless mode.
+- **`test:pw:sidebar`**: Tests only the sidebar interface in headless mode.
+- **`test:pw:window`**: Tests only the window interface in headless mode.
+- **`test:pw:popup:headed`**: Tests popup interface with browser visible.
+- **`test:pw:sidebar:headed`**: Tests sidebar interface with browser visible.
+- **`test:pw:window:headed`**: Tests window interface with browser visible.
+- **`test:pw:popup:ui`**: Tests popup interface in interactive UI mode.
+- **`test:pw:sidebar:ui`**: Tests sidebar interface in interactive UI mode.
+- **`test:pw:window:ui`**: Tests window interface in interactive UI mode.
+
 ### Linting, Formatting, Type-checking
 
 - **`lint`**: Lints and auto-fixes code using ESLint.
@@ -88,14 +123,35 @@ This document explains the available npm scripts in this project, their purpose,
    - Use `build:main` or `build:content:dev` for fast partial builds.
 2. **Testing:**
    - Use `test` for unit/integration tests.
-   - Use `test:pw` or `test:e2e:extension` for browser/E2E tests.
-3. **Lint/Format/Type-check:**
+   - Use `test:pw:headless` for fast browser tests.
+   - Use `test:pw:headed` for visual debugging.
+   - Use `test:pw:ui` for complex debugging and test development.
+3. **UI-Specific Testing:**
+   - Use `test:pw:popup`, `test:pw:sidebar`, or `test:pw:window` for specific interface testing.
+   - Add `:headed` or `:ui` suffix for debugging specific interfaces.
+4. **Lint/Format/Type-check:**
    - Run `lint`, `format`, and `type-check` before committing or building.
-4. **Build & Release:**
+5. **Build & Release:**
    - Use `build` for a full, production-ready build.
    - Use `zip` to package the extension for distribution.
-5. **Cleanup:**
+6. **Cleanup:**
    - Use `clean` as needed to remove build artifacts.
+
+---
+
+## UI Mode Features
+
+When using UI mode scripts (`test:pw:ui`), you get access to:
+
+- **Timeline View**: Visual timeline of test actions with hover snapshots
+- **Actions Panel**: Detailed list of all test actions with locator information
+- **DOM Inspection**: Pop out DOM snapshots for detailed inspection
+- **Pick Locator**: Interactive locator picker for element selection
+- **Source Code**: Highlighted source code with direct VS Code links
+- **Console & Network**: Browser logs and network request details
+- **Watch Mode**: Auto-rerun tests on file changes
+
+For detailed UI mode documentation, see [tests/README.md](tests/README.md).
 
 ---
 

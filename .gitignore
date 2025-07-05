@@ -102,9 +102,11 @@ jspm_packages/
 ai-generated/
 
 # Playwright
+.pw-*/
 /playwright-report/
 /test-results/
 /.playwright/
-/.pw-chrome-profile/ 
 /tests/media/
 /tests/results/
+/blob-report/
+/playwright/.cache/

@@ -1,4 +1,3 @@
 #!/bin/sh
-
 npm run test
-npx playwright test 
+# npm run test:pw
