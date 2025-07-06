@@ -26,6 +26,7 @@
     "test:pw:ui": "cross-env NODE_ENV=production playwright test --ui",
     "test:pw:ui:dev": "cross-env NODE_ENV=development playwright test --ui",
     "test:e2e:extension": "tsx scripts/extension-e2e-playwright.ts",
+    "dev:browser": "cross-env NODE_ENV=development tsx scripts/dev-browser.ts",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "format": "prettier --write ."

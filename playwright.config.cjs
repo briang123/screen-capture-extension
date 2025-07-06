@@ -30,6 +30,9 @@ const config = {
     viewport: { width: 1280, height: 800 },
     ignoreHTTPSErrors: true,
     video: process.env.COLLECT_VIDEO === 'true' ? 'on' : 'off',
+    // Development mode settings
+    devtools: process.env.DEVTOOLS === 'true',
+    slowMo: process.env.SLOW_MO ? parseInt(process.env.SLOW_MO) : 0,
   },
   globalSetup: require.resolve('./playwright.global-setup.cjs'),
 };
